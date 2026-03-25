@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CargoShare — Logística Compartida Colombia</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#060E1C;--navy2:#0C1830;--blue:#1A4FD8;--blue2:#2563EB;
+  --blue-light:#60A5FA;--orange:#F97316;--orange2:#EA6C0A;
+  --white:#FFFFFF;--gray:#7A8FAD;--gray2:#C8D4E3;
+  --card:#0E1E38;--card2:#13243F;--border:rgba(255,255,255,.07);
+  --green:#10B981;--red:#EF4444;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden;line-height:1.5;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--navy);}::-webkit-scrollbar-thumb{background:var(--blue2);border-radius:3px;}
+
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 72px;height:64px;background:rgba(6,14,28,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;}
+.logo em{color:var(--orange);font-style:normal;}
+.nav-links{display:flex;gap:32px;}
+.nav-links a{font-size:13.5px;color:var(--gray);font-weight:500;cursor:pointer;transition:.2s;}
+.nav-links a:hover{color:var(--white);}
+.nav-actions{display:flex;gap:10px;}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--white);padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;}
+.btn-ghost:hover{border-color:var(--blue-light);color:var(--blue-light);}
+.btn-cta{background:var(--orange);border:none;color:white;padding:9px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-cta:hover{background:var(--orange2);transform:translateY(-1px);}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:80px 72px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 70% at 70% 45%,rgba(26,79,216,.18) 0%,transparent 65%),radial-gradient(ellipse 30% 35% at 85% 75%,rgba(249,115,22,.1) 0%,transparent 55%);}
+.grid-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:72px 72px;}
+.hero-inner{display:flex;align-items:center;gap:40px;width:100%;position:relative;z-index:2;}
+.hero-left{flex:1;max-width:520px;}
+.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);padding:5px 14px;border-radius:100px;margin-bottom:26px;font-size:12px;color:var(--green);font-weight:600;}
+.pill-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+h1{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;line-height:1.06;letter-spacing:-2.5px;margin-bottom:20px;}
+.grad{background:linear-gradient(135deg,var(--orange) 0%,#FBBF24 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{font-size:16px;color:var(--gray);line-height:1.65;margin-bottom:36px;max-width:440px;}
+.hero-btns{display:flex;gap:12px;}
+.btn-p{background:var(--orange);color:white;border:none;padding:14px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.25s;}
+.btn-p:hover{background:var(--orange2);transform:translateY(-2px);box-shadow:0 14px 36px rgba(249,115,22,.3);}
+.btn-o{background:transparent;color:white;border:1px solid rgba(255,255,255,.18);padding:14px 26px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:.25s;}
+.btn-o:hover{border-color:rgba(255,255,255,.5);}
+
+/* HERO CARDS */
+.hero-right{flex:1;position:relative;height:460px;min-width:360px;}
+.hcard{position:absolute;background:rgba(14,30,56,.95);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:18px 20px;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,.4);}
+.hcard-main{width:275px;top:10px;right:0;animation:hf1 7s ease-in-out infinite;}
+.hcard-saving{width:172px;bottom:30px;left:0;animation:hf2 6s ease-in-out infinite;}
+.hcard-match{width:168px;top:110px;left:10px;animation:hf3 8s ease-in-out infinite;}
+.hcard-types{width:185px;bottom:40px;right:5px;animation:hf4 9s ease-in-out infinite;}
+@keyframes hf1{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes hf2{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes hf3{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes hf4{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.hc-lbl{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1.2px;font-weight:600;margin-bottom:11px;}
+.rrow{display:flex;align-items:center;gap:8px;}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.rn{font-size:14px;font-weight:700;}
+.rline{flex:1;height:1px;background:linear-gradient(90deg,var(--blue2),var(--orange));margin:0 6px;}
+.hsub{font-size:11px;color:var(--gray);margin-top:5px;}
+.capbar{background:rgba(255,255,255,.07);border-radius:3px;height:6px;margin:12px 0 5px;overflow:hidden;}
+.capfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue2),var(--orange));animation:cf 4s ease-in-out infinite alternate;}
+@keyframes cf{from{width:32%}to{width:70%}}
+.cap-lbs{display:flex;justify-content:space-between;font-size:10px;color:var(--gray);}
+.cap-lbs span:last-child{color:var(--orange);font-weight:700;}
+.hprice{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+.pbig{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--orange);}
+.punit{font-size:10px;color:var(--gray);}
+.btn-xs{background:var(--orange);color:white;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sav-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--green);}
+.sav-sub{font-size:11px;color:var(--gray);margin-top:3px;}
+.mat-ic{font-size:22px;margin-bottom:7px;}
+.mat-t{font-size:13px;font-weight:700;}
+.mat-s{font-size:11px;color:var(--gray);margin-top:2px;}
+.chip-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.chip{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);color:var(--blue-light);font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;}
+.chip.cold{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green);}
+
+/* SECTION */
+.sec{padding:88px 72px;}
+.sec-tag{font-size:11px;color:var(--orange);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;margin-bottom:12px;}
+.sec-title{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;letter-spacing:-1.5px;line-height:1.07;margin-bottom:14px;}
+.sec-sub{font-size:15px;color:var(--gray);max-width:480px;line-height:1.65;}
+
+/* BENEFITS */
+.ben-sec{background:var(--navy2);border-top:1px solid var(--border);}
+.ben-head{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;margin-bottom:52px;flex-wrap:wrap;}
+.ben-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.bcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 24px;transition:transform .3s,border-color .3s;position:relative;overflow:hidden;}
+.bcard:hover{transform:translateY(-4px);border-color:rgba(249,115,22,.2);}
+.bcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue2),var(--orange));opacity:0;transition:.3s;}
+.bcard:hover::before{opacity:1;}
+.bcard-ic{font-size:30px;margin-bottom:14px;}
+.bcard-t{font-size:15px;font-weight:700;margin-bottom:8px;}
+.bcard-d{font-size:13px;color:var(--gray);line-height:1.6;}
+.bcard-s{margin-top:13px;padding-top:13px;border-top:1px solid var(--border);font-size:12px;color:var(--orange);font-weight:600;}
+
+/* STATS */
+.stats-bar{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);}
+.sb-item{padding:44px 32px;text-align:center;border-right:1px solid var(--border);}
+.sb-item:last-child{border-right:none;}
+.sb-num{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--blue-light),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-lbl{font-size:13px;color:var(--gray);margin-top:7px;line-height:1.4;}
+.sb-src{font-size:10px;color:rgba(120,140,170,.4);margin-top:4px;}
+
+/* HOW IT WORKS */
+.hiw-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:44px;flex-wrap:wrap;}
+.tabs{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;}
+.tab{padding:9px 22px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;color:var(--gray);border:none;background:transparent;font-family:'DM Sans',sans-serif;}
+.tab.on{background:var(--blue2);color:white;}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px 26px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s;}
+.scard:hover{transform:translateY(-4px);border-color:rgba(96,165,250,.2);}
+.sc-num{font-family:'Syne',sans-serif;font-size:72px;font-weight:800;color:rgba(255,255,255,.03);position:absolute;top:8px;right:14px;line-height:1;}
+.sc-ic{font-size:30px;margin-bottom:16px;}
+.sc-t{font-size:16px;font-weight:700;margin-bottom:9px;}
+.sc-d{font-size:13.5px;color:var(--gray);line-height:1.6;}
+
+/* SIMULATOR */
+.sim-sec{background:var(--navy2);border-top:1px solid var(--border);}
+.sim-layout{display:grid;grid-template-columns:400px 1fr;gap:32px;margin-top:48px;align-items:start;}
+.sim-form{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:30px;}
+.sim-title{font-size:16px;font-weight:700;margin-bottom:22px;}
+.frow{margin-bottom:16px;}
+.frow label{display:block;font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;}
+.frow input,.frow select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:11px 13px;color:white;font-family:'DM Sans',sans-serif;font-size:13.5px;outline:none;transition:.2s;}
+.frow input:focus,.frow select:focus{border-color:var(--blue-light);}
+.frow select option{background:#0C1830;}
+.frow input::placeholder{color:rgba(255,255,255,.2);}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.g3 .frow,.g2 .frow{margin-bottom:0;}
+.vol-pill{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.17);border-radius:10px;padding:12px 14px;margin:12px 0 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;}
+.vp-v{font-size:16px;font-weight:700;color:var(--blue-light);}
+.vp-v.or{color:var(--orange);}
+.vp-v.gr{color:var(--green);font-size:13px;}
+.vp-k{font-size:10px;color:var(--gray);margin-top:2px;}
+.ins-box{background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);border-radius:9px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:rgba(255,200,140,.9);display:none;}
+.ins-box.show{display:block;}
+.btn-sim{width:100%;background:var(--blue2);color:white;border:none;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;margin-top:4px;}
+.btn-sim:hover{background:var(--blue);}
+
+/* RESULTS */
+.sim-results{display:flex;flex-direction:column;gap:18px;}
+.res-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;transition:opacity .4s;}
+.res-box.dim{opacity:.35;pointer-events:none;}
+.res-title{font-size:15px;font-weight:700;margin-bottom:16px;}
+
+/* vehicle */
+.veh-inner{background:rgba(255,255,255,.04);border-radius:12px;padding:16px;margin-bottom:14px;}
+.veh-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.veh-name{font-size:16px;font-weight:700;}
+.veh-desc{font-size:12px;color:var(--gray);margin-top:2px;}
+.veh-ic{font-size:34px;}
+.bw{margin-bottom:9px;}
+.bl{display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:5px;}
+.bl span:last-child{font-weight:700;color:white;}
+.bb{background:rgba(255,255,255,.07);border-radius:4px;height:7px;overflow:hidden;}
+.bf{height:100%;border-radius:4px;transition:width .8s ease;}
+.bf.v{background:linear-gradient(90deg,var(--blue2),var(--blue-light));}
+.bf.w{background:linear-gradient(90deg,var(--orange),#FBBF24);}
+.bf.r{background:linear-gradient(90deg,var(--red),var(--orange))!important;}
+.veh-note{font-size:12px;color:var(--gray);line-height:1.5;margin-top:10px;}
+.alert-b{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 12px;font-size:12px;color:#FCA5A5;margin-bottom:10px;display:none;}
+.alert-b.show{display:block;}
+
+/* price */
+.pr-rows{display:flex;flex-direction:column;}
+.pr-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.pr-row:last-child{border-bottom:none;}
+.pr-k{font-size:13px;color:var(--gray);}
+.pr-v{font-size:14px;font-weight:700;}
+.pr-v.hi{color:var(--orange);}
+.total-lbl{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:16px;}
+.total-amt{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--orange);line-height:1.1;}
+.saving-t{font-size:13px;color:var(--green);margin-top:4px;}
+.pbar-wrap{margin-top:16px;}
+.pbar-lbs{display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:6px;}
+.pbar-bg{background:rgba(255,255,255,.06);border-radius:5px;height:8px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--blue2),var(--orange));transition:width .9s ease;}
+.pbar-pct{text-align:right;font-size:11px;color:var(--green);margin-top:5px;}
+
+/* carriers */
+.c-list{display:flex;flex-direction:column;gap:11px;}
+.ccard{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:15px 16px;display:flex;align-items:center;gap:14px;transition:border-color .2s,transform .2s;cursor:pointer;}
+.ccard:hover{border-color:rgba(249,115,22,.28);transform:translateX(3px);}
+.ccard.sel{border-color:var(--orange);background:rgba(249,115,22,.07);}
+.cav{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(26,79,216,.15);}
+.cinfo{flex:1;}
+.cname{font-size:14px;font-weight:700;}
+.cmeta{font-size:11.5px;color:var(--gray);margin-top:1px;}
+.ctags{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.ctag{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.17);color:var(--blue-light);font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;}
+.ctag.g{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green);}
+.cright{text-align:right;flex-shrink:0;}
+.cstars{font-size:11px;color:#FBBF24;}
+.cprice{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--orange);}
+.cunit{font-size:10px;color:var(--gray);}
+.cdepart{font-size:11px;color:var(--gray);margin-top:2px;}
+.btn-book{background:var(--orange);color:white;border:none;padding:7px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-top:7px;transition:.2s;display:block;}
+.btn-book:hover{background:var(--orange2);}
+.book-ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.22);border-radius:12px;padding:22px;text-align:center;display:none;margin-top:4px;}
+.book-ok.show{display:block;}
+.book-ok-ic{font-size:38px;margin-bottom:9px;}
+.book-ok-t{font-size:17px;font-weight:700;color:var(--green);margin-bottom:6px;}
+.book-ok-s{font-size:13px;color:var(--gray);line-height:1.5;}
+
+/* TESTIMONIALS */
+.tst-sec{border-top:1px solid var(--border);}
+.car-wrap{overflow:hidden;margin-top:44px;}
+.car-track{display:flex;gap:20px;transition:transform .5s ease;}
+.tcard{min-width:calc(33.33% - 14px);background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;flex-shrink:0;}
+.tq{font-size:34px;color:var(--orange);font-family:'Syne',sans-serif;line-height:1;margin-bottom:12px;}
+.tt{font-size:14px;color:var(--gray2);line-height:1.7;margin-bottom:20px;}
+.ta{display:flex;align-items:center;gap:11px;}
+.tav{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;flex-shrink:0;}
+.tname{font-size:14px;font-weight:700;}
+.trole{font-size:11px;color:var(--gray);margin-top:2px;}
+.car-ctrl{display:flex;gap:10px;margin-top:26px;justify-content:center;align-items:center;}
+.car-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:transparent;color:white;cursor:pointer;font-size:15px;transition:.2s;display:flex;align-items:center;justify-content:center;}
+.car-btn:hover{background:var(--blue2);border-color:var(--blue2);}
+.car-dots{display:flex;gap:7px;align-items:center;}
+.car-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:.25s;cursor:pointer;}
+.car-dot.on{background:var(--orange);width:20px;border-radius:4px;}
+
+/* CTA */
+.cta-sec{padding:0 72px 80px;}
+.cta-in{padding:72px;border-radius:24px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(140deg,#0E2B80 0%,#091848 60%,#050D28 100%);border:1px solid rgba(96,165,250,.1);}
+.cta-in::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 45% 65% at 88% 15%,rgba(249,115,22,.16) 0%,transparent 60%);}
+.cta-in h2{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1.5px;margin-bottom:12px;position:relative;}
+.cta-in p{font-size:15px;color:rgba(255,255,255,.58);margin-bottom:36px;position:relative;}
+.cta-btns{display:flex;gap:12px;justify-content:center;position:relative;flex-wrap:wrap;}
+.cta-btn{padding:14px 30px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:.25s;}
+.cta-btn.or{background:var(--orange);color:white;}
+.cta-btn.or:hover{background:var(--orange2);transform:translateY(-2px);}
+.cta-btn.gh{background:transparent;color:white;border:1.5px solid rgba(255,255,255,.22);}
+.cta-btn.gh:hover{border-color:white;background:rgba(255,255,255,.05);}
+
+footer{border-top:1px solid var(--border);padding:34px 72px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+footer p{font-size:13px;color:var(--gray);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.overlay.open{display:flex;}
+.modal{background:#0C1B35;border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:38px;width:480px;max-width:95vw;position:relative;animation:mup .3s ease;}
+@keyframes mup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-x{position:absolute;top:13px;right:13px;background:rgba(255,255,255,.07);border:none;color:white;width:29px;height:29px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.modal-x:hover{background:rgba(255,255,255,.13);}
+.modal-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:5px;letter-spacing:-.8px;}
+.modal-sub{font-size:13.5px;color:var(--gray);margin-bottom:24px;}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px;}
+.role-opt{border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:.2s;background:transparent;}
+.role-opt:hover{border-color:var(--blue-light);background:rgba(96,165,250,.06);}
+.role-opt.sel{border-color:var(--orange);background:rgba(249,115,22,.09);}
+.role-opt .ric{font-size:26px;margin-bottom:7px;display:block;}
+.role-opt .rn{font-size:13px;font-weight:700;color:white;}
+.role-opt .rd{font-size:11px;color:var(--gray);margin-top:3px;line-height:1.4;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:11px;color:var(--gray);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px;}
+.fg input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:13.5px;outline:none;transition:.2s;}
+.fg input:focus{border-color:var(--blue-light);}
+.fg input::placeholder{color:rgba(255,255,255,.2);}
+.btn-ms{width:100%;background:var(--orange);border:none;color:white;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:5px;transition:.2s;}
+.btn-ms:hover{background:var(--orange2);}
+.modal-sw{text-align:center;margin-top:15px;font-size:13px;color:var(--gray);}
+.modal-sw a{color:var(--blue-light);cursor:pointer;}
+.login-ctx{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.14);border-radius:11px;padding:14px;margin-bottom:20px;}
+.lc-t{font-size:14px;font-weight:700;margin-bottom:4px;}
+.lc-d{font-size:12px;color:var(--gray);line-height:1.5;}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease;}
+.rv.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Cargo<em>Share</em></div>
+  <div class="nav-links">
+    <a onclick="document.getElementById('benefits').scrollIntoView({behavior:'smooth'})">Beneficios</a>
+    <a onclick="document.getElementById('hiw').scrollIntoView({behavior:'smooth'})">Cómo funciona</a>
+    <a onclick="document.getElementById('simulator').scrollIntoView({behavior:'smooth'})">Simulador</a>
+    <a onclick="document.getElementById('testimonials').scrollIntoView({behavior:'smooth'})">Testimonios</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-ghost" onclick="openLogin()">Iniciar sesión</button>
+    <button class="btn-cta" onclick="openRegister()">Registrarse →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div><div class="grid-bg"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="pill"><span class="pill-dot"></span>Operando en Colombia — Únete gratis</div>
+      <h1>El espacio vacío<br>se convierte en<br><span class="grad">ingresos reales</span></h1>
+      <p class="hero-sub">CargoShare conecta camiones con capacidad libre y empresas que necesitan enviar carga. Sin intermediarios. Paga solo por el espacio que usas.</p>
+      <div class="hero-btns">
+        <button class="btn-p" onclick="openRegister()">Empezar gratis →</button>
+        <button class="btn-o" onclick="document.getElementById('simulator').scrollIntoView({behavior:'smooth'})">Ver simulador</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hcard hcard-main">
+        <div class="hc-lbl">Ruta disponible ahora</div>
+        <div class="rrow"><div class="rdot" style="background:var(--blue2)"></div><span class="rn">Bogotá</span><div class="rline"></div><div class="rdot" style="background:var(--orange)"></div><span class="rn">Medellín</span></div>
+        <div class="hsub">Jueves 7:00 AM · Camión 3/4 · ⭐ 4.9 · 414 km</div>
+        <div class="capbar"><div class="capfill"></div></div>
+        <div class="cap-lbs"><span>Espacio disponible</span><span>~13 m³ libres</span></div>
+        <div class="hprice"><div><div class="pbig">$13<span class="punit"> USD/m³</span></div></div><button class="btn-xs">Reservar</button></div>
+      </div>
+      <div class="hcard hcard-saving">
+        <div class="hc-lbl">Tu ahorro este mes</div>
+        <div class="sav-num">$1,240</div>
+        <div class="sav-sub">vs fletes tradicionales</div>
+      </div>
+      <div class="hcard hcard-match">
+        <div class="mat-ic">⚡</div>
+        <div class="mat-t">3 matches disponibles</div>
+        <div class="mat-s">Para tu ruta Bogotá → Cali</div>
+      </div>
+      <div class="hcard hcard-types">
+        <div class="hc-lbl">Tipos disponibles</div>
+        <div class="chip-row">
+          <span class="chip">🚛 3/4</span><span class="chip">🚐 Furgón</span>
+        </div>
+        <div class="chip-row">
+          <span class="chip cold">❄️ Refrigerado</span><span class="chip">🚚 Doble troque</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="sec ben-sec" id="benefits">
+  <div class="ben-head">
+    <div>
+      <div class="sec-tag">¿Por qué CargoShare?</div>
+      <div class="sec-title rv">La logística tiene<br>un problema enorme</div>
+    </div>
+    <div class="sec-sub rv">El 69% de los camiones en Colombia regresan vacíos. Las PYMEs gastan hasta el 24% de sus ingresos en logística. CargoShare resuelve ambos problemas.</div>
+  </div>
+  <div class="ben-grid">
+    <div class="bcard rv"><div class="bcard-ic">💸</div><div class="bcard-t">Paga solo el espacio que usas</div><div class="bcard-d">Precio por m³, no por camión completo. Deja de pagar por espacio vacío que no necesitas.</div><div class="bcard-s">↓ Hasta 60% menos que un flete tradicional</div></div>
+    <div class="bcard rv" style="transition-delay:.08s"><div class="bcard-ic">⚡</div><div class="bcard-t">Match automático en minutos</div><div class="bcard-d">Sin llamadas, sin WhatsApp, sin intermediarios. El algoritmo conecta tu carga con el camión indicado automáticamente.</div><div class="bcard-s">⏱ Promedio de match: menos de 4 horas</div></div>
+    <div class="bcard rv" style="transition-delay:.16s"><div class="bcard-ic">🔄</div><div class="bcard-t">Retornos vacíos monetizados</div><div class="bcard-d">Empresas con flota y transportistas independientes pueden publicar retornos vacíos y convertirlos en ingresos extra.</div><div class="bcard-s">🚛 Aplica para flotas y transportistas independientes</div></div>
+    <div class="bcard rv" style="transition-delay:.08s"><div class="bcard-ic">🛡️</div><div class="bcard-t">Solo empresas verificadas</div><div class="bcard-d">Registro con NIT, documentos legales y representante legal obligatorio. Cero anonimato en la plataforma.</div><div class="bcard-s">✅ Verificación antes del primer envío</div></div>
+    <div class="bcard rv" style="transition-delay:.16s"><div class="bcard-ic">📍</div><div class="bcard-t">Tracking y trazabilidad total</div><div class="bcard-d">Foto de recogida, ubicación en tiempo real y evidencia de entrega. Todo documentado digitalmente sin papeles.</div><div class="bcard-s">📸 Evidencia en recogida y entrega</div></div>
+    <div class="bcard rv" style="transition-delay:.24s"><div class="bcard-ic">🌿</div><div class="bcard-t">Impacto ambiental real</div><div class="bcard-d">Menos camiones vacíos en la carretera significa menos emisiones. Logística más eficiente para todo el país.</div><div class="bcard-s">↓ Hasta 34.8% reducción de CO₂ por ruta</div></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="sb-item rv"><div class="sb-num" data-target="69" data-suffix="%">0</div><div class="sb-lbl">de camiones viajan<br>vacíos en Colombia</div><div class="sb-src">U. de los Andes, 2024</div></div>
+  <div class="sb-item rv" style="transition-delay:.08s"><div class="sb-num" data-target="24" data-suffix="%">0</div><div class="sb-lbl">del ingreso de PYMEs<br>en costos logísticos</div><div class="sb-src">DNP Encuesta Logística 2022</div></div>
+  <div class="sb-item rv" style="transition-delay:.16s"><div class="sb-num" data-target="455" data-suffix="k+">0</div><div class="sb-lbl">vehículos de carga<br>registrados en Colombia</div><div class="sb-src">Colfecar, 2024</div></div>
+  <div class="sb-item rv" style="transition-delay:.24s"><div class="sb-num" data-target="60" data-suffix="%">0</div><div class="sb-lbl">de ahorro promedio<br>usando CargoShare</div><div class="sb-src">Proyección modelo CargoShare</div></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="sec" id="hiw">
+  <div class="hiw-head">
+    <div><div class="sec-tag">¿Cómo funciona?</div><div class="sec-title rv">Simple. Digital.<br>Sin llamadas.</div></div>
+    <div class="tabs"><button class="tab on" onclick="switchTab(this,'t')">🚛 Transportista</button><button class="tab" onclick="switchTab(this,'e')">📦 Empresa</button></div>
+  </div>
+  <div class="steps" id="stepsT">
+    <div class="scard rv"><div class="sc-num">01</div><div class="sc-ic">📍</div><div class="sc-t">Publica tu ruta</div><div class="sc-d">Ingresa origen, destino, fecha y espacio disponible. Funciona para flotas empresariales y transportistas independientes por igual.</div></div>
+    <div class="scard rv" style="transition-delay:.1s"><div class="sc-num">02</div><div class="sc-ic">⚡</div><div class="sc-t">Recibe solicitudes</div><div class="sc-d">El sistema conecta empresas con carga en tu ruta. Ves precio, desvío y rating del remitente. Aceptas o rechazas en un clic.</div></div>
+    <div class="scard rv" style="transition-delay:.2s"><div class="sc-num">03</div><div class="sc-ic">💰</div><div class="sc-t">Gana en cada viaje</div><div class="sc-d">Monetiza el espacio libre y los retornos vacíos sin cambiar tu operación. Más ingresos por km, sin nuevas inversiones.</div></div>
+  </div>
+  <div class="steps" id="stepsE" style="display:none">
+    <div class="scard rv"><div class="sc-num">01</div><div class="sc-ic">📦</div><div class="sc-t">Describe tu carga</div><div class="sc-d">Ingresa dimensiones, peso, tipo de carga y ruta. El simulador calcula el precio exacto con peso real o volumétrico.</div></div>
+    <div class="scard rv" style="transition-delay:.1s"><div class="sc-num">02</div><div class="sc-ic">🎯</div><div class="sc-t">Elige tu transportista</div><div class="sc-d">Ve opciones verificadas con rating, precio, tipo de vehículo y hora de salida. Reserva con un clic, sin llamadas.</div></div>
+    <div class="scard rv" style="transition-delay:.2s"><div class="sc-num">03</div><div class="sc-ic">📍</div><div class="sc-t">Trackea en tiempo real</div><div class="sc-d">Foto de recogida, actualización en ruta y confirmación de entrega con evidencia fotográfica. Todo documentado.</div></div>
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section class="sec sim-sec" id="simulator">
+  <div class="sec-tag">Simulador de envío</div>
+  <div class="sec-title rv">Cotiza, compara<br>y reserva aquí mismo</div>
+  <div class="sec-sub rv">Ingresa los datos reales de tu carga. El simulador calcula el precio, recomienda el vehículo y te muestra transportistas disponibles.</div>
+
+  <div class="sim-layout">
+    <div class="sim-form rv">
+      <div class="sim-title">📦 Datos del envío</div>
+      <div class="frow"><label>Ruta</label>
+        <select id="ruta">
+          <option value="414,14,3.5">Bogotá → Medellín (414 km)</option>
+          <option value="460,15,3.8">Bogotá → Cali (460 km)</option>
+          <option value="1000,22,4.2">Bogotá → Barranquilla (1,000 km)</option>
+          <option value="640,17,3.9">Medellín → Cartagena (640 km)</option>
+          <option value="280,10,3.0">Bogotá → Pereira (280 km)</option>
+        </select>
+      </div>
+      <div class="frow"><label>Tipo de carga</label>
+        <select id="tipoCarga">
+          <option value="general">📦 General (cajas, pallets, retail)</option>
+          <option value="fragil">🔮 Frágil (vidrio, electrónicos)</option>
+          <option value="maquinaria">🏗️ Maquinaria pequeña</option>
+          <option value="refrigerado">❄️ Refrigerado (0°C a 8°C)</option>
+          <option value="congelado">🧊 Congelado (-18°C a -5°C)</option>
+        </select>
+      </div>
+      <div class="frow"><label>Dimensiones por paquete</label>
+        <div class="g3">
+          <div class="frow"><label>Largo (m)</label><input type="number" id="largo" value="1.2" min="0.1" step="0.1" oninput="liveCalc()"></div>
+          <div class="frow"><label>Ancho (m)</label><input type="number" id="ancho" value="0.8" min="0.1" step="0.1" oninput="liveCalc()"></div>
+          <div class="frow"><label>Alto (m)</label><input type="number" id="alto" value="1.0" min="0.1" step="0.1" oninput="liveCalc()"></div>
+        </div>
+      </div>
+      <div class="g2" style="margin-bottom:16px">
+        <div class="frow"><label>Cantidad</label><input type="number" id="cantidad" value="5" min="1" oninput="liveCalc()"></div>
+        <div class="frow"><label>Peso real total (kg)</label><input type="number" id="peso" value="800" min="1" oninput="liveCalc()"></div>
+      </div>
+      <div class="vol-pill">
+        <div><div class="vp-v" id="vp-vol">4.80 m³</div><div class="vp-k">Volumen total</div></div>
+        <div><div class="vp-v or" id="vp-cob">800 kg</div><div class="vp-k">Peso cobrable</div></div>
+        <div><div class="vp-v gr" id="vp-fac">Peso real</div><div class="vp-k">Factor aplicado</div></div>
+      </div>
+      <div class="frow"><label>Valor declarado (USD)</label><input type="number" id="valor" value="2000" min="0" oninput="checkIns()"></div>
+      <div class="ins-box" id="insBox">🛡️ Seguro obligatorio activado — cargas ≥ $3,000 USD incluyen seguro automático (1.5% del valor declarado).</div>
+      <div class="frow"><label>Urgencia</label>
+        <select id="urgencia">
+          <option value="1">Normal (flexible en fechas)</option>
+          <option value="1.2">Prioritario (+20%)</option>
+        </select>
+      </div>
+      <button class="btn-sim" onclick="calcular()">Ver cotización y transportistas →</button>
+    </div>
+
+    <div class="sim-results">
+      <!-- Vehicle -->
+      <div class="res-box dim" id="panelV">
+        <div class="res-title">🚛 Vehículo recomendado</div>
+        <div class="veh-inner">
+          <div class="veh-top"><div><div class="veh-name" id="vn">—</div><div class="veh-desc" id="vd">—</div></div><div class="veh-ic" id="ve">🚛</div></div>
+          <div class="bw"><div class="bl"><span>Volumen</span><span id="vvp">—</span></div><div class="bb"><div class="bf v" id="vvb" style="width:0%"></div></div><div style="font-size:10px;color:var(--gray);margin-top:3px" id="vvl">—</div></div>
+          <div class="bw"><div class="bl"><span>Peso</span><span id="vwp">—</span></div><div class="bb"><div class="bf w" id="vwb" style="width:0%"></div></div><div style="font-size:10px;color:var(--gray);margin-top:3px" id="vwl">—</div></div>
+        </div>
+        <div class="alert-b" id="valert"></div>
+        <div class="veh-note" id="vnote"></div>
+      </div>
+
+      <!-- Price -->
+      <div class="res-box dim" id="panelP">
+        <div class="res-title">💰 Detalle de precio</div>
+        <div class="pr-rows">
+          <div class="pr-row"><span class="pr-k">Volumen total</span><span class="pr-v" id="rv">—</span></div>
+          <div class="pr-row"><span class="pr-k">Peso cobrable</span><span class="pr-v" id="rp">—</span></div>
+          <div class="pr-row"><span class="pr-k">Tarifa base (por m³)</span><span class="pr-v" id="rt">—</span></div>
+          <div class="pr-row" id="rowCold" style="display:none"><span class="pr-k">Recargo refrigerado</span><span class="pr-v hi" id="rc">—</span></div>
+          <div class="pr-row"><span class="pr-k">Subtotal</span><span class="pr-v" id="rs">—</span></div>
+          <div class="pr-row"><span class="pr-k">Comisión CargoShare (12%)</span><span class="pr-v" id="rcom">—</span></div>
+          <div class="pr-row" id="rowIns"><span class="pr-k">Seguro de carga</span><span class="pr-v hi" id="rins">—</span></div>
+        </div>
+        <div class="total-lbl">Precio CargoShare</div>
+        <div class="total-amt" id="rtot">—</div>
+        <div class="saving-t" id="rsav">—</div>
+        <div class="pbar-wrap">
+          <div class="pbar-lbs"><span>CargoShare</span><span>Flete tradicional</span></div>
+          <div class="pbar-bg"><div class="pbar-fill" id="pf" style="width:0%"></div></div>
+          <div class="pbar-pct" id="ppct">—</div>
+        </div>
+      </div>
+
+      <!-- Carriers -->
+      <div class="res-box dim" id="panelC">
+        <div class="res-title">🎯 Transportistas disponibles</div>
+        <div style="font-size:13px;color:var(--gray);margin-bottom:14px;">Selecciona el que mejor se adapte y resérvalo directamente</div>
+        <div class="c-list" id="cList"></div>
+        <div class="book-ok" id="bookOk">
+          <div class="book-ok-ic">✅</div>
+          <div class="book-ok-t">¡Solicitud enviada!</div>
+          <div class="book-ok-s" id="bookOkMsg">El transportista recibirá tu solicitud y confirmará pronto.</div>
+          <button class="btn-ms" style="margin-top:14px" onclick="openRegister()">Crear cuenta y confirmar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="sec tst-sec" id="testimonials">
+  <div class="sec-tag">Testimonios</div>
+  <div class="sec-title rv">Lo que dicen<br>nuestros usuarios</div>
+  <div class="car-wrap">
+    <div class="car-track" id="carTrack">
+      <div class="tcard"><div class="tq">"</div><p class="tt">Antes pagaba flete completo Bogotá-Cali aunque solo llenara un tercio del camión. Con CargoShare pago exactamente por lo que uso. El primer mes ahorré más de $800 USD.</p><div class="ta"><div class="tav" style="background:rgba(249,115,22,.2);color:var(--orange);">ML</div><div><div class="tname">María L. Fernández</div><div class="trole">Gerente Logística · Textiles Andinos SAS</div></div></div></div>
+      <div class="tcard"><div class="tq">"</div><p class="tt">Tengo una flota de 8 camiones y los retornos de Medellín siempre eran pérdida pura. Ahora publico el retorno y casi siempre encuentro carga. Son ingresos que antes simplemente no existían.</p><div class="ta"><div class="tav" style="background:rgba(26,79,216,.2);color:var(--blue-light);">CR</div><div><div class="tname">Carlos R. Jiménez</div><div class="trole">Propietario · Transportes Jiménez e Hijos</div></div></div></div>
+      <div class="tcard"><div class="tq">"</div><p class="tt">Soy transportista independiente, tengo un solo camión. Publico mi ruta y las empresas me encuentran a mí. Ya no espero horas en el terminal para conseguir carga. Cambió todo.</p><div class="ta"><div class="tav" style="background:rgba(16,185,129,.2);color:var(--green);">JD</div><div><div class="tname">Juan D. Morales</div><div class="trole">Transportista independiente · Ruta Bogotá-Ibagué</div></div></div></div>
+      <div class="tcard"><div class="tq">"</div><p class="tt">La verificación de empresas nos dio mucha confianza. 23 envíos sin un solo problema. El tracking en tiempo real y la evidencia fotográfica son un lujo que antes no teníamos.</p><div class="ta"><div class="tav" style="background:rgba(249,115,22,.2);color:var(--orange);">AP</div><div><div class="tname">Andrés P. Vargas</div><div class="trole">Director Comercial · Insumos del Norte LTDA</div></div></div></div>
+    </div>
+  </div>
+  <div class="car-ctrl">
+    <button class="car-btn" onclick="prevS()">←</button>
+    <div class="car-dots" id="carDots"></div>
+    <button class="car-btn" onclick="nextS()">→</button>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-sec">
+  <div class="cta-in">
+    <h2>¿Listo para optimizar<br>tu logística?</h2>
+    <p>Únete gratis. Sin contratos. Sin compromisos. El registro tarda 5 minutos.</p>
+    <div class="cta-btns">
+      <button class="cta-btn or" onclick="openRegisterAs('empresa')">Soy una empresa →</button>
+      <button class="cta-btn gh" onclick="openRegisterAs('transportista')">Soy transportista →</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="logo">Cargo<em>Share</em></div>
+  <p>© 2025 CargoShare · Bogotá, Colombia</p>
+  <p>Plataforma tecnológica B2B de logística compartida</p>
+</footer>
+
+<!-- REGISTER MODAL -->
+<div class="overlay" id="regModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModals()">✕</button>
+    <div class="modal-title">Crear cuenta</div>
+    <div class="modal-sub">Elige tu tipo de cuenta para comenzar</div>
+    <div class="role-grid">
+      <div class="role-opt sel" id="regRoleT" onclick="pickRole('t')">
+        <span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Tengo camión propio o gestiono una flota y quiero monetizar espacio libre</div>
+      </div>
+      <div class="role-opt" id="regRoleE" onclick="pickRole('e')">
+        <span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Necesito enviar carga y quiero pagar solo por el espacio que uso</div>
+      </div>
+    </div>
+    <div class="fg"><label>Nombre de la empresa</label><input type="text" placeholder="Ej: Transporte Rápido SAS"></div>
+    <div class="fg"><label>Correo corporativo</label><input type="email" placeholder="correo@empresa.com"></div>
+    <div class="fg"><label>Contraseña</label><input type="password" placeholder="Mínimo 8 caracteres"></div>
+    <div class="fg"><label>NIT de la empresa</label><input type="text" placeholder="900.123.456-7"></div>
+    <button class="btn-ms">Crear cuenta gratis →</button>
+    <div class="modal-sw">¿Ya tienes cuenta? <a onclick="toLogin()">Iniciar sesión</a></div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginModal">
+  <div class="modal" style="width:430px">
+    <button class="modal-x" onclick="closeModals()">✕</button>
+    <div class="modal-title">Bienvenido de vuelta</div>
+    <div class="login-ctx">
+      <div class="lc-t" id="lct">👋 ¿Cómo quieres entrar?</div>
+      <div class="lc-d" id="lcd">Selecciona tu perfil para ir directo a tu panel personalizado.</div>
+    </div>
+    <div class="role-grid" style="margin-bottom:20px">
+      <div class="role-opt sel" id="loginRT" onclick="pickLoginRole('t')">
+        <span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Ver mis rutas, solicitudes y panel de ingresos</div>
+      </div>
+      <div class="role-opt" id="loginRE" onclick="pickLoginRole('e')">
+        <span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Ver mis envíos, cotizaciones y panel de ahorro</div>
+      </div>
+    </div>
+    <div class="fg"><label>Correo corporativo</label><input type="email" placeholder="correo@empresa.com"></div>
+    <div class="fg"><label>Contraseña</label><input type="password" placeholder="Tu contraseña"></div>
+    <button class="btn-ms" id="loginBtn">Entrar a mi panel de transportista →</button>
+    <div class="modal-sw">¿No tienes cuenta? <a onclick="toRegister()">Registrarse gratis</a></div>
+  </div>
+</div>
+
+<script>
+// VEHICLES
+const VEH=[
+  {n:'Furgón pequeño',e:'🚐',maxV:8,maxW:1500,d:'Ideal para cargas pequeñas hasta 1.5 toneladas'},
+  {n:'Camión 3/4',e:'🚛',maxV:20,maxW:4000,d:'El más común en rutas intermunicipales de Colombia'},
+  {n:'Camión sencillo',e:'🚚',maxV:40,maxW:8000,d:'Rutas largas con carga media-alta'},
+  {n:'Doble troque',e:'🚛',maxV:80,maxW:18000,d:'Máxima capacidad para carga pesada'},
+];
+
+// CARRIERS
+const CARRIERS=[
+  {id:1,n:'Carlos Jiménez',t:'Transportista independiente',e:'🚛',veh:'Camión 3/4',maxV:20,maxW:4000,rat:4.9,rev:87,tags:['Verificado','Sin recargo extra'],cold:false,extra:0,deps:['Mañana 6:00 AM','Jueves 7:30 AM']},
+  {id:2,n:'Transportes Andes SAS',t:'Empresa con flota',e:'🏢',veh:'Camión sencillo',maxV:40,maxW:8000,rat:4.7,rev:234,tags:['Empresa verificada','Seguro incluido'],cold:false,extra:.05,deps:['Mañana 9:00 AM','Viernes 5:00 AM']},
+  {id:3,n:'Frigorutas Colombia',t:'Especialista en frío',e:'❄️',veh:'Camión refrigerado',maxV:18,maxW:3500,rat:4.8,rev:112,tags:['Refrigerado','Congelado','Verificado'],cold:true,extra:.35,deps:['Jueves 8:00 AM','Sábado 6:00 AM']},
+  {id:4,n:'Jorge Morales',t:'Transportista independiente',e:'🚐',veh:'Furgón grande',maxV:12,maxW:2000,rat:4.6,rev:45,tags:['Verificado','Retorno vacío — precio reducido'],cold:false,extra:-.1,deps:['Viernes 7:00 AM']},
+];
+
+function liveCalc(){
+  const l=parseFloat(document.getElementById('largo').value)||0;
+  const a=parseFloat(document.getElementById('ancho').value)||0;
+  const h=parseFloat(document.getElementById('alto').value)||0;
+  const q=parseInt(document.getElementById('cantidad').value)||1;
+  const pr=parseFloat(document.getElementById('peso').value)||0;
+  const vol=l*a*h*q;
+  const pv=vol*333;
+  const pc=Math.max(pr,pv);
+  document.getElementById('vp-vol').textContent=vol.toFixed(2)+' m³';
+  document.getElementById('vp-cob').textContent=pc.toFixed(0)+' kg';
+  document.getElementById('vp-fac').textContent=pc===pv&&pv>pr?'Volumétrico':'Peso real';
+}
+
+function checkIns(){
+  const v=parseFloat(document.getElementById('valor').value)||0;
+  document.getElementById('insBox').classList.toggle('show',v>=3000);
+}
+
+function calcular(){
+  const rArr=document.getElementById('ruta').value.split(',');
+  const km=parseInt(rArr[0]),tarBase=parseFloat(rArr[1]),tradM=parseFloat(rArr[2]);
+  const l=parseFloat(document.getElementById('largo').value)||0;
+  const a=parseFloat(document.getElementById('ancho').value)||0;
+  const h=parseFloat(document.getElementById('alto').value)||0;
+  const q=parseInt(document.getElementById('cantidad').value)||1;
+  const pr=parseFloat(document.getElementById('peso').value)||0;
+  const val=parseFloat(document.getElementById('valor').value)||0;
+  const urg=parseFloat(document.getElementById('urgencia').value);
+  const tipo=document.getElementById('tipoCarga').value;
+  const vol=l*a*h*q;
+  const pv=vol*333;
+  const pc=Math.max(pr,pv);
+  const isR=tipo==='refrigerado'||tipo==='congelado';
+  const coldM=isR?(tipo==='congelado'?.45:.35):0;
+  const tarifa=tarBase*urg;
+  const sub=tarifa*vol;
+  const coldA=sub*coldM;
+  const com=(sub+coldA)*.12;
+  const insAuto=val>=3000;
+  const ins=insAuto?val*.015:0;
+  const total=sub+coldA+com+ins;
+  const tradP=sub*tradM;
+  const sav=tradP-total;
+  const pct=Math.round((sav/tradP)*100);
+
+  // Vehicle
+  const veh=isR?{n:'Camión refrigerado',e:'❄️',maxV:18,maxW:3500,d:'Temperatura controlada para carga fría'}:
+    (VEH.find(v=>v.maxV>=vol&&v.maxW>=pc)||VEH[VEH.length-1]);
+  const vPct=Math.min(Math.round((vol/veh.maxV)*100),100);
+  const wPct=Math.min(Math.round((pc/veh.maxW)*100),100);
+  document.getElementById('vn').textContent=veh.n;
+  document.getElementById('vd').textContent=veh.d;
+  document.getElementById('ve').textContent=veh.e;
+  document.getElementById('vvp').textContent=vPct+'%';
+  document.getElementById('vwp').textContent=wPct+'%';
+  const vvb=document.getElementById('vvb');const vwb=document.getElementById('vwb');
+  vvb.style.width=vPct+'%';vwb.style.width=wPct+'%';
+  vvb.className='bf v'+(vPct>85?' r':'');vwb.className='bf w'+(wPct>85?' r':'');
+  document.getElementById('vvl').textContent=`${vol.toFixed(2)} m³ de ${veh.maxV} m³ disponibles`;
+  document.getElementById('vwl').textContent=`${pc.toFixed(0)} kg de ${veh.maxW.toLocaleString()} kg permitidos`;
+  const ov=vol>veh.maxV||pc>veh.maxW;
+  const va=document.getElementById('valert');
+  va.className='alert-b'+(ov?' show':'');
+  va.textContent='⚠️ Tu carga supera la capacidad de un vehículo. Se requieren dos unidades.';
+  document.getElementById('vnote').textContent=`CargoShare puede llenar el espacio restante con otro remitente en la misma ruta, reduciendo aún más tu costo.`;
+
+  // Prices
+  document.getElementById('rv').textContent=vol.toFixed(2)+' m³';
+  document.getElementById('rp').textContent=`${pc.toFixed(0)} kg (${pc===pv&&pv>pr?'volumétrico':'peso real'})`;
+  document.getElementById('rt').textContent=`$${tarifa.toFixed(0)} USD/m³`;
+  document.getElementById('rs').textContent=`$${sub.toFixed(0)} USD`;
+  document.getElementById('rcom').textContent=`$${com.toFixed(0)} USD`;
+  document.getElementById('rtot').textContent=`$${total.toFixed(0)} USD`;
+  document.getElementById('rsav').textContent=`↓ Ahorras ~$${sav.toFixed(0)} USD vs flete tradicional completo`;
+  document.getElementById('pf').style.width=Math.min(pct,88)+'%';
+  document.getElementById('ppct').textContent=`Ahorro del ${pct}%`;
+  document.getElementById('rowCold').style.display=isR?'flex':'none';
+  if(isR) document.getElementById('rc').textContent=`+$${coldA.toFixed(0)} USD`;
+  document.getElementById('rins').textContent=insAuto?`$${ins.toFixed(0)} USD (obligatorio)`:'-';
+  document.getElementById('rowIns').style.opacity=insAuto?'1':'.4';
+
+  // Carriers
+  const avail=CARRIERS.filter(c=>{
+    if(isR&&!c.cold&&c.id!==2) return false;
+    if(c.maxV<vol||c.maxW<pc) return false;
+    return true;
+  });
+  renderCarriers(avail,tarifa,vol);
+
+  // Show panels
+  ['panelV','panelP','panelC'].forEach(id=>document.getElementById(id).classList.remove('dim'));
+  setTimeout(()=>document.getElementById('panelV').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function renderCarriers(list,tarifa,vol){
+  const el=document.getElementById('cList');
+  document.getElementById('bookOk').classList.remove('show');
+  el.innerHTML='';
+  if(!list.length){
+    el.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--gray)">No hay transportistas disponibles para esta combinación. Prueba otra ruta o fecha.</div>';
+    return;
+  }
+  list.forEach(c=>{
+    const price=(tarifa*(1+c.extra)*vol).toFixed(0);
+    const d=document.createElement('div');
+    d.className='ccard';
+    d.innerHTML=`
+      <div class="cav">${c.e}</div>
+      <div class="cinfo">
+        <div class="cname">${c.n}</div>
+        <div class="cmeta">${c.t} · ${c.veh}</div>
+        <div class="ctags">${c.tags.map(t=>`<span class="ctag ${t.includes('Retorno')||t.includes('Sin')?'g':''}">${t}</span>`).join('')}</div>
+      </div>
+      <div class="cright">
+        <div class="cstars">${'★'.repeat(Math.round(c.rat))} ${c.rat} (${c.rev})</div>
+        <div class="cprice">$${price}<span class="cunit"> USD</span></div>
+        <div class="cdepart">Salida: ${c.deps[0]}</div>
+        <button class="btn-book" onclick="book(this,'${c.n}')">Reservar →</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+function book(btn,name){
+  document.querySelectorAll('.ccard').forEach(c=>c.classList.remove('sel'));
+  btn.closest('.ccard').classList.add('sel');
+  const ok=document.getElementById('bookOk');
+  ok.querySelector('#bookOkMsg').textContent=`Solicitud enviada a ${name}. Confirmará en las próximas horas. Crea tu cuenta para completar el proceso.`;
+  ok.classList.add('show');
+  setTimeout(()=>ok.scrollIntoView({behavior:'smooth',block:'nearest'}),200);
+}
+
+// TABS
+function switchTab(btn,t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('stepsT').style.display=t==='t'?'grid':'none';
+  document.getElementById('stepsE').style.display=t==='e'?'grid':'none';
+}
+
+// MODALS
+function openRegister(){document.getElementById('regModal').classList.add('open');}
+function openLogin(){document.getElementById('loginModal').classList.add('open');}
+function closeModals(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
+function toLogin(){closeModals();openLogin();}
+function toRegister(){closeModals();openRegister();}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModals();}));
+
+function openRegisterAs(role){openRegister();pickRole(role==='empresa'?'e':'t');}
+function pickRole(r){
+  document.getElementById('regRoleT').classList.toggle('sel',r==='t');
+  document.getElementById('regRoleE').classList.toggle('sel',r==='e');
+}
+function pickLoginRole(r){
+  document.getElementById('loginRT').classList.toggle('sel',r==='t');
+  document.getElementById('loginRE').classList.toggle('sel',r==='e');
+  const isT=r==='t';
+  document.getElementById('lct').textContent=isT?'🚛 Panel de transportista':'📦 Panel de empresa';
+  document.getElementById('lcd').textContent=isT
+    ?'Entra a gestionar tus rutas activas, ver solicitudes de carga pendientes y tu historial de ingresos.'
+    :'Entra a gestionar tus envíos activos, cotizaciones guardadas y resumen de ahorro mensual.';
+  document.getElementById('loginBtn').textContent=isT
+    ?'Entrar a mi panel de transportista →'
+    :'Entrar a mi panel de empresa →';
+}
+
+// CAROUSEL
+let slide=0;
+const track=document.getElementById('carTrack');
+const cards=[...track.querySelectorAll('.tcard')];
+const dotsEl=document.getElementById('carDots');
+cards.forEach((_,i)=>{const d=document.createElement('div');d.className='car-dot'+(i===0?' on':'');d.onclick=()=>goS(i);dotsEl.appendChild(d);});
+function goS(n){slide=Math.max(0,Math.min(n,cards.length-1));track.style.transform=`translateX(-${slide*(cards[0].offsetWidth+20)}px)`;document.querySelectorAll('.car-dot').forEach((d,i)=>d.classList.toggle('on',i===slide));}
+function nextS(){goS((slide+1)%cards.length);}
+function prevS(){goS((slide-1+cards.length)%cards.length);}
+setInterval(nextS,5500);
+window.addEventListener('resize',()=>goS(slide));
+
+// REVEAL
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');});},{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+
+// COUNTERS
+function animN(el){
+  const t=parseInt(el.dataset.target);const s=el.dataset.suffix||'';
+  let c=0;const st=t/55;
+  const iv=setInterval(()=>{c=Math.min(c+st,t);el.textContent=Math.round(c)+s;if(c>=t)clearInterval(iv);},18);
+}
+const cobs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.target.dataset.target){animN(e.target);cobs.unobserve(e.target);}});},{threshold:.5});
+document.querySelectorAll('[data-target]').forEach(el=>cobs.observe(el));
+
+window.addEventListener('load',liveCalc);
+</script>
+</body>
+</html>

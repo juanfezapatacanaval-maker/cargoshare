@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CargoShare — Panel Empresa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#060E1C;--navy2:#0B1628;--navy3:#0F1E35;
+  --blue:#1A4FD8;--blue2:#2563EB;--blue-light:#60A5FA;
+  --orange:#F97316;--orange2:#EA6C0A;
+  --white:#FFFFFF;--gray:#7A8FAD;--gray2:#B8C8DC;
+  --card:#0E1E38;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --green:#10B981;--green2:#059669;--red:#EF4444;--yellow:#F59E0B;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;display:flex;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--navy);}::-webkit-scrollbar-thumb{background:var(--blue2);border-radius:3px;}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;flex-shrink:0;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-logo{padding:24px 24px 20px;border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.logo em{color:var(--orange);font-style:normal;}
+.sb-role{display:inline-flex;align-items:center;gap:5px;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.2);padding:3px 10px;border-radius:100px;font-size:11px;color:var(--orange);font-weight:600;margin-top:8px;}
+.sb-nav{padding:16px 12px;flex:1;}
+.sb-section{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;padding:0 12px;margin:20px 0 8px;}
+.sb-section:first-child{margin-top:4px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;margin-bottom:2px;font-size:13.5px;font-weight:500;color:var(--gray);cursor:pointer;transition:.2s;position:relative;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--white);}
+.nav-item.active{background:rgba(37,99,235,.15);color:var(--white);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:24px;background:var(--orange);border-radius:0 3px 3px 0;}
+.nav-ic{font-size:17px;width:20px;text-align:center;}
+.nav-badge{background:var(--orange);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px;margin-left:auto;}
+
+/* USER */
+.sb-user{padding:14px;border-top:1px solid var(--border);position:relative;}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;transition:.2s;}
+.user-row:hover{background:rgba(255,255,255,.05);}
+.user-av{width:36px;height:36px;border-radius:9px;background:rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'Syne',sans-serif;color:var(--orange);flex-shrink:0;}
+.user-name{font-size:13px;font-weight:700;}
+.user-co{font-size:11px;color:var(--gray);margin-top:1px;}
+.user-chevron{margin-left:auto;font-size:12px;color:var(--gray);}
+.user-menu{position:absolute;bottom:72px;left:14px;right:14px;background:#0C1B35;border:1px solid var(--border2);border-radius:12px;padding:8px;display:none;z-index:10;box-shadow:0 20px 40px rgba(0,0,0,.5);}
+.user-menu.open{display:block;}
+.um-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13px;cursor:pointer;transition:.2s;color:var(--gray2);}
+.um-item:hover{background:rgba(255,255,255,.07);color:white;}
+.um-item.red{color:var(--red);}
+.um-item.red:hover{background:rgba(239,68,68,.1);}
+.um-divider{height:1px;background:var(--border);margin:6px 0;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;}
+.topbar{padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,14,28,.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-shrink:0;}
+.tb-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.5px;}
+.tb-sub{font-size:12px;color:var(--gray);margin-top:1px;}
+.tb-right{display:flex;gap:10px;align-items:center;}
+.btn-icon{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--gray);width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.2s;}
+.btn-icon:hover{background:rgba(255,255,255,.1);color:white;}
+.btn-new{background:var(--orange);color:white;border:none;padding:9px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-new:hover{background:var(--orange2);}
+.content{padding:28px 32px;overflow-y:auto;flex:1;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* COMMON */
+.greeting{margin-bottom:28px;}
+.greeting h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.8px;margin-bottom:4px;}
+.greeting p{font-size:14px;color:var(--gray);}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s;}
+.kpi:hover{border-color:rgba(255,255,255,.14);}
+.kpi-icon{position:absolute;top:16px;right:16px;font-size:22px;opacity:.5;}
+.kpi-label{font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.kpi-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1;}
+.kpi-val.blue{color:var(--blue-light);}
+.kpi-val.orange{color:var(--orange);}
+.kpi-val.green{color:var(--green);}
+.kpi-val.yellow{color:var(--yellow);}
+.kpi-delta{font-size:12px;color:var(--green);margin-top:6px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.grid3{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.panel-title{font-size:15px;font-weight:700;}
+.panel-action{font-size:12px;color:var(--blue-light);cursor:pointer;font-weight:600;}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
+.status-badge.transit{background:rgba(37,99,235,.15);color:var(--blue-light);}
+.status-badge.pending{background:rgba(245,158,11,.12);color:var(--yellow);}
+.status-badge.done{background:rgba(16,185,129,.12);color:var(--green);}
+.status-badge.matched{background:rgba(249,115,22,.12);color:var(--orange);}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* SHIP ITEMS */
+.ship-list{display:flex;flex-direction:column;gap:10px;}
+.ship-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:.2s;cursor:pointer;}
+.ship-item:hover{border-color:rgba(96,165,250,.2);background:rgba(96,165,250,.04);}
+.ship-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ship-info{flex:1;}
+.ship-route{font-size:14px;font-weight:700;}
+.ship-meta{font-size:12px;color:var(--gray);margin-top:2px;}
+.ship-right{text-align:right;flex-shrink:0;}
+.ship-price{font-size:14px;font-weight:700;color:var(--orange);margin-top:4px;}
+
+/* SAVING CHART */
+.saving-months{display:flex;align-items:flex-end;gap:8px;height:80px;}
+.sm-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.sm-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--blue2),rgba(37,99,235,.4));cursor:pointer;position:relative;}
+.sm-bar:hover{background:linear-gradient(180deg,var(--orange),rgba(249,115,22,.4));}
+.sm-bar .tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--navy);border:1px solid var(--border);padding:5px 9px;border-radius:7px;font-size:11px;white-space:nowrap;font-weight:600;}
+.sm-bar:hover .tooltip{display:block;}
+
+/* ACTIVITY */
+.activity-list{display:flex;flex-direction:column;}
+.act-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.act-item:last-child{border-bottom:none;}
+.act-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.act-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.act-line{width:1px;flex:1;background:rgba(255,255,255,.06);margin:4px 0;}
+.act-item:last-child .act-line{display:none;}
+.act-text{font-size:13px;line-height:1.5;}
+.act-text strong{color:white;}
+.act-time{font-size:11px;color:var(--gray);margin-top:2px;}
+
+/* FAV */
+.fav-list{display:flex;flex-direction:column;gap:8px;}
+.fav-item{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:.2s;}
+.fav-item:hover{border-color:rgba(249,115,22,.2);}
+.fav-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.fav-name{font-size:13px;font-weight:700;flex:1;}
+.fav-meta{font-size:11px;color:var(--gray);}
+.fav-stars{font-size:11px;color:var(--yellow);}
+.btn-fav-book{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.2);padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.2s;white-space:nowrap;}
+.btn-fav-book:hover{background:var(--orange);color:white;}
+
+/* FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;margin-bottom:20px;}
+.form-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.7px;}
+.fg input,.fg select,.fg textarea{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:var(--blue-light);}
+.fg select option{background:#0C1830;}
+.fg input::placeholder,.fg textarea::placeholder{color:rgba(255,255,255,.2);}
+.fg textarea{resize:vertical;min-height:80px;}
+.live-pill{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.15);border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.lp-v{font-size:16px;font-weight:700;color:var(--blue-light);}
+.lp-v.or{color:var(--orange);}
+.lp-v.gr{color:var(--green);font-size:13px;}
+.lp-k{font-size:10px;color:var(--gray);margin-top:2px;}
+.ins-notice{background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.17);border-radius:9px;padding:10px 13px;font-size:12px;color:rgba(255,200,140,.9);display:none;}
+.ins-notice.show{display:block;}
+.type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.type-opt{border:2px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:.2s;}
+.type-opt:hover{border-color:var(--blue-light);}
+.type-opt.sel{border-color:var(--orange);background:rgba(249,115,22,.08);}
+.type-opt .tic{font-size:24px;display:block;margin-bottom:6px;}
+.type-opt .tn{font-size:11px;font-weight:600;color:var(--gray2);}
+.form-actions{display:flex;gap:12px;margin-top:8px;}
+.btn-submit{background:var(--orange);color:white;border:none;padding:13px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-submit:hover{background:var(--orange2);}
+.btn-submit.blue{background:var(--blue2);}
+.btn-submit.blue:hover{background:var(--blue);}
+.btn-save{background:rgba(255,255,255,.05);color:var(--gray2);border:1px solid var(--border2);padding:13px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* MATCHES */
+.match-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-btn{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--gray);padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;}
+.filter-btn:hover,.filter-btn.on{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.3);color:var(--blue-light);}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.match-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:.2s;cursor:pointer;}
+.match-card:hover{border-color:rgba(249,115,22,.25);transform:translateY(-2px);}
+.match-card.best{border-color:rgba(16,185,129,.25);}
+.best-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.2);color:var(--green);font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;margin-bottom:12px;}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.mc-carrier{display:flex;align-items:center;gap:10px;}
+.mc-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(26,79,216,.15);flex-shrink:0;}
+.mc-name{font-size:14px;font-weight:700;}
+.mc-type{font-size:11px;color:var(--gray);margin-top:2px;}
+.mc-rating{font-size:12px;color:var(--yellow);}
+.mc-price{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--orange);}
+.mc-saving{font-size:11px;color:var(--green);margin-top:2px;}
+.mc-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.mc-detail{background:rgba(255,255,255,.04);border-radius:8px;padding:9px;}
+.mc-d-label{font-size:10px;color:var(--gray);margin-bottom:3px;}
+.mc-d-val{font-size:13px;font-weight:700;}
+.mc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.mc-tag{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.17);color:var(--blue-light);font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;}
+.mc-tag.g{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green);}
+.btn-book-match{width:100%;background:var(--orange);color:white;border:none;padding:11px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-book-match:hover{background:var(--orange2);}
+
+/* TRACKING */
+.track-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;}
+.track-map{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;position:relative;min-height:380px;}
+.map-route-line{position:absolute;top:50%;left:12%;right:12%;height:2px;background:linear-gradient(90deg,var(--blue2),var(--orange));transform:translateY(-50%);opacity:.6;}
+.map-pin{position:absolute;font-size:22px;}
+.map-pin.origin{left:8%;top:38%;}
+.map-pin.dest{right:8%;top:38%;}
+.map-truck{position:absolute;font-size:28px;animation:truckMove 8s linear infinite;}
+@keyframes truckMove{0%{left:10%;top:40%}25%{left:35%;top:30%}50%{left:55%;top:50%}75%{left:75%;top:35%}100%{left:88%;top:40%}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.track-sidebar{display:flex;flex-direction:column;gap:16px;}
+.track-status-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;}
+.timeline{display:flex;flex-direction:column;}
+.tl-item{display:flex;gap:12px;padding:10px 0;}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.tl-dot.done{background:var(--green);}
+.tl-dot.active{background:var(--orange);animation:blink 1.2s infinite;}
+.tl-dot.pending{background:rgba(255,255,255,.2);}
+.tl-line{width:1px;flex:1;background:rgba(255,255,255,.06);margin:3px 0;}
+.tl-item:last-child .tl-line{display:none;}
+.tl-label{font-size:13px;font-weight:600;}
+.tl-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.track-info-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.info-row:last-child{border-bottom:none;}
+.info-k{font-size:12px;color:var(--gray);}
+.info-v{font-size:13px;font-weight:700;}
+
+/* HISTORIAL */
+.hist-table{width:100%;border-collapse:collapse;}
+.hist-table th{text-align:left;font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:0 14px 12px;}
+.hist-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);}
+.hist-table tr:hover td{background:rgba(255,255,255,.02);}
+.hist-table tr:last-child td{border-bottom:none;}
+.saving-total{background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(26,79,216,.15));border:1px solid rgba(249,115,22,.2);border-radius:14px;padding:20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.st-amount{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--orange);}
+
+/* DISPUTAS */
+.disp-list{display:flex;flex-direction:column;gap:14px;}
+.disp-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.disp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.disp-title{font-size:15px;font-weight:700;}
+.disp-meta{font-size:12px;color:var(--gray);margin-top:3px;}
+.disp-body{font-size:13px;color:var(--gray2);line-height:1.6;margin-bottom:14px;}
+.disp-actions{display:flex;gap:10px;}
+.btn-disp{padding:9px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-disp.primary{background:var(--blue2);color:white;border:none;}
+.btn-disp.secondary{background:rgba(255,255,255,.06);color:var(--gray2);border:1px solid var(--border2);}
+.faq-list{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+.faq-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.faq-q{padding:16px;font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.faq-q:hover{background:rgba(255,255,255,.04);}
+.faq-a{padding:0 16px 16px;font-size:13px;color:var(--gray2);line-height:1.6;display:none;}
+.faq-a.open{display:block;}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info .tl-t{font-size:14px;font-weight:600;}
+.toggle-info .tl-d{font-size:12px;color:var(--gray);margin-top:2px;}
+.toggle{width:44px;height:24px;background:rgba(255,255,255,.1);border-radius:100px;cursor:pointer;position:relative;transition:.3s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:.3s;}
+.toggle.on::after{left:23px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.overlay.open{display:flex;}
+.modal{background:#0C1B35;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;width:480px;max-width:95vw;position:relative;animation:mup .3s ease;}
+@keyframes mup{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-x{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.07);border:none;color:white;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;}
+.modal-x:hover{background:rgba(255,255,255,.13);}
+.modal-t{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+.modal-s{font-size:13px;color:var(--gray);margin-bottom:22px;}
+.detail-rows{background:rgba(255,255,255,.04);border-radius:12px;padding:16px;margin-bottom:20px;}
+.dr{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+.dr:last-child{border-bottom:none;}
+.dr span:first-child{color:var(--gray);}
+.dr span:last-child{font-weight:700;}
+.btn-full{width:100%;color:white;border:none;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.btn-full.orange{background:var(--orange);}
+.btn-full.red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.btn-full.gray{background:rgba(255,255,255,.07);color:var(--gray2);}
+.success-icon{font-size:52px;text-align:center;margin-bottom:12px;}
+.success-t{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:8px;}
+.success-s{font-size:13px;color:var(--gray);text-align:center;line-height:1.6;margin-bottom:20px;}
+.modal-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:14px;}
+.modal-label{font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:6px;}
+.ocup-bar{background:rgba(255,255,255,.07);border-radius:3px;height:5px;margin-top:6px;overflow:hidden;}
+.ocup-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue2),var(--orange));}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="logo">Cargo<em>Share</em></div>
+    <div class="sb-role">📦 Empresa remitente</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Principal</div>
+    <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ic">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showView('nuevo',this)"><span class="nav-ic">➕</span> Nuevo envío</div>
+    <div class="nav-item" onclick="showView('matches',this)"><span class="nav-ic">⚡</span> Matches disponibles<span class="nav-badge">3</span></div>
+    <div class="sb-section">Mis envíos</div>
+    <div class="nav-item" onclick="showView('tracking',this)"><span class="nav-ic">📍</span> Tracking en vivo</div>
+    <div class="nav-item" onclick="showView('historial',this)"><span class="nav-ic">📋</span> Historial</div>
+    <div class="sb-section">Cuenta</div>
+    <div class="nav-item" onclick="showView('favoritos',this)"><span class="nav-ic">⭐</span> Transportistas favoritos</div>
+    <div class="nav-item" onclick="showView('disputas',this)"><span class="nav-ic">🛡️</span> Disputas y soporte</div>
+    <div class="nav-item" onclick="showView('config',this)"><span class="nav-ic">⚙️</span> Configuración</div>
+  </nav>
+  <div class="sb-user">
+    <div class="user-row" onclick="toggleUserMenu()">
+      <div class="user-av">TA</div>
+      <div>
+        <div class="user-name">Textiles Andinos</div>
+        <div class="user-co">NIT 900.123.456-7</div>
+      </div>
+      <span class="user-chevron">▲</span>
+    </div>
+    <div class="user-menu" id="userMenu">
+      <div class="um-item" onclick="showView('config',null);closeUserMenu()">⚙️ Configuración</div>
+      <div class="um-item" onclick="showView('disputas',null);closeUserMenu()">🛡️ Disputas y soporte</div>
+      <div class="um-divider"></div>
+      <div class="um-item red" onclick="logout()">🚪 Cerrar sesión</div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div><div class="tb-title" id="topTitle">Dashboard</div><div class="tb-sub">Lunes, 17 de febrero 2025</div></div>
+    <div class="tb-right">
+      <div class="btn-icon">🔔</div>
+      <div class="btn-icon">❓</div>
+      <button class="btn-new" onclick="showView('nuevo',null)">+ Nuevo envío</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="greeting"><h2>Buen día, Textiles Andinos 👋</h2><p>Tienes 2 envíos en tránsito y 3 matches nuevos esperando tu aprobación.</p></div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-icon">🚚</div><div class="kpi-label">Envíos este mes</div><div class="kpi-val blue">18</div><div class="kpi-delta">↑ +4 vs mes anterior</div></div>
+        <div class="kpi"><div class="kpi-icon">💸</div><div class="kpi-label">Ahorro acumulado</div><div class="kpi-val orange">$4,820</div><div class="kpi-delta">↑ Este año vs fletes trad.</div></div>
+        <div class="kpi"><div class="kpi-icon">⭐</div><div class="kpi-label">Rating promedio</div><div class="kpi-val green">4.8</div><div class="kpi-delta">↑ Como remitente</div></div>
+        <div class="kpi"><div class="kpi-icon">📦</div><div class="kpi-label">Kg enviados (mes)</div><div class="kpi-val yellow">12.4t</div><div class="kpi-delta">↑ +18% vs promedio</div></div>
+      </div>
+      <div class="grid3">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">📦 Envíos activos</div><span class="panel-action" onclick="showView('tracking',null)">Ver tracking →</span></div>
+          <div class="ship-list">
+            <div class="ship-item" onclick="showView('tracking',null)"><div class="ship-icon" style="background:rgba(37,99,235,.15);">🚛</div><div class="ship-info"><div class="ship-route">Bogotá → Medellín</div><div class="ship-meta">Carlos Jiménez · 4.5 m³ · 680 kg</div></div><div class="ship-right"><div class="status-badge transit"><span class="sdot"></span>En tránsito</div><div class="ship-price">$182 USD</div></div></div>
+            <div class="ship-item"><div class="ship-icon" style="background:rgba(249,115,22,.15);">🚚</div><div class="ship-info"><div class="ship-route">Bogotá → Barranquilla</div><div class="ship-meta">Transportes Andes · 8 m³ · 1,200 kg</div></div><div class="ship-right"><div class="status-badge transit"><span class="sdot"></span>En tránsito</div><div class="ship-price">$408 USD</div></div></div>
+            <div class="ship-item"><div class="ship-icon" style="background:rgba(245,158,11,.15);">⏳</div><div class="ship-info"><div class="ship-route">Bogotá → Cali</div><div class="ship-meta">Pendiente de match · 3 m³ · 420 kg</div></div><div class="ship-right"><div class="status-badge pending"><span class="sdot"></span>Buscando match</div><div class="ship-price">~$130 USD</div></div></div>
+            <div class="ship-item" onclick="showView('matches',null)"><div class="ship-icon" style="background:rgba(249,115,22,.15);">⚡</div><div class="ship-info"><div class="ship-route">Bogotá → Pereira</div><div class="ship-meta">3 transportistas disponibles · 2 m³</div></div><div class="ship-right"><div class="status-badge matched"><span class="sdot"></span>Match listo</div><div class="ship-price">~$60 USD</div></div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">💰 Ahorro mensual</div></div>
+          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--orange);margin-bottom:4px;">$1,240</div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:16px;">vs fletes tradicionales este mes</div>
+          <div class="saving-months" id="savingChart"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;">
+            <span style="font-size:11px;color:var(--gray)">Ene</span><span style="font-size:11px;color:var(--gray)">Feb</span><span style="font-size:11px;color:var(--gray)">Mar</span><span style="font-size:11px;color:var(--gray)">Abr</span><span style="font-size:11px;color:var(--gray)">May</span><span style="font-size:11px;color:var(--gray)">Jun</span>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">🕐 Actividad reciente</div></div>
+          <div class="activity-list">
+            <div class="act-item"><div class="act-dot-wrap"><div class="act-dot" style="background:var(--green)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>Entrega confirmada</strong> — Bogotá → Cali con Frigorutas</div><div class="act-time">Hace 2 horas</div></div></div>
+            <div class="act-item"><div class="act-dot-wrap"><div class="act-dot" style="background:var(--orange)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>Match aceptado</strong> — Carlos Jiménez confirmó tu envío a Medellín</div><div class="act-time">Hace 5 horas</div></div></div>
+            <div class="act-item"><div class="act-dot-wrap"><div class="act-dot" style="background:var(--blue-light)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>Nuevo envío creado</strong> — Bogotá → Barranquilla · $408 USD</div><div class="act-time">Ayer 3:22 PM</div></div></div>
+            <div class="act-item"><div class="act-dot-wrap"><div class="act-dot" style="background:var(--yellow)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>3 matches disponibles</strong> para tu envío a Pereira</div><div class="act-time">Ayer 11:00 AM</div></div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">⭐ Transportistas favoritos</div><span class="panel-action" onclick="showView('favoritos',null)">Ver todos →</span></div>
+          <div class="fav-list">
+            <div class="fav-item"><div class="fav-av" style="background:rgba(37,99,235,.15);">🚛</div><div style="flex:1"><div class="fav-name">Carlos Jiménez</div><div class="fav-meta">Bogotá-Medellín · ★★★★★ 4.9</div></div><button class="btn-fav-book" onclick="showView('nuevo',null)">Reservar</button></div>
+            <div class="fav-item"><div class="fav-av" style="background:rgba(16,185,129,.15);">❄️</div><div style="flex:1"><div class="fav-name">Frigorutas Colombia</div><div class="fav-meta">Especialista frío · ★★★★★ 4.8</div></div><button class="btn-fav-book" onclick="showView('nuevo',null)">Reservar</button></div>
+            <div class="fav-item"><div class="fav-av" style="background:rgba(249,115,22,.15);">🏢</div><div style="flex:1"><div class="fav-name">Transportes Andes SAS</div><div class="fav-meta">Cobertura nacional · ★★★★☆ 4.7</div></div><button class="btn-fav-book" onclick="showView('nuevo',null)">Reservar</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NUEVO ENVÍO -->
+    <div class="view" id="view-nuevo">
+      <div class="greeting"><h2>Nuevo envío ➕</h2><p>Ingresa los datos y el sistema encontrará el mejor match automáticamente.</p></div>
+      <div class="form-card"><div class="form-title">📍 Ruta y fecha</div><div class="form-grid"><div class="fg"><label>Ciudad de origen</label><input type="text" value="Bogotá, Cundinamarca"></div><div class="fg"><label>Ciudad de destino</label><input type="text" placeholder="Ej: Medellín, Antioquia"></div><div class="fg"><label>Fecha de recogida</label><input type="date"></div><div class="fg"><label>Urgencia</label><select><option>Normal (flexible)</option><option>Prioritario (+20%)</option></select></div></div></div>
+      <div class="form-card"><div class="form-title">📦 Tipo de carga</div><div class="type-grid"><div class="type-opt sel" onclick="selType(this)"><span class="tic">📦</span><div class="tn">General</div></div><div class="type-opt" onclick="selType(this)"><span class="tic">🔮</span><div class="tn">Frágil</div></div><div class="type-opt" onclick="selType(this)"><span class="tic">🏗️</span><div class="tn">Maquinaria</div></div><div class="type-opt" onclick="selType(this)"><span class="tic">❄️</span><div class="tn">Refrigerado</div></div><div class="type-opt" onclick="selType(this)"><span class="tic">🧊</span><div class="tn">Congelado</div></div></div></div>
+      <div class="form-card"><div class="form-title">📐 Dimensiones y peso</div><div class="form-grid g3" style="margin-bottom:16px"><div class="fg"><label>Largo (m)</label><input type="number" id="nLargo" value="1.2" step="0.1" oninput="nCalc()"></div><div class="fg"><label>Ancho (m)</label><input type="number" id="nAncho" value="0.8" step="0.1" oninput="nCalc()"></div><div class="fg"><label>Alto (m)</label><input type="number" id="nAlto" value="1.0" step="0.1" oninput="nCalc()"></div></div><div class="form-grid" style="margin-bottom:16px"><div class="fg"><label>Cantidad de paquetes</label><input type="number" id="nCant" value="5" oninput="nCalc()"></div><div class="fg"><label>Peso real total (kg)</label><input type="number" id="nPeso" value="800" oninput="nCalc()"></div></div><div class="live-pill"><div><div class="lp-v" id="nVol">4.80 m³</div><div class="lp-k">Volumen total</div></div><div><div class="lp-v or" id="nCob">800 kg</div><div class="lp-k">Peso cobrable</div></div><div><div class="lp-v gr" id="nFac">Peso real</div><div class="lp-k">Factor</div></div></div></div>
+      <div class="form-card"><div class="form-title">💰 Valor y seguro</div><div class="form-grid"><div class="fg"><label>Valor declarado (USD)</label><input type="number" id="nValor" value="2000" oninput="nCheckIns()"></div><div class="fg"><label>Descripción del producto</label><input type="text" placeholder="Ej: Tela de algodón, 200 rollos"></div></div><div class="ins-notice" id="nInsNotice" style="margin-top:12px;">🛡️ Seguro obligatorio activado — valor ≥ $3,000 USD incluye seguro automático (1.5%).</div></div>
+      <div class="form-card"><div class="form-title">📝 Notas adicionales</div><div class="fg"><label>Instrucciones especiales</label><textarea placeholder="Ej: Carga debe mantenerse vertical. Contactar al 300-123-4567 al llegar."></textarea></div></div>
+      <div class="form-actions"><button class="btn-submit" onclick="openBookingModal()">Buscar matches →</button><button class="btn-save">Guardar borrador</button></div>
+    </div>
+
+    <!-- MATCHES -->
+    <div class="view" id="view-matches">
+      <div class="greeting"><h2>Matches disponibles ⚡</h2><p>Transportistas verificados listos para tu envío Bogotá → Pereira · 2 m³</p></div>
+      <div class="match-filter"><button class="filter-btn on">Todos</button><button class="filter-btn" onclick="togFilter(this)">Más económico</button><button class="filter-btn" onclick="togFilter(this)">Mejor rating</button><button class="filter-btn" onclick="togFilter(this)">Retorno vacío</button></div>
+      <div class="match-grid">
+        <div class="match-card best"><div class="best-badge">⭐ Mejor match</div><div class="mc-top"><div class="mc-carrier"><div class="mc-av">🚛</div><div><div class="mc-name">Carlos Jiménez</div><div class="mc-type">Independiente</div><div class="mc-rating">★★★★★ 4.9</div></div></div><div style="text-align:right"><div class="mc-price">$58 USD</div><div class="mc-saving">↓ Ahorras $142</div></div></div><div class="mc-details"><div class="mc-detail"><div class="mc-d-label">Salida</div><div class="mc-d-val">Mañana 6:00 AM</div></div><div class="mc-detail"><div class="mc-d-label">Vehículo</div><div class="mc-d-val">Camión 3/4</div></div></div><div class="mc-tags"><span class="mc-tag g">Verificado</span><span class="mc-tag g">Sin recargo</span><span class="mc-tag">Retorno vacío</span></div><button class="btn-book-match" onclick="openBookOk('Carlos Jiménez','$58 USD','Mañana 6:00 AM')">Reservar con Carlos →</button></div>
+        <div class="match-card"><div class="mc-top"><div class="mc-carrier"><div class="mc-av">🏢</div><div><div class="mc-name">Transportes Andes SAS</div><div class="mc-type">Empresa con flota</div><div class="mc-rating">★★★★☆ 4.7</div></div></div><div style="text-align:right"><div class="mc-price">$72 USD</div><div class="mc-saving">↓ Ahorras $128</div></div></div><div class="mc-details"><div class="mc-detail"><div class="mc-d-label">Salida</div><div class="mc-d-val">Mañana 9:00 AM</div></div><div class="mc-detail"><div class="mc-d-label">Vehículo</div><div class="mc-d-val">Camión sencillo</div></div></div><div class="mc-tags"><span class="mc-tag g">Empresa verificada</span><span class="mc-tag">Seguro incluido</span></div><button class="btn-book-match" onclick="openBookOk('Transportes Andes','$72 USD','Mañana 9:00 AM')">Reservar con Andes →</button></div>
+        <div class="match-card"><div class="mc-top"><div class="mc-carrier"><div class="mc-av">🚐</div><div><div class="mc-name">Jorge Morales</div><div class="mc-type">Independiente</div><div class="mc-rating">★★★★☆ 4.6</div></div></div><div style="text-align:right"><div class="mc-price">$52 USD</div><div class="mc-saving">↓ Ahorras $148</div></div></div><div class="mc-details"><div class="mc-detail"><div class="mc-d-label">Salida</div><div class="mc-d-val">Viernes 7:00 AM</div></div><div class="mc-detail"><div class="mc-d-label">Vehículo</div><div class="mc-d-val">Furgón grande</div></div></div><div class="mc-tags"><span class="mc-tag g">Verificado</span><span class="mc-tag g">Precio reducido</span></div><button class="btn-book-match" onclick="openBookOk('Jorge Morales','$52 USD','Viernes 7:00 AM')">Reservar con Jorge →</button></div>
+      </div>
+    </div>
+
+    <!-- TRACKING -->
+    <div class="view" id="view-tracking">
+      <div class="greeting"><h2>Tracking en vivo 📍</h2><p>Envío #CS-0044 · Bogotá → Medellín · Carlos Jiménez</p></div>
+      <div class="track-layout">
+        <div class="track-map">
+          <div class="map-route-line"></div>
+          <div class="map-pin origin">📍</div>
+          <div class="map-pin dest">🏁</div>
+          <div class="map-truck">🚛</div>
+          <div style="position:absolute;bottom:14px;left:14px;background:rgba(14,30,56,.9);border:1px solid var(--border);border-radius:10px;padding:10px 14px;"><div style="font-size:11px;color:var(--gray);margin-bottom:2px;">Velocidad</div><div style="font-size:18px;font-weight:700;color:var(--green);">72 km/h</div></div>
+          <div style="position:absolute;bottom:14px;right:14px;background:rgba(14,30,56,.9);border:1px solid var(--border);border-radius:10px;padding:10px 14px;"><div style="font-size:11px;color:var(--gray);margin-bottom:2px;">Llegada estimada</div><div style="font-size:18px;font-weight:700;color:var(--orange);">3:40 PM</div></div>
+          <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(14,30,56,.9);border:1px solid var(--border);border-radius:10px;padding:8px 16px;display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;background:var(--green);border-radius:50%;animation:blink 1s infinite;"></div><span style="font-size:13px;font-weight:700;">En tránsito — 187 km restantes</span></div>
+        </div>
+        <div class="track-sidebar">
+          <div class="track-status-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="panel-title">Línea de tiempo</div><div class="status-badge transit"><span class="sdot"></span>En tránsito</div></div>
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-dot-col"><div class="tl-dot done"></div><div class="tl-line"></div></div><div><div class="tl-label">✅ Carga recogida</div><div class="tl-sub">Hoy 7:15 AM · Bogotá</div></div></div>
+              <div class="tl-item"><div class="tl-dot-col"><div class="tl-dot done"></div><div class="tl-line"></div></div><div><div class="tl-label">✅ En ruta</div><div class="tl-sub">Hoy 7:42 AM</div></div></div>
+              <div class="tl-item"><div class="tl-dot-col"><div class="tl-dot active"></div><div class="tl-line"></div></div><div><div class="tl-label">🟠 En tránsito</div><div class="tl-sub">Autopista · km 227</div></div></div>
+              <div class="tl-item"><div class="tl-dot-col"><div class="tl-dot pending"></div><div class="tl-line"></div></div><div><div class="tl-label" style="color:var(--gray)">Llegada a destino</div><div class="tl-sub">Estimado: 3:40 PM</div></div></div>
+              <div class="tl-item"><div class="tl-dot-col"><div class="tl-dot pending"></div><div class="tl-line"></div></div><div><div class="tl-label" style="color:var(--gray)">Entrega y firma</div><div class="tl-sub">Pendiente</div></div></div>
+            </div>
+          </div>
+          <div class="track-info-card">
+            <div class="info-row"><span class="info-k">Transportista</span><span class="info-v">Carlos Jiménez</span></div>
+            <div class="info-row"><span class="info-k">Vehículo</span><span class="info-v">Camión 3/4 · ABC-123</span></div>
+            <div class="info-row"><span class="info-k">Carga</span><span class="info-v">4.5 m³ · 680 kg</span></div>
+            <div class="info-row"><span class="info-k">Valor</span><span class="info-v">$182 USD</span></div>
+            <div class="info-row"><span class="info-k">Seguro</span><span class="info-v" style="color:var(--green)">✅ Activo</span></div>
+            <div class="info-row"><span class="info-k">Teléfono</span><span class="info-v">📞 310-456-7890</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="view" id="view-historial">
+      <div class="greeting"><h2>Historial de envíos 📋</h2><p>Todos tus envíos completados.</p></div>
+      <div class="saving-total"><div><div style="font-size:12px;color:var(--gray);margin-bottom:4px;">Ahorro acumulado total</div><div class="st-amount">$4,820 USD</div><div style="font-size:12px;color:var(--gray2);margin-top:4px;">En 23 envíos completados</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:var(--blue-light);">23</div><div style="font-size:11px;color:var(--gray)">Envíos</div></div></div>
+      <div class="panel">
+        <table class="hist-table">
+          <thead><tr><th>Ruta</th><th>Transportista</th><th>Carga</th><th>Precio</th><th>Ahorro</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Bogotá → Cali</strong></td><td>Frigorutas Colombia</td><td>2 m³ · ❄️</td><td>$142</td><td style="color:var(--green)">-$198</td><td>14 Feb 2025</td><td><span class="status-badge done">✅ Entregado</span></td></tr>
+            <tr><td><strong>Bogotá → Medellín</strong></td><td>Carlos Jiménez</td><td>4.5 m³ · 📦</td><td>$182</td><td style="color:var(--green)">-$246</td><td>10 Feb 2025</td><td><span class="status-badge done">✅ Entregado</span></td></tr>
+            <tr><td><strong>Bogotá → Barranquilla</strong></td><td>Transportes Andes</td><td>8 m³ · 📦</td><td>$408</td><td style="color:var(--green)">-$512</td><td>5 Feb 2025</td><td><span class="status-badge done">✅ Entregado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FAVORITOS -->
+    <div class="view" id="view-favoritos">
+      <div class="greeting"><h2>Transportistas favoritos ⭐</h2><p>Tus transportistas de confianza.</p></div>
+      <div class="panel">
+        <div class="fav-list">
+          <div class="fav-item" style="padding:16px"><div class="fav-av" style="background:rgba(37,99,235,.15);width:48px;height:48px;font-size:20px;">🚛</div><div style="flex:1"><div class="fav-name" style="font-size:15px">Carlos Jiménez</div><div class="fav-meta">Independiente · Bogotá-Medellín · 7 envíos juntos</div><div class="fav-stars" style="font-size:13px;margin-top:4px">★★★★★ 4.9</div></div><button class="btn-fav-book" style="padding:10px 20px;font-size:13px" onclick="showView('nuevo',null)">Reservar →</button></div>
+          <div class="fav-item" style="padding:16px"><div class="fav-av" style="background:rgba(16,185,129,.15);width:48px;height:48px;font-size:20px;">❄️</div><div style="flex:1"><div class="fav-name" style="font-size:15px">Frigorutas Colombia</div><div class="fav-meta">Especialista frío · 3 envíos juntos</div><div class="fav-stars" style="font-size:13px;margin-top:4px">★★★★★ 4.8</div></div><button class="btn-fav-book" style="padding:10px 20px;font-size:13px" onclick="showView('nuevo',null)">Reservar →</button></div>
+          <div class="fav-item" style="padding:16px"><div class="fav-av" style="background:rgba(249,115,22,.15);width:48px;height:48px;font-size:20px;">🏢</div><div style="flex:1"><div class="fav-name" style="font-size:15px">Transportes Andes SAS</div><div class="fav-meta">Empresa · Nacional · 13 envíos juntos</div><div class="fav-stars" style="font-size:13px;margin-top:4px">★★★★☆ 4.7</div></div><button class="btn-fav-book" style="padding:10px 20px;font-size:13px" onclick="showView('nuevo',null)">Reservar →</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISPUTAS Y SOPORTE -->
+    <div class="view" id="view-disputas">
+      <div class="greeting"><h2>Disputas y soporte 🛡️</h2><p>Gestiona problemas con envíos y encuentra respuestas rápidas.</p></div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-head"><div class="panel-title">📬 Abrir nueva disputa</div></div>
+        <div class="form-grid" style="margin-bottom:16px;">
+          <div class="fg"><label>Envío relacionado</label><select><option>CS-0044 · Bogotá → Medellín · En tránsito</option><option>CS-0041 · Bogotá → Cali · Entregado</option><option>CS-0038 · Bogotá → Barranquilla · Entregado</option></select></div>
+          <div class="fg"><label>Tipo de problema</label><select><option>Retraso en entrega</option><option>Carga dañada</option><option>Carga incompleta</option><option>Transportista no se presentó</option><option>Cobro incorrecto</option><option>Otro</option></select></div>
+        </div>
+        <div class="fg" style="margin-bottom:16px;"><label>Descripción del problema</label><textarea placeholder="Describe detalladamente qué ocurrió, fechas y cualquier evidencia que tengas..."></textarea></div>
+        <button class="btn-submit" onclick="abrirDisputa()">Enviar disputa →</button>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-head"><div class="panel-title">📋 Mis disputas activas</div></div>
+        <div class="disp-list">
+          <div class="disp-card">
+            <div class="disp-top">
+              <div><div class="disp-title">Retraso en entrega — CS-0038</div><div class="disp-meta">Bogotá → Barranquilla · Abierta hace 2 días</div></div>
+              <div class="status-badge pending"><span class="sdot"></span>En revisión</div>
+            </div>
+            <div class="disp-body">El transportista llegó 6 horas después de lo acordado, causando pérdidas en la recepción del producto.</div>
+            <div class="disp-actions">
+              <button class="btn-disp primary">Ver detalles</button>
+              <button class="btn-disp secondary">Agregar evidencia</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">❓ Preguntas frecuentes</div></div>
+        <div class="faq-list">
+          <div class="faq-item"><div class="faq-q" onclick="togFaq(this)"><span>¿Qué hago si mi carga llegó dañada?</span><span>▼</span></div><div class="faq-a">Toma fotos inmediatamente y ábrela disputa dentro de las 24 horas siguientes a la entrega. Si tienes seguro activo, se iniciará el proceso de reclamación automáticamente. El seguro cubre hasta el valor declarado del envío.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="togFaq(this)"><span>¿Cuánto tiempo tarda una disputa?</span><span>▼</span></div><div class="faq-a">El equipo de CargoShare revisa cada disputa en un máximo de 3 días hábiles. Casos urgentes (carga perecedera, pérdida total) se manejan en menos de 24 horas.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="togFaq(this)"><span>¿Puedo cancelar un envío confirmado?</span><span>▼</span></div><div class="faq-a">Puedes cancelar hasta 12 horas antes de la recogida sin penalización. Cancelaciones tardías pueden tener un cargo del 20% del valor del envío según las políticas de CargoShare.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="togFaq(this)"><span>¿Cómo funciona el seguro de carga?</span><span>▼</span></div><div class="faq-a">El seguro cubre el valor declarado del envío en caso de daño o pérdida total durante el transporte. Se activa automáticamente para cargas mayores a $3,000 USD y es opcional para cargas de menor valor.</div></div>
+        </div>
+
+        <div style="margin-top:20px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.18);border-radius:12px;padding:18px;display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:14px;font-weight:700;margin-bottom:4px;">¿Necesitas hablar con alguien?</div><div style="font-size:12px;color:var(--gray);">Nuestro equipo responde en menos de 2 horas en horario hábil.</div></div>
+          <button onclick="alert('📧 soporte@cargoshare.co\n📞 601-123-4567\nLunes a viernes 8AM-6PM')" style="background:var(--blue2);color:white;border:none;padding:10px 20px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Contactar soporte</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIGURACIÓN -->
+    <div class="view" id="view-config">
+      <div class="greeting"><h2>Configuración ⚙️</h2><p>Ajusta los datos y preferencias de tu cuenta.</p></div>
+      <div class="form-card">
+        <div class="form-title">🏢 Datos de la empresa</div>
+        <div class="form-grid">
+          <div class="fg"><label>Nombre de la empresa</label><input type="text" value="Textiles Andinos SAS"></div>
+          <div class="fg"><label>NIT</label><input type="text" value="900.123.456-7"></div>
+          <div class="fg"><label>Correo corporativo</label><input type="email" value="compras@textilesandinos.com"></div>
+          <div class="fg"><label>Teléfono</label><input type="tel" value="601-234-5678"></div>
+          <div class="fg"><label>Ciudad principal</label><input type="text" value="Bogotá, Cundinamarca"></div>
+          <div class="fg"><label>Dirección de recogida</label><input type="text" value="Cra 68 #23-45, Zona Industrial"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">🔔 Notificaciones</div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl-t">Nuevos matches disponibles</div><div class="tl-d">Notificar cuando hay transportistas para mi envío</div></div><div class="toggle on" onclick="togToggle(this)"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl-t">Actualizaciones de tracking</div><div class="tl-d">Avisar cuando el estado del envío cambia</div></div><div class="toggle on" onclick="togToggle(this)"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl-t">Confirmación de entrega</div><div class="tl-d">Notificar cuando la carga sea entregada</div></div><div class="toggle on" onclick="togToggle(this)"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl-t">Resumen mensual de ahorro</div><div class="tl-d">Recibir reporte mensual de cuánto ahorré</div></div><div class="toggle" onclick="togToggle(this)"></div></div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">🔐 Seguridad</div>
+        <div class="form-grid">
+          <div class="fg"><label>Contraseña actual</label><input type="password" placeholder="••••••••"></div>
+          <div class="fg"><label>Nueva contraseña</label><input type="password" placeholder="Mínimo 8 caracteres"></div>
+        </div>
+        <div style="margin-top:16px;"><button class="btn-submit blue" onclick="alert('✅ Contraseña actualizada')">Actualizar contraseña</button></div>
+      </div>
+      <div class="form-card" style="border-color:rgba(239,68,68,.2);">
+        <div class="form-title" style="color:var(--red);">⚠️ Zona de peligro</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:14px;font-weight:600;">Cerrar sesión</div><div style="font-size:12px;color:var(--gray);margin-top:2px;">Salir de tu cuenta en este dispositivo</div></div>
+          <button onclick="logout()" style="background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);padding:10px 20px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🚪 Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALES -->
+<div class="overlay" id="bookModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">✅</div>
+    <div class="success-t">¡Solicitud enviada!</div>
+    <div class="success-s" id="bookMsg">Tu envío fue publicado.</div>
+    <div class="detail-rows" id="bookDetails"></div>
+    <button class="btn-full orange" onclick="closeModal();showView('tracking',null)">Ver tracking →</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalDisputa">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">📬</div>
+    <div class="success-t">Disputa enviada</div>
+    <div class="success-s">Nuestro equipo revisará tu caso en máximo 3 días hábiles. Recibirás una notificación cuando haya una actualización.</div>
+    <button class="btn-full orange" onclick="closeModal()">Entendido</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalLogout">
+  <div class="modal" style="width:400px">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">🚪</div>
+    <div class="success-t">¿Cerrar sesión?</div>
+    <div class="success-s">¿Seguro que quieres salir de tu cuenta?</div>
+    <button class="btn-full orange" onclick="window.parent.location.href='/'">Sí, cerrar sesión</button>
+    <button class="btn-full gray" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+function showView(id,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',nuevo:'Nuevo envío',matches:'Matches disponibles',tracking:'Tracking en vivo',historial:'Historial',favoritos:'Transportistas favoritos',disputas:'Disputas y soporte',config:'Configuración'};
+  document.getElementById('topTitle').textContent=titles[id]||id;
+  window.scrollTo(0,0);
+}
+function selType(el){document.querySelectorAll('.type-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}
+function nCalc(){
+  const l=parseFloat(document.getElementById('nLargo').value)||0;
+  const a=parseFloat(document.getElementById('nAncho').value)||0;
+  const h=parseFloat(document.getElementById('nAlto').value)||0;
+  const q=parseInt(document.getElementById('nCant').value)||1;
+  const pr=parseFloat(document.getElementById('nPeso').value)||0;
+  const vol=l*a*h*q;
+  const pv=vol*333;
+  const pc=Math.max(pr,pv);
+  document.getElementById('nVol').textContent=vol.toFixed(2)+' m³';
+  document.getElementById('nCob').textContent=pc.toFixed(0)+' kg';
+  document.getElementById('nFac').textContent=pc===pv&&pv>pr?'Volumétrico':'Peso real';
+}
+function nCheckIns(){
+  const v=parseFloat(document.getElementById('nValor').value)||0;
+  document.getElementById('nInsNotice').classList.toggle('show',v>=3000);
+}
+function openBookingModal(){
+  document.getElementById('bookDetails').innerHTML=`<div class="dr"><span>Volumen</span><span>${document.getElementById('nVol').textContent}</span></div><div class="dr"><span>Match</span><span style="color:var(--orange)">Automático en &lt;4h</span></div>`;
+  document.getElementById('bookMsg').textContent='Tu envío fue publicado. Te notificamos cuando haya un match.';
+  document.getElementById('bookModal').classList.add('open');
+}
+function openBookOk(name,price,depart){
+  document.getElementById('bookDetails').innerHTML=`<div class="dr"><span>Transportista</span><span>${name}</span></div><div class="dr"><span>Precio</span><span style="color:var(--orange)">${price}</span></div><div class="dr"><span>Salida</span><span>${depart}</span></div><div class="dr"><span>Estado</span><span style="color:var(--green)">✅ Confirmado</span></div>`;
+  document.getElementById('bookMsg').textContent=`Reserva con ${name} confirmada.`;
+  document.getElementById('bookModal').classList.add('open');
+}
+function togFilter(el){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function abrirDisputa(){document.getElementById('modalDisputa').classList.add('open');}
+function togFaq(el){const a=el.nextElementSibling;a.classList.toggle('open');}
+function togToggle(el){el.classList.toggle('on');}
+function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open');}
+function closeUserMenu(){document.getElementById('userMenu').classList.remove('open');}
+function logout(){document.getElementById('modalLogout').classList.add('open');}
+function closeModal(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModal();}));
+document.addEventListener('click',e=>{if(!e.target.closest('.sb-user'))closeUserMenu();});
+
+// SAVING CHART
+const months=[680,820,740,960,1100,1240];
+const chart=document.getElementById('savingChart');
+const max=Math.max(...months);
+months.forEach((v,i)=>{
+  const wrap=document.createElement('div');wrap.className='sm-bar-wrap';
+  const bar=document.createElement('div');bar.className='sm-bar';
+  bar.style.height='0px';
+  bar.innerHTML=`<div class="tooltip">$${v} USD</div>`;
+  wrap.appendChild(bar);chart.appendChild(wrap);
+  setTimeout(()=>{bar.style.transition='height .6s ease';bar.style.height=Math.round((v/max)*76)+'px';},100+i*80);
+});
+nCalc();
+</script>
+</body>
+</html>

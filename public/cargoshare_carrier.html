@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CargoShare — Panel Transportista</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#060E1C;--navy2:#0B1628;--navy3:#0F1E35;
+  --blue:#1A4FD8;--blue2:#2563EB;--blue-light:#60A5FA;
+  --orange:#F97316;--orange2:#EA6C0A;
+  --white:#FFFFFF;--gray:#7A8FAD;--gray2:#B8C8DC;
+  --card:#0E1E38;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --green:#10B981;--green2:#059669;--red:#EF4444;--yellow:#F59E0B;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;display:flex;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--navy);}::-webkit-scrollbar-thumb{background:var(--blue2);border-radius:3px;}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;flex-shrink:0;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-logo{padding:24px 24px 20px;border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+.logo em{color:var(--orange);font-style:normal;}
+.sb-role{display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.2);padding:3px 10px;border-radius:100px;font-size:11px;color:var(--blue-light);font-weight:600;margin-top:8px;}
+.sb-nav{padding:16px 12px;flex:1;}
+.sb-section{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;padding:0 12px;margin:20px 0 8px;}
+.sb-section:first-child{margin-top:4px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;margin-bottom:2px;font-size:13.5px;font-weight:500;color:var(--gray);cursor:pointer;transition:.2s;position:relative;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--white);}
+.nav-item.active{background:rgba(37,99,235,.15);color:var(--white);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:24px;background:var(--blue-light);border-radius:0 3px 3px 0;}
+.nav-ic{font-size:17px;width:20px;text-align:center;}
+.nav-badge{background:var(--orange);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px;margin-left:auto;}
+.nav-badge.green{background:var(--green);}
+.nav-item.danger{color:var(--red);}
+.nav-item.danger:hover{background:rgba(239,68,68,.1);}
+
+/* USER AREA */
+.sb-user{padding:14px;border-top:1px solid var(--border);position:relative;}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;transition:.2s;}
+.user-row:hover{background:rgba(255,255,255,.05);}
+.user-av{width:36px;height:36px;border-radius:9px;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'Syne',sans-serif;color:var(--blue-light);flex-shrink:0;}
+.user-name{font-size:13px;font-weight:700;}
+.user-co{font-size:11px;color:var(--gray);margin-top:1px;}
+.user-chevron{margin-left:auto;font-size:12px;color:var(--gray);}
+.user-menu{position:absolute;bottom:70px;left:14px;right:14px;background:#0C1B35;border:1px solid var(--border2);border-radius:12px;padding:8px;display:none;z-index:10;box-shadow:0 20px 40px rgba(0,0,0,.5);}
+.user-menu.open{display:block;}
+.um-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13px;cursor:pointer;transition:.2s;color:var(--gray2);}
+.um-item:hover{background:rgba(255,255,255,.07);color:white;}
+.um-item.red{color:var(--red);}
+.um-item.red:hover{background:rgba(239,68,68,.1);}
+.um-divider{height:1px;background:var(--border);margin:6px 0;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;}
+.topbar{padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,14,28,.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-shrink:0;}
+.tb-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.5px;}
+.tb-sub{font-size:12px;color:var(--gray);margin-top:1px;}
+.tb-right{display:flex;gap:10px;align-items:center;}
+.btn-icon{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--gray);width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.2s;}
+.btn-icon:hover{background:rgba(255,255,255,.1);color:white;}
+.notif-dot{position:relative;}
+.notif-dot::after{content:'2';position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--orange);border-radius:50%;border:2px solid var(--navy);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:white;}
+.btn-new{background:var(--blue2);color:white;border:none;padding:9px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-new:hover{background:var(--blue);}
+.content{padding:28px 32px;overflow-y:auto;flex:1;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* COMMON */
+.greeting{margin-bottom:28px;}
+.greeting h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.8px;margin-bottom:4px;}
+.greeting p{font-size:14px;color:var(--gray);}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s;}
+.kpi:hover{border-color:rgba(255,255,255,.14);}
+.kpi-icon{position:absolute;top:16px;right:16px;font-size:22px;opacity:.5;}
+.kpi-label{font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.kpi-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1;}
+.kpi-val.blue{color:var(--blue-light);}
+.kpi-val.orange{color:var(--orange);}
+.kpi-val.green{color:var(--green);}
+.kpi-val.yellow{color:var(--yellow);}
+.kpi-delta{font-size:12px;color:var(--green);margin-top:6px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.grid3{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.panel-title{font-size:15px;font-weight:700;}
+.panel-action{font-size:12px;color:var(--blue-light);cursor:pointer;font-weight:600;}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;}
+.status-badge.active{background:rgba(16,185,129,.12);color:var(--green);}
+.status-badge.pending{background:rgba(245,158,11,.12);color:var(--yellow);}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* SOLICITUDES */
+.sol-list{display:flex;flex-direction:column;gap:12px;}
+.sol-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:18px;transition:border-color .2s;}
+.sol-card:hover{border-color:rgba(255,255,255,.14);}
+.sol-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.sol-empresa{display:flex;align-items:center;gap:10px;}
+.sol-av{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.sol-name{font-size:14px;font-weight:700;}
+.sol-meta{font-size:11px;color:var(--gray);margin-top:2px;}
+.sol-price{text-align:right;}
+.sol-amount{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--orange);}
+.sol-unit{font-size:10px;color:var(--gray);}
+.sol-details{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.sol-detail{background:rgba(255,255,255,.04);border-radius:8px;padding:9px;}
+.sd-label{font-size:10px;color:var(--gray);margin-bottom:3px;}
+.sd-val{font-size:12px;font-weight:700;}
+.sol-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.stag{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.17);color:var(--blue-light);font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;}
+.stag.warn{background:rgba(249,115,22,.1);border-color:rgba(249,115,22,.2);color:var(--orange);}
+.stag.ok{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green);}
+.sol-actions{display:flex;gap:10px;}
+.btn-accept{flex:1;background:var(--green2);color:white;border:none;padding:10px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-accept:hover{background:var(--green);}
+.btn-reject{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:10px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-detail{background:rgba(255,255,255,.05);color:var(--gray2);border:1px solid var(--border2);padding:10px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* RUTAS */
+.ruta-list{display:flex;flex-direction:column;gap:10px;}
+.ruta-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.2s;}
+.ruta-item:hover{border-color:rgba(96,165,250,.2);}
+.ruta-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ruta-info{flex:1;}
+.ruta-route{font-size:14px;font-weight:700;}
+.ruta-meta{font-size:12px;color:var(--gray);margin-top:2px;}
+.ruta-right{text-align:right;flex-shrink:0;}
+.ruta-earn{font-size:14px;font-weight:700;color:var(--green);margin-top:4px;}
+.ocup-bar{background:rgba(255,255,255,.07);border-radius:3px;height:5px;margin-top:6px;overflow:hidden;}
+.ocup-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue2),var(--orange));}
+
+/* INGRESOS */
+.ing-total{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--green);margin-bottom:4px;}
+.ing-sub{font-size:12px;color:var(--gray);margin-bottom:16px;}
+.ing-bars{display:flex;align-items:flex-end;gap:8px;height:90px;}
+.ib-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.ib-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--green),rgba(16,185,129,.3));cursor:pointer;position:relative;transition:.2s;}
+.ib-bar:hover{background:linear-gradient(180deg,var(--orange),rgba(249,115,22,.3));}
+.ib-bar .tip{display:none;position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:var(--navy);border:1px solid var(--border);padding:5px 9px;border-radius:7px;font-size:11px;white-space:nowrap;font-weight:600;}
+.ib-bar:hover .tip{display:block;}
+.ib-lbl{font-size:10px;color:var(--gray);}
+
+/* ACTIVITY */
+.act-list{display:flex;flex-direction:column;}
+.act-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.act-item:last-child{border-bottom:none;}
+.act-dot-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.act-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.act-line{width:1px;flex:1;background:rgba(255,255,255,.06);margin:4px 0;}
+.act-item:last-child .act-line{display:none;}
+.act-text{font-size:13px;line-height:1.5;}
+.act-text strong{color:white;}
+.act-time{font-size:11px;color:var(--gray);margin-top:2px;}
+
+/* FORM */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;margin-bottom:20px;}
+.form-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.7px;}
+.fg input,.fg select,.fg textarea{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:var(--blue-light);}
+.fg select option{background:#0C1830;}
+.fg input::placeholder{color:rgba(255,255,255,.2);}
+.carga-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.carga-opt{border:2px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:.2s;background:transparent;}
+.carga-opt:hover{border-color:var(--blue-light);}
+.carga-opt.sel{border-color:var(--blue-light);background:rgba(96,165,250,.08);}
+.carga-opt .cic{font-size:24px;display:block;margin-bottom:6px;}
+.carga-opt .cn{font-size:11px;font-weight:600;color:var(--gray2);}
+.cap-preview{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.15);border-radius:10px;padding:14px;margin:4px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.cp-v{font-size:16px;font-weight:700;color:var(--blue-light);}
+.cp-k{font-size:10px;color:var(--gray);margin-top:2px;}
+.desvio-info{background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);border-radius:9px;padding:12px 14px;font-size:12px;color:rgba(255,200,140,.9);margin-top:4px;}
+.form-actions{display:flex;gap:12px;margin-top:8px;}
+.btn-submit{background:var(--blue2);color:white;border:none;padding:13px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-submit:hover{background:var(--blue);}
+.btn-submit.green{background:var(--green2);}
+.btn-submit.green:hover{background:var(--green);}
+.btn-save{background:rgba(255,255,255,.05);color:var(--gray2);border:1px solid var(--border2);padding:13px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* VEHICULO */
+.veh-type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.vt-opt{border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 10px;text-align:center;cursor:pointer;transition:.2s;background:transparent;}
+.vt-opt:hover{border-color:var(--blue-light);}
+.vt-opt.sel{border-color:var(--orange);background:rgba(249,115,22,.08);}
+.vt-opt .vic{font-size:32px;margin-bottom:8px;display:block;}
+.vt-opt .vn{font-size:13px;font-weight:700;color:white;}
+.vt-opt .vd{font-size:11px;color:var(--gray);margin-top:3px;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info .tl{font-size:14px;font-weight:600;}
+.toggle-info .td{font-size:12px;color:var(--gray);margin-top:2px;}
+.toggle{width:44px;height:24px;background:rgba(255,255,255,.1);border-radius:100px;cursor:pointer;position:relative;transition:.3s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:.3s;}
+.toggle.on::after{left:23px;}
+.foto-upload{border:2px dashed rgba(255,255,255,.15);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:.2s;}
+.foto-upload:hover{border-color:var(--blue-light);background:rgba(96,165,250,.04);}
+.foto-upload .fic{font-size:36px;margin-bottom:10px;}
+.foto-upload .ft{font-size:14px;font-weight:600;margin-bottom:4px;}
+.foto-upload .fs{font-size:12px;color:var(--gray);}
+.doc-list{display:flex;flex-direction:column;gap:10px;}
+.doc-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:13px;}
+.doc-ic{font-size:20px;flex-shrink:0;}
+.doc-info{flex:1;}
+.doc-name{font-size:13px;font-weight:700;}
+.doc-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.doc-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;}
+.doc-status.ok{background:rgba(16,185,129,.12);color:var(--green);}
+.doc-status.pend{background:rgba(245,158,11,.12);color:var(--yellow);}
+.btn-upload{background:rgba(255,255,255,.07);color:var(--gray2);border:1px solid var(--border2);padding:7px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+
+/* PAGOS */
+.saldo-card{background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(37,99,235,.15) 100%);border:1px solid rgba(16,185,129,.2);border-radius:18px;padding:28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+.saldo-left .sl{font-size:13px;color:var(--gray);margin-bottom:6px;}
+.saldo-left .sa{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--green);line-height:1;}
+.saldo-left .ss{font-size:12px;color:var(--gray2);margin-top:6px;}
+.saldo-right{display:flex;flex-direction:column;gap:10px;}
+.btn-retirar{background:var(--green2);color:white;border:none;padding:13px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-retirar:hover{background:var(--green);}
+.btn-retirar-pend{background:rgba(255,255,255,.07);color:var(--gray2);border:1px solid var(--border2);padding:13px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.pago-table{width:100%;border-collapse:collapse;}
+.pago-table th{text-align:left;font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:0 14px 12px;}
+.pago-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pago-table tr:hover td{background:rgba(255,255,255,.02);}
+.pago-table tr:last-child td{border-bottom:none;}
+.metodo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.metodo-card{background:rgba(255,255,255,.04);border:2px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.2s;}
+.metodo-card:hover{border-color:var(--blue-light);}
+.metodo-card.sel{border-color:var(--green);background:rgba(16,185,129,.06);}
+.metodo-ic{font-size:24px;margin-bottom:8px;}
+.metodo-n{font-size:14px;font-weight:700;}
+.metodo-s{font-size:12px;color:var(--gray);margin-top:2px;}
+
+/* RETORNOS */
+.retorno-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.ret-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:border-color .2s,transform .2s;}
+.ret-card:hover{border-color:rgba(16,185,129,.25);transform:translateY(-2px);}
+.ret-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:var(--green);font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;margin-bottom:12px;}
+.ret-route{font-size:16px;font-weight:700;margin-bottom:6px;}
+.ret-meta{font-size:12px;color:var(--gray);margin-bottom:14px;}
+.ret-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ret-d{background:rgba(255,255,255,.04);border-radius:8px;padding:9px;}
+.rd-k{font-size:10px;color:var(--gray);margin-bottom:3px;}
+.rd-v{font-size:13px;font-weight:700;}
+.btn-pub-ret{width:100%;background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.25);padding:10px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-pub-ret:hover{background:var(--green2);color:white;border-color:var(--green2);}
+.btn-pub-ret.pub{background:var(--green2);color:white;border-color:var(--green2);cursor:default;}
+
+/* HISTORIAL */
+.hist-table{width:100%;border-collapse:collapse;}
+.hist-table th{text-align:left;font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:0 14px 12px;}
+.hist-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);}
+.hist-table tr:hover td{background:rgba(255,255,255,.02);}
+.hist-table tr:last-child td{border-bottom:none;}
+.earn-total{background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(37,99,235,.15) 100%);border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.et-amount{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--green);}
+.et-label{font-size:12px;color:var(--gray);margin-bottom:4px;}
+.et-sub{font-size:12px;color:var(--gray2);margin-top:4px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.overlay.open{display:flex;}
+.modal{background:#0C1B35;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;width:480px;max-width:95vw;position:relative;animation:mup .3s ease;}
+@keyframes mup{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-x{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.07);border:none;color:white;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.modal-x:hover{background:rgba(255,255,255,.13);}
+.modal-t{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+.modal-s{font-size:13px;color:var(--gray);margin-bottom:22px;}
+.detail-rows{background:rgba(255,255,255,.04);border-radius:12px;padding:16px;margin-bottom:20px;}
+.dr{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+.dr:last-child{border-bottom:none;}
+.dr span:first-child{color:var(--gray);}
+.dr span:last-child{font-weight:700;}
+.btn-full{width:100%;color:white;border:none;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;margin-bottom:10px;}
+.btn-full.green{background:var(--green2);}
+.btn-full.green:hover{background:var(--green);}
+.btn-full.red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.btn-full.red:hover{background:rgba(239,68,68,.25);}
+.btn-full.blue{background:var(--blue2);}
+.success-icon{font-size:52px;text-align:center;margin-bottom:12px;}
+.success-t{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:8px;}
+.success-s{font-size:13px;color:var(--gray);text-align:center;line-height:1.6;margin-bottom:20px;}
+.modal-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:14px;}
+.modal-label{font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="logo">Cargo<em>Share</em></div>
+    <div class="sb-role">🚛 Transportista</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Principal</div>
+    <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ic">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="showView('solicitudes',this)"><span class="nav-ic">📥</span>Solicitudes<span class="nav-badge">2</span></div>
+    <div class="nav-item" onclick="showView('postear',this)"><span class="nav-ic">➕</span>Publicar ruta</div>
+    <div class="sb-section">Mis rutas</div>
+    <div class="nav-item" onclick="showView('rutas',this)"><span class="nav-ic">🗺️</span>Rutas activas</div>
+    <div class="nav-item" onclick="showView('retornos',this)"><span class="nav-ic">🔄</span>Retornos vacíos<span class="nav-badge green">3</span></div>
+    <div class="nav-item" onclick="showView('historial',this)"><span class="nav-ic">📋</span>Historial</div>
+    <div class="sb-section">Cuenta</div>
+    <div class="nav-item" onclick="showView('vehiculo',this)"><span class="nav-ic">🚛</span>Mi vehículo</div>
+    <div class="nav-item" onclick="showView('pagos',this)"><span class="nav-ic">💳</span>Pagos y retiros</div>
+    <div class="nav-item" onclick="showView('config',this)"><span class="nav-ic">⚙️</span>Configuración</div>
+  </nav>
+  <div class="sb-user">
+    <div class="user-row" onclick="toggleUserMenu()">
+      <div class="user-av">CJ</div>
+      <div>
+        <div class="user-name">Carlos Jiménez</div>
+        <div class="user-co">Transportista independiente</div>
+      </div>
+      <span class="user-chevron">▲</span>
+    </div>
+    <div class="user-menu" id="userMenu">
+      <div class="um-item" onclick="showView('vehiculo',null);toggleUserMenu()">🚛 Mi vehículo</div>
+      <div class="um-item" onclick="showView('pagos',null);toggleUserMenu()">💳 Pagos y retiros</div>
+      <div class="um-item" onclick="showView('config',null);toggleUserMenu()">⚙️ Configuración</div>
+      <div class="um-divider"></div>
+      <div class="um-item red" onclick="logout()">🚪 Cerrar sesión</div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div><div class="tb-title" id="topTitle">Dashboard</div><div class="tb-sub">Lunes, 17 de febrero 2025</div></div>
+    <div class="tb-right">
+      <div class="btn-icon notif-dot">🔔</div>
+      <div class="btn-icon">❓</div>
+      <button class="btn-new" onclick="showView('postear',null)">+ Publicar ruta</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="greeting"><h2>Buen día, Carlos 👋</h2><p>Tienes 2 solicitudes nuevas y 3 retornos vacíos disponibles para publicar.</p></div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-label">Ingresos este mes</div><div class="kpi-val green">$2,840</div><div class="kpi-delta">↑ +$420 vs mes anterior</div></div>
+        <div class="kpi"><div class="kpi-icon">🚛</div><div class="kpi-label">Viajes completados</div><div class="kpi-val blue">14</div><div class="kpi-delta">↑ +3 vs mes anterior</div></div>
+        <div class="kpi"><div class="kpi-icon">📦</div><div class="kpi-label">Ocupación promedio</div><div class="kpi-val orange">73%</div><div class="kpi-delta">↑ +12% vs mes anterior</div></div>
+        <div class="kpi"><div class="kpi-icon">⭐</div><div class="kpi-label">Rating</div><div class="kpi-val yellow">4.9</div><div class="kpi-delta">87 calificaciones</div></div>
+      </div>
+      <div class="grid3">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">📥 Solicitudes pendientes</div><span class="panel-action" onclick="showView('solicitudes',null)">Ver todas →</span></div>
+          <div class="sol-list">
+            <div class="sol-card">
+              <div class="sol-top">
+                <div class="sol-empresa"><div class="sol-av" style="background:rgba(249,115,22,.15);">📦</div><div><div class="sol-name">Textiles Andinos SAS</div><div class="sol-meta">Bogotá → Medellín · 4.5 m³ · 680 kg</div></div></div>
+                <div class="sol-price"><div class="sol-amount">$182</div><div class="sol-unit">USD</div></div>
+              </div>
+              <div class="sol-actions">
+                <button class="btn-accept" onclick="aceptar('Textiles Andinos SAS','$182 USD')">✓ Aceptar</button>
+                <button class="btn-reject" onclick="rechazar()">✗ Rechazar</button>
+                <button class="btn-detail" onclick="showView('solicitudes',null)">Detalle</button>
+              </div>
+            </div>
+            <div class="sol-card">
+              <div class="sol-top">
+                <div class="sol-empresa"><div class="sol-av" style="background:rgba(96,165,250,.15);">🏢</div><div><div class="sol-name">Insumos del Norte LTDA</div><div class="sol-meta">Bogotá → Medellín · 2.2 m³ · 340 kg</div></div></div>
+                <div class="sol-price"><div class="sol-amount">$88</div><div class="sol-unit">USD</div></div>
+              </div>
+              <div class="sol-actions">
+                <button class="btn-accept" onclick="aceptar('Insumos del Norte LTDA','$88 USD')">✓ Aceptar</button>
+                <button class="btn-reject" onclick="rechazar()">✗ Rechazar</button>
+                <button class="btn-detail" onclick="showView('solicitudes',null)">Detalle</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">💰 Ingresos mensuales</div></div>
+          <div class="ing-total">$2,840</div>
+          <div class="ing-sub">Este mes · Meta: $3,000</div>
+          <div class="ing-bars" id="ingChart"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;">
+            <span style="font-size:10px;color:var(--gray)">Ene</span><span style="font-size:10px;color:var(--gray)">Feb</span><span style="font-size:10px;color:var(--gray)">Mar</span><span style="font-size:10px;color:var(--gray)">Abr</span><span style="font-size:10px;color:var(--gray)">May</span><span style="font-size:10px;color:var(--gray)">Jun</span>
+          </div>
+          <div style="margin-top:16px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:6px;"><span>Progreso hacia meta</span><span style="color:var(--green);font-weight:700;">95%</span></div><div style="background:rgba(255,255,255,.07);border-radius:4px;height:7px;overflow:hidden;"><div style="width:95%;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--blue-light));"></div></div></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">🗺️ Ruta activa ahora</div><span class="panel-action" onclick="showView('rutas',null)">Ver rutas →</span></div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div><div style="font-size:16px;font-weight:700;">Bogotá → Medellín</div><div style="font-size:12px;color:var(--gray);margin-top:2px;">Hoy 7:00 AM · Camión 3/4</div></div><div class="status-badge active"><span class="sdot"></span>En ruta</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:4px;"><span>Volumen</span><span style="color:white;font-weight:700;">14/20 m³</span></div><div class="ocup-bar"><div class="ocup-fill" style="width:70%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:4px;"><span>Peso</span><span style="color:white;font-weight:700;">2,800/4,000 kg</span></div><div class="ocup-bar"><div class="ocup-fill" style="width:70%"></div></div></div>
+            </div>
+            <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);border-radius:8px;padding:10px;font-size:12px;color:var(--green);">💡 Tienes <strong>6 m³ libres</strong> — <span style="cursor:pointer;text-decoration:underline;" onclick="showView('retornos',null)">publicar espacio restante</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">🕐 Actividad reciente</div></div>
+          <div class="act-list">
+            <div class="act-item"><div class="act-dot-col"><div class="act-dot" style="background:var(--orange)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>2 solicitudes nuevas</strong> para tu ruta Bogotá → Medellín</div><div class="act-time">Hace 1 hora</div></div></div>
+            <div class="act-item"><div class="act-dot-col"><div class="act-dot" style="background:var(--green)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>Pago recibido</strong> — $182 USD de Textiles Andinos</div><div class="act-time">Hace 3 horas</div></div></div>
+            <div class="act-item"><div class="act-dot-col"><div class="act-dot" style="background:var(--blue-light)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>Entrega confirmada</strong> — Bogotá → Cali con foto</div><div class="act-time">Ayer 4:15 PM</div></div></div>
+            <div class="act-item"><div class="act-dot-col"><div class="act-dot" style="background:var(--yellow)"></div><div class="act-line"></div></div><div><div class="act-text"><strong>Nueva calificación</strong> ★★★★★ de Insumos del Norte</div><div class="act-time">Ayer 11:00 AM</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOLICITUDES -->
+    <div class="view" id="view-solicitudes">
+      <div class="greeting"><h2>Solicitudes de carga 📥</h2><p>Empresas que quieren enviar en tu ruta Bogotá → Medellín de mañana.</p></div>
+      <div class="sol-list">
+        <div class="sol-card">
+          <div class="sol-top"><div class="sol-empresa"><div class="sol-av" style="background:rgba(249,115,22,.15);">📦</div><div><div class="sol-name">Textiles Andinos SAS</div><div class="sol-meta">Verificada · 23 envíos · ⭐ 4.8</div></div></div><div class="sol-price"><div class="sol-amount">$182</div><div class="sol-unit">USD para ti</div></div></div>
+          <div class="sol-details">
+            <div class="sol-detail"><div class="sd-label">Volumen</div><div class="sd-val">4.5 m³</div></div>
+            <div class="sol-detail"><div class="sd-label">Peso real</div><div class="sd-val">680 kg</div></div>
+            <div class="sol-detail"><div class="sd-label">Tipo</div><div class="sd-val">📦 General</div></div>
+            <div class="sol-detail"><div class="sd-label">Recogida</div><div class="sd-val">Sin desvío</div></div>
+          </div>
+          <div class="sol-tags"><span class="stag ok">Empresa verificada</span><span class="stag ok">Peso verificado</span><span class="stag">Seguro incluido</span></div>
+          <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.15);border-radius:9px;padding:10px 13px;font-size:12px;color:var(--green);margin-bottom:14px;">✅ Ocupa el <strong>22% de tu espacio libre</strong> — puedes aceptar más carga</div>
+          <div class="sol-actions"><button class="btn-accept" onclick="aceptar('Textiles Andinos SAS','$182 USD')">✓ Aceptar solicitud</button><button class="btn-reject" onclick="rechazar()">✗ Rechazar</button></div>
+        </div>
+        <div class="sol-card">
+          <div class="sol-top"><div class="sol-empresa"><div class="sol-av" style="background:rgba(96,165,250,.15);">🏢</div><div><div class="sol-name">Insumos del Norte LTDA</div><div class="sol-meta">Verificada · 8 envíos · ⭐ 4.7</div></div></div><div class="sol-price"><div class="sol-amount">$88</div><div class="sol-unit">USD para ti</div></div></div>
+          <div class="sol-details">
+            <div class="sol-detail"><div class="sd-label">Volumen</div><div class="sd-val">2.2 m³</div></div>
+            <div class="sol-detail"><div class="sd-label">Peso real</div><div class="sd-val">340 kg</div></div>
+            <div class="sol-detail"><div class="sd-label">Tipo</div><div class="sd-val">🔮 Frágil</div></div>
+            <div class="sol-detail"><div class="sd-label">Recogida</div><div class="sd-val">+2 km desvío</div></div>
+          </div>
+          <div class="sol-tags"><span class="stag ok">Empresa verificada</span><span class="stag warn">+2 km desvío</span><span class="stag">Carga frágil</span></div>
+          <div style="background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.15);border-radius:9px;padding:10px 13px;font-size:12px;color:rgba(255,200,140,.9);margin-bottom:14px;">⚠️ Desvío de <strong>2 km</strong> — recargo de $4 USD incluido</div>
+          <div class="sol-actions"><button class="btn-accept" onclick="aceptar('Insumos del Norte LTDA','$88 USD')">✓ Aceptar solicitud</button><button class="btn-reject" onclick="rechazar()">✗ Rechazar</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTEAR RUTA -->
+    <div class="view" id="view-postear">
+      <div class="greeting"><h2>Publicar nueva ruta ➕</h2><p>Publica tu ruta y el sistema conectará automáticamente empresas con carga.</p></div>
+      <div class="form-card">
+        <div class="form-title">📍 Ruta y horario</div>
+        <div class="form-grid">
+          <div class="fg"><label>Ciudad de origen</label><input type="text" value="Bogotá, Cundinamarca"></div>
+          <div class="fg"><label>Ciudad de destino</label><input type="text" placeholder="Ej: Medellín, Antioquia"></div>
+          <div class="fg"><label>Fecha de salida</label><input type="date"></div>
+          <div class="fg"><label>Hora de salida</label><input type="time" value="07:00"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">🚛 Capacidad disponible</div>
+        <div class="form-grid g3" style="margin-bottom:16px">
+          <div class="fg"><label>Volumen total (m³)</label><input type="number" id="pVolTotal" value="20" oninput="calcCap()"></div>
+          <div class="fg"><label>Volumen ya ocupado (m³)</label><input type="number" id="pVolOcup" value="6" oninput="calcCap()"></div>
+          <div class="fg"><label>Peso máximo (kg)</label><input type="number" id="pPesoMax" value="4000" oninput="calcCap()"></div>
+        </div>
+        <div class="fg" style="margin-bottom:16px;max-width:220px"><label>Peso ya cargado (kg)</label><input type="number" id="pPesoOcup" value="900" oninput="calcCap()"></div>
+        <div class="cap-preview">
+          <div><div class="cp-v" id="cpVol">14 m³</div><div class="cp-k">Volumen disponible</div></div>
+          <div><div class="cp-v" id="cpPeso">3,100 kg</div><div class="cp-k">Peso disponible</div></div>
+          <div><div class="cp-v" id="cpOcup" style="color:var(--orange)">30%</div><div class="cp-k">Ocupación actual</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">📦 Tipos de carga aceptada</div>
+        <div class="carga-grid">
+          <div class="carga-opt sel" onclick="togCarga(this)"><span class="cic">📦</span><div class="cn">General</div></div>
+          <div class="carga-opt sel" onclick="togCarga(this)"><span class="cic">🔮</span><div class="cn">Frágil</div></div>
+          <div class="carga-opt" onclick="togCarga(this)"><span class="cic">🏗️</span><div class="cn">Maquinaria</div></div>
+          <div class="carga-opt" onclick="togCarga(this)"><span class="cic">❄️</span><div class="cn">Refrigerado</div></div>
+          <div class="carga-opt" onclick="togCarga(this)"><span class="cic">🧊</span><div class="cn">Congelado</div></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">📐 Rango de recogida y precio</div>
+        <div class="form-grid">
+          <div class="fg"><label>Desvío máximo (km)</label><input type="number" id="pDesvio" value="10" oninput="updateDesvio()"></div>
+          <div class="fg"><label>Precio por km adicional (USD)</label><input type="number" value="2" step="0.5"></div>
+          <div class="fg"><label>Tarifa por m³ (USD)</label><input type="number" value="14" step="0.5"></div>
+          <div class="fg"><label>Tarifa mínima por envío (USD)</label><input type="number" value="35"></div>
+        </div>
+        <div class="desvio-info" id="desvioInfo">📍 Aceptarás recogidas hasta <strong>10 km</strong> fuera de tu ruta principal.</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-submit" onclick="publicarRuta()">Publicar ruta →</button>
+        <button class="btn-save">Guardar borrador</button>
+      </div>
+    </div>
+
+    <!-- RUTAS ACTIVAS -->
+    <div class="view" id="view-rutas">
+      <div class="greeting"><h2>Rutas activas 🗺️</h2><p>Todas tus rutas publicadas y en curso.</p></div>
+      <div class="panel">
+        <div class="ruta-list">
+          <div class="ruta-item"><div class="ruta-icon" style="background:rgba(16,185,129,.15);">🚛</div><div class="ruta-info"><div class="ruta-route">Bogotá → Medellín</div><div class="ruta-meta">Hoy 7:00 AM · 2 cargas a bordo</div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:300px;"><div><div style="font-size:10px;color:var(--gray);margin-bottom:3px;">Volumen</div><div class="ocup-bar"><div class="ocup-fill" style="width:70%"></div></div><div style="font-size:10px;color:var(--gray);margin-top:2px;">14/20 m³</div></div><div><div style="font-size:10px;color:var(--gray);margin-bottom:3px;">Peso</div><div class="ocup-bar"><div class="ocup-fill" style="width:70%"></div></div><div style="font-size:10px;color:var(--gray);margin-top:2px;">2,800/4,000 kg</div></div></div></div><div class="ruta-right"><div class="status-badge active"><span class="sdot"></span>En ruta</div><div class="ruta-earn">+$270 USD</div></div></div>
+          <div class="ruta-item"><div class="ruta-icon" style="background:rgba(245,158,11,.15);">📍</div><div class="ruta-info"><div class="ruta-route">Bogotá → Barranquilla</div><div class="ruta-meta">Viernes 6:00 AM · Sin carga confirmada</div><div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:300px;"><div><div style="font-size:10px;color:var(--gray);margin-bottom:3px;">Volumen</div><div class="ocup-bar"><div class="ocup-fill" style="width:0%"></div></div><div style="font-size:10px;color:var(--gray);margin-top:2px;">0/20 m³</div></div><div><div style="font-size:10px;color:var(--gray);margin-bottom:3px;">Peso</div><div class="ocup-bar"><div class="ocup-fill" style="width:0%"></div></div><div style="font-size:10px;color:var(--gray);margin-top:2px;">0/4,000 kg</div></div></div></div><div class="ruta-right"><div class="status-badge pending"><span class="sdot"></span>Buscando carga</div><div class="ruta-earn" style="color:var(--gray)">$0 confirmado</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RETORNOS -->
+    <div class="view" id="view-retornos">
+      <div class="greeting"><h2>Retornos vacíos 🔄</h2><p>Monetiza los viajes de regreso sin cambiar tu operación.</p></div>
+      <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:18px 22px;margin-bottom:24px;"><div style="font-size:15px;font-weight:700;margin-bottom:4px;">💡 El 69% de camiones en Colombia regresan vacíos</div><div style="font-size:13px;color:var(--gray);">Publicar tus retornos puede generarte hasta <strong style="color:var(--green);">$400 USD adicionales</strong> al mes.</div></div>
+      <div class="retorno-grid">
+        <div class="ret-card"><div class="ret-badge">🔄 Disponible</div><div class="ret-route">Medellín → Bogotá</div><div class="ret-meta">Después de entrega hoy · Flexible</div><div class="ret-details"><div class="ret-d"><div class="rd-k">Espacio</div><div class="rd-v">20 m³</div></div><div class="ret-d"><div class="rd-k">Ingreso est.</div><div class="rd-v" style="color:var(--green)">~$180</div></div></div><button class="btn-pub-ret" id="ret1" onclick="pubRetorno('ret1')">Publicar retorno →</button></div>
+        <div class="ret-card"><div class="ret-badge">🔄 Disponible</div><div class="ret-route">Barranquilla → Bogotá</div><div class="ret-meta">Sábado después de entrega</div><div class="ret-details"><div class="ret-d"><div class="rd-k">Espacio</div><div class="rd-v">20 m³</div></div><div class="ret-d"><div class="rd-k">Ingreso est.</div><div class="rd-v" style="color:var(--green)">~$320</div></div></div><button class="btn-pub-ret" id="ret2" onclick="pubRetorno('ret2')">Publicar retorno →</button></div>
+        <div class="ret-card"><div class="ret-badge">🔄 Disponible</div><div class="ret-route">Cali → Bogotá</div><div class="ret-meta">Próximo jueves</div><div class="ret-details"><div class="ret-d"><div class="rd-k">Espacio</div><div class="rd-v">20 m³</div></div><div class="ret-d"><div class="rd-k">Ingreso est.</div><div class="rd-v" style="color:var(--green)">~$200</div></div></div><button class="btn-pub-ret" id="ret3" onclick="pubRetorno('ret3')">Publicar retorno →</button></div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="view" id="view-historial">
+      <div class="greeting"><h2>Historial de viajes 📋</h2><p>Todos tus viajes completados.</p></div>
+      <div class="earn-total"><div><div class="et-label">Ingresos totales acumulados</div><div class="et-amount">$18,640 USD</div><div class="et-sub">87 viajes · CargoShare</div></div><div style="text-align:right"><div style="margin-bottom:8px;"><div style="font-size:18px;font-weight:700;color:var(--blue-light);">87</div><div style="font-size:11px;color:var(--gray)">Viajes totales</div></div><div><div style="font-size:18px;font-weight:700;color:var(--yellow);">4.9 ⭐</div><div style="font-size:11px;color:var(--gray)">Rating</div></div></div></div>
+      <div class="panel">
+        <table class="hist-table">
+          <thead><tr><th>Ruta</th><th>Empresa(s)</th><th>Carga</th><th>Ingreso</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Bogotá → Cali</strong></td><td>Frigorutas + 1</td><td>12 m³ · ❄️📦</td><td style="color:var(--green)">$310 USD</td><td>14 Feb 2025</td><td><span class="status-badge active">✅ Completado</span></td></tr>
+            <tr><td><strong>Bogotá → Medellín</strong></td><td>Textiles Andinos</td><td>4.5 m³ · 📦</td><td style="color:var(--green)">$182 USD</td><td>10 Feb 2025</td><td><span class="status-badge active">✅ Completado</span></td></tr>
+            <tr><td><strong>Medellín → Bogotá</strong></td><td>Insumos del Norte</td><td>8 m³ · 📦</td><td style="color:var(--green)">$224 USD</td><td>10 Feb 2025</td><td><span class="status-badge active">✅ Completado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MI VEHÍCULO -->
+    <div class="view" id="view-vehiculo">
+      <div class="greeting"><h2>Mi vehículo 🚛</h2><p>Configura las especificaciones de tu vehículo. Esto determina qué carga puedes transportar.</p></div>
+
+      <div class="form-card">
+        <div class="form-title">🚛 Tipo de vehículo</div>
+        <div class="veh-type-grid">
+          <div class="vt-opt sel" onclick="selVeh(this)"><span class="vic">🚐</span><div class="vn">Furgón</div><div class="vd">Hasta 8 m³</div></div>
+          <div class="vt-opt" onclick="selVeh(this)"><span class="vic">🚛</span><div class="vn">Camión 3/4</div><div class="vd">Hasta 20 m³</div></div>
+          <div class="vt-opt" onclick="selVeh(this)"><span class="vic">🚚</span><div class="vn">Camión sencillo</div><div class="vd">Hasta 40 m³</div></div>
+          <div class="vt-opt" onclick="selVeh(this)"><span class="vic">🏗️</span><div class="vn">Doble troque</div><div class="vd">Hasta 80 m³</div></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">📐 Capacidad y dimensiones</div>
+        <div class="form-grid g3" style="margin-bottom:16px">
+          <div class="fg"><label>Largo interior (m)</label><input type="number" value="5.5" step="0.1" placeholder="Ej: 5.5"></div>
+          <div class="fg"><label>Ancho interior (m)</label><input type="number" value="2.2" step="0.1" placeholder="Ej: 2.2"></div>
+          <div class="fg"><label>Alto interior (m)</label><input type="number" value="2.1" step="0.1" placeholder="Ej: 2.1"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fg"><label>Capacidad máxima de peso (kg)</label><input type="number" value="4000" placeholder="Ej: 4000"></div>
+          <div class="fg"><label>Placa del vehículo</label><input type="text" value="ABC-123" placeholder="Ej: ABC-123"></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">⚙️ Especificaciones especiales</div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="tl">❄️ Carga refrigerada</div><div class="td">El vehículo tiene sistema de refrigeración (0°C a 8°C)</div></div>
+          <div class="toggle" id="tog1" onclick="togToggle('tog1')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="tl">🧊 Carga congelada</div><div class="td">El vehículo puede mantener temperatura de -18°C a -5°C</div></div>
+          <div class="toggle" id="tog2" onclick="togToggle('tog2')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="tl">🔮 Carga frágil</div><div class="td">Equipado con amarres y protección para carga delicada</div></div>
+          <div class="toggle" id="tog3" onclick="togToggle('tog3')" style="background:var(--green)"><div></div></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="tl">🏗️ Carga de maquinaria</div><div class="td">Tiene rampa o sistema de carga para equipos pesados</div></div>
+          <div class="toggle" id="tog4" onclick="togToggle('tog4')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="tl">📦 Carga general</div><div class="td">Acepta carga general sin requisitos especiales</div></div>
+          <div class="toggle on" id="tog5" onclick="togToggle('tog5')"></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">📸 Fotos del vehículo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="foto-upload" onclick="fotoClick()"><div class="fic">📷</div><div class="ft">Foto exterior</div><div class="fs">JPG o PNG · máx 5MB</div></div>
+          <div class="foto-upload" onclick="fotoClick()"><div class="fic">📷</div><div class="ft">Foto interior / capacidad</div><div class="fs">JPG o PNG · máx 5MB</div></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title">📄 Documentos del vehículo</div>
+        <div class="doc-list">
+          <div class="doc-item"><div class="doc-ic">📋</div><div class="doc-info"><div class="doc-name">SOAT</div><div class="doc-sub">Vence: 15 Dic 2025</div></div><div class="doc-status ok">✅ Vigente</div><button class="btn-upload">Actualizar</button></div>
+          <div class="doc-item"><div class="doc-ic">🔧</div><div class="doc-info"><div class="doc-name">Revisión técnico-mecánica</div><div class="doc-sub">Vence: 3 Mar 2025</div></div><div class="doc-status pend">⚠️ Próximo a vencer</div><button class="btn-upload">Actualizar</button></div>
+          <div class="doc-item"><div class="doc-ic">📜</div><div class="doc-info"><div class="doc-name">Tarjeta de operación</div><div class="doc-sub">Vigente</div></div><div class="doc-status ok">✅ Vigente</div><button class="btn-upload">Actualizar</button></div>
+          <div class="doc-item"><div class="doc-ic">🪪</div><div class="doc-info"><div class="doc-name">Licencia de conducción (C2)</div><div class="doc-sub">Vence: 20 Sep 2027</div></div><div class="doc-status ok">✅ Vigente</div><button class="btn-upload">Actualizar</button></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-submit green" onclick="guardarVehiculo()">Guardar cambios ✓</button>
+        <button class="btn-save">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- PAGOS Y RETIROS -->
+    <div class="view" id="view-pagos">
+      <div class="greeting"><h2>Pagos y retiros 💳</h2><p>Gestiona tu saldo disponible y retira tus ganancias.</p></div>
+
+      <div class="saldo-card">
+        <div class="saldo-left">
+          <div class="sl">Saldo disponible para retirar</div>
+          <div class="sa">$1,420 USD</div>
+          <div class="ss">Último retiro: $840 USD · 1 Feb 2025</div>
+        </div>
+        <div class="saldo-right">
+          <button class="btn-retirar" onclick="openRetiro()">Retirar dinero →</button>
+          <button class="btn-retirar-pend">Ver retiros pendientes</button>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-head"><div class="panel-title">💳 Método de retiro</div></div>
+        <div class="metodo-grid">
+          <div class="metodo-card sel" onclick="selMetodo(this)"><div class="metodo-ic">🏦</div><div class="metodo-n">Cuenta bancaria</div><div class="metodo-s">Bancolombia · ****4521</div></div>
+          <div class="metodo-card" onclick="selMetodo(this)"><div class="metodo-ic">📱</div><div class="metodo-n">Nequi / Daviplata</div><div class="metodo-s">Agregar número</div></div>
+        </div>
+        <div class="form-grid" style="margin-top:16px;">
+          <div class="fg"><label>Banco</label><select><option>Bancolombia</option><option>Davivienda</option><option>BBVA</option><option>Banco de Bogotá</option><option>Nequi</option><option>Daviplata</option></select></div>
+          <div class="fg"><label>Número de cuenta</label><input type="text" placeholder="Ej: 123456789" value="****4521"></div>
+          <div class="fg"><label>Tipo de cuenta</label><select><option>Ahorros</option><option>Corriente</option></select></div>
+          <div class="fg"><label>Titular de la cuenta</label><input type="text" value="Carlos Jiménez"></div>
+        </div>
+        <div style="margin-top:16px;"><button class="btn-submit green" onclick="alert('Método actualizado ✅')">Guardar método</button></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">📊 Historial de pagos</div></div>
+        <table class="pago-table">
+          <thead><tr><th>Descripción</th><th>Empresa</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Envío Bogotá → Cali</td><td>Frigorutas Colombia</td><td>14 Feb 2025</td><td style="color:var(--green)">+$310 USD</td><td><span class="status-badge active">✅ Pagado</span></td></tr>
+            <tr><td>Envío Bogotá → Medellín</td><td>Textiles Andinos</td><td>10 Feb 2025</td><td style="color:var(--green)">+$182 USD</td><td><span class="status-badge active">✅ Pagado</span></td></tr>
+            <tr><td>Retiro a Bancolombia</td><td>—</td><td>1 Feb 2025</td><td style="color:var(--red)">-$840 USD</td><td><span class="status-badge active">✅ Procesado</span></td></tr>
+            <tr><td>Envío Medellín → Bogotá</td><td>Insumos del Norte</td><td>28 Ene 2025</td><td style="color:var(--green)">+$224 USD</td><td><span class="status-badge active">✅ Pagado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="view" id="view-config">
+      <div class="greeting"><h2>Configuración ⚙️</h2><p>Ajusta tus preferencias de cuenta.</p></div>
+      <div class="form-card">
+        <div class="form-title">👤 Datos personales</div>
+        <div class="form-grid">
+          <div class="fg"><label>Nombre completo</label><input type="text" value="Carlos Jiménez"></div>
+          <div class="fg"><label>Correo electrónico</label><input type="email" value="carlos@gmail.com"></div>
+          <div class="fg"><label>Teléfono</label><input type="tel" value="310-456-7890"></div>
+          <div class="fg"><label>Ciudad base</label><input type="text" value="Bogotá, Cundinamarca"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">🔔 Notificaciones</div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl">Nuevas solicitudes de carga</div><div class="td">Notificar cuando llega una solicitud nueva</div></div><div class="toggle on" onclick="togToggle(this)"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl">Confirmaciones de pago</div><div class="td">Notificar cuando se procesa un pago</div></div><div class="toggle on" onclick="togToggle(this)"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="tl">Recordatorios de documentos</div><div class="td">Avisar cuando un documento esté próximo a vencer</div></div><div class="toggle on" onclick="togToggle(this)"></div></div>
+      </div>
+      <div class="form-card">
+        <div class="form-title">🔐 Seguridad</div>
+        <div class="form-grid">
+          <div class="fg"><label>Contraseña actual</label><input type="password" placeholder="••••••••"></div>
+          <div class="fg"><label>Nueva contraseña</label><input type="password" placeholder="Mínimo 8 caracteres"></div>
+        </div>
+        <div style="margin-top:16px;"><button class="btn-submit" onclick="alert('Contraseña actualizada ✅')">Actualizar contraseña</button></div>
+      </div>
+      <div class="form-card" style="border-color:rgba(239,68,68,.2);">
+        <div class="form-title" style="color:var(--red);">⚠️ Zona de peligro</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:14px;font-weight:600;">Cerrar sesión</div><div style="font-size:12px;color:var(--gray);margin-top:2px;">Salir de tu cuenta en este dispositivo</div></div>
+          <button onclick="logout()" style="background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);padding:10px 20px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🚪 Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALES -->
+<div class="overlay" id="modalOk">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">✅</div>
+    <div class="success-t">¡Solicitud aceptada!</div>
+    <div class="success-s" id="modalMsg"></div>
+    <div class="detail-rows" id="modalDetails"></div>
+    <button class="btn-full green" onclick="closeModal()">Ver rutas activas →</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalNo">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">❌</div>
+    <div class="success-t">Solicitud rechazada</div>
+    <div class="success-s">La empresa será notificada y podrá buscar otro transportista.</div>
+    <button class="btn-full red" onclick="closeModal()">Cerrar</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalPub">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">🚛</div>
+    <div class="success-t">¡Ruta publicada!</div>
+    <div class="success-s">Tu ruta está activa. Te notificaremos cuando haya matches.</div>
+    <div class="detail-rows"><div class="dr"><span>Estado</span><span style="color:var(--green)">✅ Publicada</span></div><div class="dr"><span>Ingreso potencial</span><span style="color:var(--green)">~$180-320 USD</span></div></div>
+    <button class="btn-full blue" onclick="closeModal();showView('rutas',null)">Ver rutas →</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalVeh">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">🚛</div>
+    <div class="success-t">¡Vehículo actualizado!</div>
+    <div class="success-s">Los datos de tu vehículo fueron guardados. Ahora aparecerás en los matches correctos según tu capacidad.</div>
+    <button class="btn-full green" onclick="closeModal()">Entendido</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalRetiro">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="modal-t">Retirar dinero 💳</div>
+    <div class="modal-s">Saldo disponible: <strong style="color:var(--green)">$1,420 USD</strong></div>
+    <label class="modal-label">Monto a retirar (USD)</label>
+    <input class="modal-input" type="number" placeholder="Ej: 500" max="1420">
+    <label class="modal-label">Cuenta destino</label>
+    <input class="modal-input" type="text" value="Bancolombia ****4521" readonly>
+    <div class="detail-rows"><div class="dr"><span>Comisión transferencia</span><span>$0 (gratis)</span></div><div class="dr"><span>Tiempo estimado</span><span>1-2 días hábiles</span></div></div>
+    <button class="btn-full green" onclick="closeModal();alert('✅ Retiro solicitado — llegará en 1-2 días hábiles')">Confirmar retiro →</button>
+  </div>
+</div>
+
+<div class="overlay" id="modalLogout">
+  <div class="modal" style="width:400px">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="success-icon">🚪</div>
+    <div class="success-t">¿Cerrar sesión?</div>
+    <div class="success-s">¿Seguro que quieres salir de tu cuenta?</div>
+    <button class="btn-full red" onclick="window.parent.location.href='/'">Sí, cerrar sesión</button>
+    <button class="btn-full" style="background:rgba(255,255,255,.07);color:var(--gray2);" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+function showView(id,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',postear:'Publicar ruta',rutas:'Rutas activas',retornos:'Retornos vacíos',historial:'Historial',vehiculo:'Mi vehículo',pagos:'Pagos y retiros',config:'Configuración'};
+  document.getElementById('topTitle').textContent=titles[id]||id;
+  window.scrollTo(0,0);
+}
+function togCarga(el){el.classList.toggle('sel');}
+function selVeh(el){document.querySelectorAll('.vt-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}
+function selMetodo(el){document.querySelectorAll('.metodo-card').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}
+function togToggle(el){
+  const t=typeof el==='string'?document.getElementById(el):el;
+  t.classList.toggle('on');
+}
+function calcCap(){
+  const vt=parseFloat(document.getElementById('pVolTotal').value)||0;
+  const vo=parseFloat(document.getElementById('pVolOcup').value)||0;
+  const pm=parseFloat(document.getElementById('pPesoMax').value)||0;
+  const po=parseFloat(document.getElementById('pPesoOcup').value)||0;
+  document.getElementById('cpVol').textContent=(vt-vo).toFixed(1)+' m³';
+  document.getElementById('cpPeso').textContent=(pm-po).toLocaleString()+' kg';
+  document.getElementById('cpOcup').textContent=vt>0?Math.round((vo/vt)*100)+'%':'0%';
+}
+function updateDesvio(){
+  const d=document.getElementById('pDesvio').value||0;
+  document.getElementById('desvioInfo').innerHTML=`📍 Aceptarás recogidas hasta <strong>${d} km</strong> fuera de tu ruta principal.`;
+}
+function aceptar(empresa,precio){
+  document.getElementById('modalMsg').textContent=`Has confirmado el envío de ${empresa}.`;
+  document.getElementById('modalDetails').innerHTML=`<div class="dr"><span>Empresa</span><span>${empresa}</span></div><div class="dr"><span>Ingreso</span><span style="color:var(--green)">${precio}</span></div><div class="dr"><span>Estado</span><span style="color:var(--green)">✅ Confirmado</span></div>`;
+  document.getElementById('modalOk').classList.add('open');
+}
+function rechazar(){document.getElementById('modalNo').classList.add('open');}
+function publicarRuta(){document.getElementById('modalPub').classList.add('open');}
+function guardarVehiculo(){document.getElementById('modalVeh').classList.add('open');}
+function openRetiro(){document.getElementById('modalRetiro').classList.add('open');}
+function logout(){document.getElementById('modalLogout').classList.add('open');}
+function fotoClick(){alert('📷 En la versión final aquí se abrirá el selector de archivos');}
+function pubRetorno(id){const b=document.getElementById(id);b.textContent='✅ Publicado — buscando carga...';b.classList.add('pub');b.disabled=true;}
+function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open');}
+function closeModal(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModal();}));
+document.addEventListener('click',e=>{if(!e.target.closest('.sb-user'))document.getElementById('userMenu').classList.remove('open');});
+
+// CHART
+const ing=[1820,2100,1960,2340,2640,2840];
+const chart=document.getElementById('ingChart');
+const max=Math.max(...ing);
+ing.forEach((v,i)=>{
+  const wrap=document.createElement('div');wrap.className='ib-wrap';
+  const bar=document.createElement('div');bar.className='ib-bar';
+  bar.style.height='0px';
+  bar.innerHTML=`<div class="tip">$${v.toLocaleString()} USD</div>`;
+  wrap.appendChild(bar);chart.appendChild(wrap);
+  setTimeout(()=>{bar.style.transition='height .6s ease';bar.style.height=Math.round((v/max)*86)+'px';},100+i*80);
+});
+calcCap();
+</script>
+</body>
+</html>
