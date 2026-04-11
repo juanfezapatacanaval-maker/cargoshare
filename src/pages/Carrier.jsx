@@ -35,7 +35,9 @@ export default function Carrier() {
   const [archivosC, setArchivosC] = useState({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
   const [guardandoC, setGuardandoC] = useState(false)
   const [guardadoC, setGuardadoC] = useState(false)
-  const [errorC, setErrorC] = useState('') = useState({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' })
+  const [errorC, setErrorC] = useState('')
+
+  const [vForm, setVForm] = useState({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' })
   const [guardandoV, setGuardandoV] = useState(false)
   const [guardadoV, setGuardadoV] = useState(false)
   const [errorV, setErrorV] = useState('')
