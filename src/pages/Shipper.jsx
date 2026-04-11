@@ -350,6 +350,26 @@ export default function Shipper() {
                           {(r.kmExtraRecogida||0) > 0 ? <span style={{ color: '#F59E0B' }}>⚠️ {r.kmExtraRecogida} km extra (+${precio.recargoPorKmExtra.toLocaleString('es-CO')})</span> : <span style={{ color: '#10B981' }}>✅ Dentro del rango</span>}
                           {r.esExacto === false && <span style={{ color: '#60A5FA' }}>📅 Fecha similar</span>}
                         </div>
+
+                        {/* PERFIL DEL CONDUCTOR */}
+                        {r.conductor ? (
+                          <div style={{ background: 'rgba(37,99,235,.06)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {r.conductor.foto
+                              ? <img src={r.conductor.foto} alt={r.conductor.nombre} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+                              : <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'rgba(37,99,235,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>👤</div>
+                            }
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '12px', fontWeight: '700', color: 'white' }}>👤 Conductor asignado: {r.conductor.nombre}</div>
+                              <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>
+                                CC {r.conductor.cedula} · {r.conductor.telefono || 'Sin teléfono'} · Lic. {r.conductor.licencia}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.15)', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px', color: '#F59E0B' }}>
+                            ⏳ Conductor por asignar
+                          </div>
+                        )}
                         <button onClick={() => seleccionarRuta(r)} style={{ width: '100%', background: '#F97316', color: 'white', border: 'none', padding: '11px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
                           Reservar esta ruta →
                         </button>
@@ -484,4 +504,4 @@ export default function Shipper() {
       </div>
     </div>
   )
-} 
+}
