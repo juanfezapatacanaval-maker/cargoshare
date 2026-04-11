@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 const API = 'https://cargoshare-api-production.up.railway.app/api/carrier'
 const RUTAS_API = 'https://cargoshare-api-production.up.railway.app/api/rutas'
 const VEHICULO_API = 'https://cargoshare-api-production.up.railway.app/api/vehiculo'
+const CONDUCTOR_API = 'https://cargoshare-api-production.up.railway.app/api/conductor'
 
 const CARROCERIAS_POR_TIPO = {
   camioneta:  [['furgon_seco','📦 Furgón Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
@@ -28,12 +29,18 @@ export default function Carrier() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [solicitudes, setSolicitudes] = useState([])
 
-  const [vForm, setVForm] = useState({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' })
+  // Conductores
+  const [conductores, setConductores] = useState([])
+  const [cForm, setCForm] = useState({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
+  const [archivosC, setArchivosC] = useState({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
+  const [guardandoC, setGuardandoC] = useState(false)
+  const [guardadoC, setGuardadoC] = useState(false)
+  const [errorC, setErrorC] = useState('') = useState({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' })
   const [guardandoV, setGuardandoV] = useState(false)
   const [guardadoV, setGuardadoV] = useState(false)
   const [errorV, setErrorV] = useState('')
 
-  const [ruta, setRuta] = useState({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '' })
+  const [ruta, setRuta] = useState({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' })
   const [publicando, setPublicando] = useState(false)
   const [publicado, setPublicado] = useState(false)
   const [errorRuta, setErrorRuta] = useState('')
@@ -44,6 +51,7 @@ export default function Carrier() {
     if (!token) { navigate('/login'); return }
     cargarDashboard()
     cargarVehiculos()
+    cargarConductores()
   }, [])
 
   useEffect(() => {
@@ -54,6 +62,7 @@ export default function Carrier() {
     if (vista === 'mis-rutas') cargarMisRutas()
     if (vista === 'vehiculo') cargarVehiculos()
     if (vista === 'solicitudes') cargarSolicitudes()
+    if (vista === 'conductores') cargarConductores()
   }, [vista])
 
   async function cargarDashboard() {
@@ -84,6 +93,35 @@ export default function Carrier() {
     try { const res = await fetch(`${RUTAS_API}/solicitudes`, { headers }); const data = await res.json(); if (res.ok) setSolicitudes(data) } catch { }
     setCargando(false)
   }
+
+  async function cargarConductores() {
+    setCargando(true)
+    try { const res = await fetch(`${CONDUCTOR_API}/mis-conductores`, { headers }); const data = await res.json(); if (res.ok) setConductores(data) } catch { }
+    setCargando(false)
+  }
+
+  async function registrarConductor() {
+    if (!cForm.nombre || !cForm.cedula || !cForm.categoriaLicencia || !cForm.vencimientoLicencia) { setErrorC('Nombre, cédula, categoría y vencimiento de licencia son obligatorios'); return }
+    if (!archivosC.fotoConductor || !archivosC.fotoCedula || !archivosC.fotoLicencia) { setErrorC('Debes subir la foto del conductor, la cédula y la licencia'); return }
+    setGuardandoC(true); setErrorC('')
+    try {
+      const formData = new FormData()
+      Object.entries(cForm).forEach(([k, v]) => { if (v) formData.append(k, v) })
+      if (archivosC.fotoConductor) formData.append('fotoConductor', archivosC.fotoConductor)
+      if (archivosC.fotoCedula) formData.append('fotoCedula', archivosC.fotoCedula)
+      if (archivosC.fotoLicencia) formData.append('fotoLicencia', archivosC.fotoLicencia)
+      const res = await fetch(CONDUCTOR_API, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
+      const data = await res.json()
+      if (res.ok) {
+        setGuardadoC(true)
+        cargarConductores()
+        setCForm({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
+        setArchivosC({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
+        setTimeout(() => setGuardadoC(false), 3000)
+      } else { setErrorC(data.error || 'Error al registrar') }
+    } catch { setErrorC('Error de conexión') }
+    setGuardandoC(false)
+  }
   async function responderSolicitud(id, accion) {
     try { const res = await fetch(`${RUTAS_API}/solicitudes/${id}/${accion}`, { method: 'POST', headers }); if (res.ok) cargarSolicitudes() } catch { }
   }
@@ -109,9 +147,9 @@ export default function Carrier() {
     try {
       const pesoMax = veh.capacidad?.pesoMax || 0
       const pesoDisponible = Number(ruta.pesoDisponible)
-      const res = await fetch(RUTAS_API, { method: 'POST', headers, body: JSON.stringify({ direccionSalida: ruta.direccionSalida, origen: ruta.origen, destino: ruta.destino, fechaSalida: ruta.fechaSalida, horaSalida: ruta.horaSalida, rangoRecogida: Number(ruta.rangoRecogida), carroceria: veh.carroceria, tipoVehiculo: veh.tipo, vehiculoId: veh._id, espacio: { pesoMax, pesoDisponible, porcentajeDisponible: Math.round((pesoDisponible / pesoMax) * 100), volumenMax: veh.capacidad?.volumenMax, largo: veh.capacidad?.largo, ancho: veh.capacidad?.ancho, alto: veh.capacidad?.alto } }) })
+      const res = await fetch(RUTAS_API, { method: 'POST', headers, body: JSON.stringify({ direccionSalida: ruta.direccionSalida, origen: ruta.origen, destino: ruta.destino, fechaSalida: ruta.fechaSalida, horaSalida: ruta.horaSalida, rangoRecogida: Number(ruta.rangoRecogida), carroceria: veh.carroceria, tipoVehiculo: veh.tipo, vehiculoId: veh._id, conductorId: ruta.conductorId || null, espacio: { pesoMax, pesoDisponible, porcentajeDisponible: Math.round((pesoDisponible / pesoMax) * 100), volumenMax: veh.capacidad?.volumenMax, largo: veh.capacidad?.largo, ancho: veh.capacidad?.ancho, alto: veh.capacidad?.alto } }) })
       const data = await res.json()
-      if (res.ok) { setPublicado(true); setRuta({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '' }); setTimeout(() => { setPublicado(false); setVista('mis-rutas') }, 2000) }
+      if (res.ok) { setPublicado(true); setRuta({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' }); setTimeout(() => { setPublicado(false); setVista('mis-rutas') }, 2000) }
       else { setErrorRuta(data.error || 'Error al publicar') }
     } catch { setErrorRuta('Error de conexión') }
     setPublicando(false)
@@ -129,7 +167,8 @@ export default function Carrier() {
 
   const navItems = [
     { id: 'dashboard', ic: '📊', label: 'Dashboard' },
-    { id: 'vehiculo', ic: '🚛', label: 'Mi vehículo' },
+    { id: 'vehiculo', ic: '🚛', label: 'Mi flota' },
+    { id: 'conductores', ic: '👤', label: 'Mis conductores' },
     { id: 'publicar-ruta', ic: '➕', label: 'Publicar ruta' },
     { id: 'mis-rutas', ic: '🗺️', label: 'Mis rutas' },
     { id: 'solicitudes', ic: '📬', label: 'Solicitudes', badge: pendientes },
@@ -139,7 +178,7 @@ export default function Carrier() {
     { id: 'config', ic: '⚙️', label: 'Configuración' },
   ]
 
-  const titles = { dashboard: 'Dashboard', vehiculo: 'Mi vehículo', 'publicar-ruta': 'Publicar ruta', 'mis-rutas': 'Mis rutas', solicitudes: 'Solicitudes', viajes: 'Viajes activos', historial: 'Historial', pagos: 'Pagos y retiros', config: 'Configuración' }
+  const titles = { dashboard: 'Dashboard', vehiculo: 'Mi flota', conductores: 'Mis conductores', 'publicar-ruta': 'Publicar ruta', 'mis-rutas': 'Mis rutas', solicitudes: 'Solicitudes', viajes: 'Viajes activos', historial: 'Historial', pagos: 'Pagos y retiros', config: 'Configuración' }
   const estadoV = (e) => ({ aprobado: { color: '#10B981', bg: 'rgba(16,185,129,.12)', label: '✅ Aprobado' }, pendiente: { color: '#F59E0B', bg: 'rgba(245,158,11,.12)', label: '⏳ Pendiente de aprobación' }, rechazado: { color: '#EF4444', bg: 'rgba(239,68,68,.12)', label: '❌ Rechazado' } }[e] || {})
 
   const s = {
@@ -327,6 +366,106 @@ export default function Carrier() {
             </div>
           )}
 
+          {/* MIS CONDUCTORES */}
+          {vista === 'conductores' && (
+            <div>
+              <div style={s.h2}>Mis conductores 👤</div>
+              <div style={s.p}>Registra los conductores de tu empresa. La empresa responde legalmente por ellos.</div>
+
+              {/* LISTA DE CONDUCTORES */}
+              {conductores.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  {conductores.map(c => {
+                    const vencimiento = c.vencimientoLicencia ? new Date(c.vencimientoLicencia) : null
+                    const diasParaVencer = vencimiento ? Math.floor((vencimiento - new Date()) / (1000 * 60 * 60 * 24)) : null
+                    const proximoVencer = diasParaVencer !== null && diasParaVencer <= 60
+                    return (
+                      <div key={c._id} style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${proximoVencer ? 'rgba(245,158,11,.3)' : 'rgba(255,255,255,.07)'}`, borderRadius: '12px', padding: '16px', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            {c.fotoConductor
+                              ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} />
+                              : <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👤</div>
+                            }
+                            <div>
+                              <div style={{ fontSize: '15px', fontWeight: '700' }}>{c.nombre}</div>
+                              <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>
+                                CC {c.cedula} · {c.telefono || 'Sin teléfono'} · Lic. {c.categoriaLicencia}
+                              </div>
+                              {vencimiento && (
+                                <div style={{ fontSize: '11px', color: proximoVencer ? '#F59E0B' : '#10B981', marginTop: '2px' }}>
+                                  {proximoVencer ? `⚠️ Licencia vence en ${diasParaVencer} días` : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {c.fotoCedula && <a href={c.fotoCedula} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60A5FA', background: 'rgba(37,99,235,.1)', padding: '4px 10px', borderRadius: '6px', textDecoration: 'none' }}>Ver cédula</a>}
+                            {c.fotoLicencia && <a href={c.fotoLicencia} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60A5FA', background: 'rgba(37,99,235,.1)', padding: '4px 10px', borderRadius: '6px', textDecoration: 'none' }}>Ver licencia</a>}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* FORMULARIO NUEVO CONDUCTOR */}
+              <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '16px' }}>➕ Añadir conductor</div>
+
+              {guardadoC && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Conductor registrado. El admin recibirá los datos para revisión.</div>}
+
+              <div style={s.panel}>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📋 Datos del conductor</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={s.fg}><label style={s.lbl}>Nombre completo *</label><input style={s.inp} placeholder="Carlos García" value={cForm.nombre} onChange={e => setCForm({ ...cForm, nombre: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Cédula *</label><input style={s.inp} placeholder="1234567890" value={cForm.cedula} onChange={e => setCForm({ ...cForm, cedula: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Teléfono</label><input style={s.inp} placeholder="+57 300 123 4567" value={cForm.telefono} onChange={e => setCForm({ ...cForm, telefono: e.target.value })} /></div>
+                  <div style={s.fg}>
+                    <label style={s.lbl}>Categoría licencia *</label>
+                    <select style={{ ...s.inp, cursor: 'pointer' }} value={cForm.categoriaLicencia} onChange={e => setCForm({ ...cForm, categoriaLicencia: e.target.value })}>
+                      {['B1','B2','B3','C1','C2','C3','C4'].map(c => <option key={c} value={c} style={{ background: '#0C1B35' }}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ ...s.fg, gridColumn: '1 / -1' }}>
+                    <label style={s.lbl}>Vencimiento de licencia *</label>
+                    <input type="date" style={s.inp} value={cForm.vencimientoLicencia} onChange={e => setCForm({ ...cForm, vencimientoLicencia: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={s.panel}>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>📸 Documentos *</div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Sube foto o PDF de cada documento. Máximo 10MB.</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  {[
+                    { key: 'fotoConductor', label: 'Foto del conductor', ic: '📷' },
+                    { key: 'fotoCedula', label: 'Foto de la cédula', ic: '🪪' },
+                    { key: 'fotoLicencia', label: 'Foto de la licencia', ic: '📄' },
+                  ].map(doc => (
+                    <div key={doc.key}>
+                      <label style={s.lbl}>{doc.label} *</label>
+                      <label style={{ display: 'block', background: archivosC[doc.key] ? 'rgba(16,185,129,.06)' : 'rgba(255,255,255,.03)', border: `2px dashed ${archivosC[doc.key] ? '#10B981' : 'rgba(255,255,255,.15)'}`, borderRadius: '12px', padding: '16px', textAlign: 'center', cursor: 'pointer' }}>
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
+                          onChange={e => { const f = e.target.files[0]; if (f) setArchivosC({ ...archivosC, [doc.key]: f }) }} />
+                        {archivosC[doc.key]
+                          ? <div><div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div><div style={{ fontSize: '11px', color: '#10B981' }}>{archivosC[doc.key].name}</div></div>
+                          : <div><div style={{ fontSize: '24px', marginBottom: '6px' }}>{doc.ic}</div><div style={{ fontSize: '11px', color: '#7A8FAD' }}>Subir archivo</div></div>
+                        }
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {errorC && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorC}</div>}
+
+              <button onClick={registrarConductor} disabled={guardandoC} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: guardandoC ? 0.7 : 1 }}>
+                {guardandoC ? 'Registrando...' : '👤 Registrar conductor →'}
+              </button>
+            </div>
+          )}
+
           {/* PUBLICAR RUTA */}
           {vista === 'publicar-ruta' && (
             <div>
@@ -345,8 +484,7 @@ export default function Carrier() {
 
                 {/* SELECTOR DE VEHÍCULO */}
                 <div style={s.panel}>
-                  <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🚛 Selecciona el vehículo para este viaje *</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🚛 Selecciona el vehículo para este viaje *</div>                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {vehiculosAprobados.map(v => (
                       <div key={v._id} onClick={() => setRuta({ ...ruta, vehiculoId: v._id, pesoDisponible: '' })}
                         style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', borderRadius: '12px', border: `2px solid ${ruta.vehiculoId === v._id ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.vehiculoId === v._id ? 'rgba(249,115,22,.06)' : 'rgba(255,255,255,.02)', cursor: 'pointer', transition: '.2s' }}>
@@ -368,7 +506,33 @@ export default function Carrier() {
                   )}
                 </div>
 
-                {/* PUNTO DE SALIDA Y RUTA */}
+                {/* SELECTOR DE CONDUCTOR */}
+                <div style={s.panel}>
+                  <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>👤 Conductor asignado para este viaje *</div>
+                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>La empresa remitente verá el perfil de este conductor antes de que salga el camión.</div>
+                  {conductores.filter(c => c.estado === 'aprobado').length === 0 ? (
+                    <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px', fontSize: '13px', color: '#F59E0B' }}>
+                      ⚠️ No tienes conductores aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('conductores')}>Añade un conductor</span> primero.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {conductores.filter(c => c.estado === 'aprobado').map(c => (
+                        <div key={c._id} onClick={() => setRuta({ ...ruta, conductorId: c._id })}
+                          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', border: `2px solid ${ruta.conductorId === c._id ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.conductorId === c._id ? 'rgba(249,115,22,.06)' : 'rgba(255,255,255,.02)', cursor: 'pointer', transition: '.2s' }}>
+                          {c.fotoConductor
+                            ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }} />
+                            : <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>👤</div>
+                          }
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '14px', fontWeight: '700' }}>{c.nombre}</div>
+                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '1px' }}>CC {c.cedula} · Lic. {c.categoriaLicencia}</div>
+                          </div>
+                          {ruta.conductorId === c._id && <span style={{ color: '#F97316', fontSize: '16px' }}>✓</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 Punto de salida y ruta</div>
                   <div style={s.fg}>
