@@ -35,8 +35,8 @@ nav{position:fixed;top:0;width:100%;z-index:300;display:flex;align-items:center;
 .hero{min-height:100vh;display:flex;align-items:center;padding:80px 72px;position:relative;overflow:hidden;}
 .hero-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 70% at 70% 45%,rgba(26,79,216,.18) 0%,transparent 65%),radial-gradient(ellipse 30% 35% at 85% 75%,rgba(249,115,22,.1) 0%,transparent 55%);}
 .grid-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:72px 72px;}
-.hero-inner{display:flex;align-items:center;gap:40px;width:100%;position:relative;z-index:2;}
-.hero-left{flex:1;max-width:520px;}
+.hero-inner{display:flex;align-items:center;gap:48px;width:100%;position:relative;z-index:2;}
+.hero-left{flex:1;max-width:480px;}
 .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);padding:5px 14px;border-radius:100px;margin-bottom:26px;font-size:12px;color:var(--green);font-weight:600;}
 .pill-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 2s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
@@ -49,40 +49,29 @@ h1{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;line-height:1.06
 .btn-o{background:transparent;color:white;border:1px solid rgba(255,255,255,.18);padding:14px 26px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:.25s;}
 .btn-o:hover{border-color:rgba(255,255,255,.5);}
 
-/* HERO CARDS */
-.hero-right{flex:1;position:relative;height:460px;min-width:360px;}
-.hcard{position:absolute;background:rgba(14,30,56,.95);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:18px 20px;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,.4);}
-.hcard-main{width:275px;top:10px;right:0;animation:hf1 7s ease-in-out infinite;}
-.hcard-saving{width:172px;bottom:30px;left:0;animation:hf2 6s ease-in-out infinite;}
-.hcard-match{width:168px;top:110px;left:10px;animation:hf3 8s ease-in-out infinite;}
-.hcard-types{width:185px;bottom:40px;right:5px;animation:hf4 9s ease-in-out infinite;}
-@keyframes hf1{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-@keyframes hf2{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-@keyframes hf3{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-@keyframes hf4{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.hc-lbl{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1.2px;font-weight:600;margin-bottom:11px;}
-.rrow{display:flex;align-items:center;gap:8px;}
-.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.rn{font-size:14px;font-weight:700;}
-.rline{flex:1;height:1px;background:linear-gradient(90deg,var(--blue2),var(--orange));margin:0 6px;}
-.hsub{font-size:11px;color:var(--gray);margin-top:5px;}
-.capbar{background:rgba(255,255,255,.07);border-radius:3px;height:6px;margin:12px 0 5px;overflow:hidden;}
-.capfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue2),var(--orange));animation:cf 4s ease-in-out infinite alternate;}
-@keyframes cf{from{width:32%}to{width:70%}}
-.cap-lbs{display:flex;justify-content:space-between;font-size:10px;color:var(--gray);}
-.cap-lbs span:last-child{color:var(--orange);font-weight:700;}
-.hprice{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
-.pbig{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--orange);}
-.punit{font-size:10px;color:var(--gray);}
-.btn-xs{background:var(--orange);color:white;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
-.sav-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--green);}
-.sav-sub{font-size:11px;color:var(--gray);margin-top:3px;}
-.mat-ic{font-size:22px;margin-bottom:7px;}
-.mat-t{font-size:13px;font-weight:700;}
-.mat-s{font-size:11px;color:var(--gray);margin-top:2px;}
-.chip-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
-.chip{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);color:var(--blue-light);font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;}
-.chip.cold{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green);}
+/* TRUCK SCENE */
+.hero-right{flex:1;min-width:420px;}
+.truck-scene{background:rgba(10,20,40,.65);border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:24px 22px 22px;position:relative;overflow:hidden;}
+.ts-bg{position:absolute;width:500px;height:250px;background:radial-gradient(ellipse,rgba(249,115,22,.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.ts-bg2{position:absolute;width:350px;height:180px;background:radial-gradient(ellipse,rgba(37,99,235,.08) 0%,transparent 70%);top:20%;left:10%;pointer-events:none;}
+.ts-label{font-size:10px;font-weight:700;color:#7A8FAD;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;gap:8px;position:relative;z-index:2;}
+.ts-dot{width:6px;height:6px;background:#F97316;border-radius:50%;animation:blink 2s infinite;flex-shrink:0;}
+.ts-svg-wrap{position:relative;z-index:2;margin-bottom:16px;}
+.ts-badges{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s;position:relative;z-index:2;}
+.ts-badges.show{opacity:1;transform:translateY(0);}
+.ts-badge{background:rgba(14,30,56,.9);border-radius:12px;padding:12px 14px;}
+.ts-b-blue{border:1px solid rgba(96,165,250,.2);}
+.ts-b-orange{border:1px solid rgba(249,115,22,.25);}
+.ts-b-green{border:1px solid rgba(16,185,129,.2);}
+.ts-b-title{font-size:11px;font-weight:700;color:#C8D4E3;margin-bottom:4px;}
+.ts-b-body{font-size:10px;color:#7A8FAD;line-height:1.5;}
+.ts-b-val{font-size:18px;font-weight:800;margin-top:6px;}
+.ts-bar{background:rgba(14,30,56,.7);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px 16px;opacity:0;transition:opacity .5s;position:relative;z-index:2;}
+.ts-bar.show{opacity:1;}
+.ts-bar-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+.ts-bar-track{display:flex;height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;}
+.ts-bar-used{height:100%;width:0%;background:linear-gradient(90deg,#1A4FD8,#60A5FA);border-radius:100px;transition:width 1.2s ease;}
+.ts-bar-free{height:100%;width:0%;background:linear-gradient(90deg,#F97316,#FBBF24);border-radius:100px;transition:width 1.2s ease .2s;}
 
 /* SECTION */
 .sec{padding:88px 72px;}
@@ -153,8 +142,6 @@ h1{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;line-height:1.06
 .res-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;transition:opacity .4s;}
 .res-box.dim{opacity:.35;pointer-events:none;}
 .res-title{font-size:15px;font-weight:700;margin-bottom:16px;}
-
-/* vehicle */
 .veh-inner{background:rgba(255,255,255,.04);border-radius:12px;padding:16px;margin-bottom:14px;}
 .veh-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
 .veh-name{font-size:16px;font-weight:700;}
@@ -171,8 +158,6 @@ h1{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;line-height:1.06
 .veh-note{font-size:12px;color:var(--gray);line-height:1.5;margin-top:10px;}
 .alert-b{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 12px;font-size:12px;color:#FCA5A5;margin-bottom:10px;display:none;}
 .alert-b.show{display:block;}
-
-/* price */
 .pr-rows{display:flex;flex-direction:column;}
 .pr-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .pr-row:last-child{border-bottom:none;}
@@ -187,8 +172,6 @@ h1{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;line-height:1.06
 .pbar-bg{background:rgba(255,255,255,.06);border-radius:5px;height:8px;overflow:hidden;}
 .pbar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--blue2),var(--orange));transition:width .9s ease;}
 .pbar-pct{text-align:right;font-size:11px;color:var(--green);margin-top:5px;}
-
-/* carriers */
 .c-list{display:flex;flex-direction:column;gap:11px;}
 .ccard{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:15px 16px;display:flex;align-items:center;gap:14px;transition:border-color .2s,transform .2s;cursor:pointer;}
 .ccard:hover{border-color:rgba(249,115,22,.28);transform:translateX(3px);}
@@ -310,35 +293,185 @@ footer p{font-size:13px;color:var(--gray);}
         <button class="btn-o" onclick="document.getElementById('simulator').scrollIntoView({behavior:'smooth'})">Ver simulador</button>
       </div>
     </div>
+
+    <!-- TRUCK SCENE -->
     <div class="hero-right">
-      <div class="hcard hcard-main">
-        <div class="hc-lbl">Ruta disponible ahora</div>
-        <div class="rrow"><div class="rdot" style="background:var(--blue2)"></div><span class="rn">Bogotá</span><div class="rline"></div><div class="rdot" style="background:var(--orange)"></div><span class="rn">Medellín</span></div>
-        <div class="hsub">Jueves 7:00 AM · Camión 3/4 · ⭐ 4.9 · 414 km</div>
-        <div class="capbar"><div class="capfill"></div></div>
-        <div class="cap-lbs"><span>Espacio disponible</span><span>~13 m³ libres</span></div>
-        <div class="hprice"><div><div class="pbig">$13<span class="punit"> USD/m³</span></div></div><button class="btn-xs">Reservar</button></div>
-      </div>
-      <div class="hcard hcard-saving">
-        <div class="hc-lbl">Tu ahorro este mes</div>
-        <div class="sav-num">$1,240</div>
-        <div class="sav-sub">vs fletes tradicionales</div>
-      </div>
-      <div class="hcard hcard-match">
-        <div class="mat-ic">⚡</div>
-        <div class="mat-t">3 matches disponibles</div>
-        <div class="mat-s">Para tu ruta Bogotá → Cali</div>
-      </div>
-      <div class="hcard hcard-types">
-        <div class="hc-lbl">Tipos disponibles</div>
-        <div class="chip-row">
-          <span class="chip">🚛 3/4</span><span class="chip">🚐 Furgón</span>
+      <div class="truck-scene" id="truckScene">
+        <div class="ts-bg"></div>
+        <div class="ts-bg2"></div>
+        <div class="ts-label"><span class="ts-dot"></span>Así funciona CargoShare</div>
+        <div class="ts-svg-wrap">
+          <svg id="truckSvg" viewBox="0 0 800 270" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+            <defs>
+              <linearGradient id="tcG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#152A47"/></linearGradient>
+              <linearGradient id="tcoG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1A3060"/><stop offset="100%" stop-color="#0F1E40"/></linearGradient>
+              <linearGradient id="tfG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#243550"/><stop offset="100%" stop-color="#1A2840"/></linearGradient>
+              <linearGradient id="tfrG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="rgba(249,115,22,.18)"/><stop offset="100%" stop-color="rgba(249,115,22,.04)"/></linearGradient>
+              <marker id="tArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#F97316" stroke-width="1.5" stroke-linecap="round"/></marker>
+            </defs>
+            <!-- Road -->
+            <rect x="0" y="238" width="800" height="32" fill="#080F1E"/>
+            <rect x="0" y="236" width="800" height="3" fill="#0E1E38"/>
+            <rect x="60" y="250" width="55" height="3" fill="rgba(255,255,255,.07)" rx="2"/>
+            <rect x="200" y="250" width="55" height="3" fill="rgba(255,255,255,.07)" rx="2"/>
+            <rect x="340" y="250" width="55" height="3" fill="rgba(255,255,255,.07)" rx="2"/>
+            <rect x="480" y="250" width="55" height="3" fill="rgba(255,255,255,.07)" rx="2"/>
+            <rect x="620" y="250" width="55" height="3" fill="rgba(255,255,255,.07)" rx="2"/>
+            <ellipse cx="420" cy="242" rx="308" ry="7" fill="rgba(0,0,0,.55)"/>
+            <!-- Chassis -->
+            <rect x="158" y="212" width="562" height="14" fill="#0C1828" rx="3"/>
+            <rect x="188" y="220" width="490" height="7" fill="#0A1520" rx="2"/>
+            <!-- Rear wheels -->
+            <rect x="590" y="214" width="8" height="26" fill="#0A1520"/>
+            <circle cx="607" cy="234" r="22" fill="#0D1A2E"/><circle cx="607" cy="234" r="16" fill="#0A1525"/><circle cx="607" cy="234" r="9" fill="#1A2D45"/><circle cx="607" cy="234" r="4" fill="#243550"/><circle cx="607" cy="234" r="2" fill="#60A5FA" opacity=".25"/>
+            <circle cx="584" cy="234" r="20" fill="#0D1A2E"/><circle cx="584" cy="234" r="14" fill="#0A1525"/><circle cx="584" cy="234" r="8" fill="#1A2D45"/><circle cx="584" cy="234" r="3.5" fill="#243550"/><circle cx="584" cy="234" r="1.8" fill="#60A5FA" opacity=".25"/>
+            <!-- Front wheel -->
+            <rect x="196" y="214" width="8" height="26" fill="#0A1520"/>
+            <circle cx="208" cy="234" r="22" fill="#0D1A2E"/><circle cx="208" cy="234" r="16" fill="#0A1525"/><circle cx="208" cy="234" r="9" fill="#1A2D45"/><circle cx="208" cy="234" r="4" fill="#243550"/><circle cx="208" cy="234" r="2" fill="#60A5FA" opacity=".25"/>
+            <!-- Cabin -->
+            <path d="M96 80 Q98 66 112 60 L158 48 L224 48 L224 216 L96 216 Z" fill="url(#tcG)"/>
+            <path d="M96 80 Q98 66 112 60 L158 48 L224 48 L224 216 L96 216 Z" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+            <path d="M104 86 Q106 73 116 68 L154 58 L176 58 L176 98 L104 98 Z" fill="rgba(255,255,255,.04)"/>
+            <path d="M108 85 Q110 74 120 68 L154 59 L190 59 L190 118 L108 118 Z" fill="rgba(96,165,250,.1)" stroke="rgba(96,165,250,.18)" stroke-width="1"/>
+            <path d="M116 72 L146 61 L158 65 L124 78 Z" fill="rgba(255,255,255,.06)"/>
+            <rect x="104" y="128" width="56" height="40" rx="4" fill="rgba(96,165,250,.09)" stroke="rgba(96,165,250,.14)" stroke-width="1"/>
+            <rect x="146" y="163" width="15" height="3" rx="1.5" fill="rgba(255,255,255,.2)"/>
+            <rect x="88" y="102" width="12" height="20" rx="3" fill="#0C1828" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+            <rect x="90" y="104" width="8" height="9" rx="1" fill="rgba(96,165,250,.14)"/>
+            <rect x="96" y="192" width="22" height="9" rx="2" fill="#FBBF24" opacity=".5"/>
+            <rect x="96" y="182" width="15" height="5" rx="1" fill="rgba(255,255,255,.16)"/>
+            <rect x="92" y="206" width="30" height="10" rx="3" fill="#0A1520" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+            <path d="M152 48 Q168 22 224 20 L224 48 Z" fill="#152A47" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <rect x="158" y="194" width="28" height="6" rx="2" fill="#0A1520"/>
+            <rect x="158" y="204" width="28" height="6" rx="2" fill="#0A1520"/>
+            <!-- CLOSED CONTAINER -->
+            <g id="tContClosed">
+              <rect x="221" y="28" width="494" height="186" rx="6" fill="url(#tcoG)" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+              <rect x="221" y="28" width="494" height="9" rx="4" fill="#1E3560" stroke="rgba(255,255,255,.1)" stroke-width=".5"/>
+              <rect x="221" y="207" width="494" height="9" rx="4" fill="#1E3560" stroke="rgba(255,255,255,.1)" stroke-width=".5"/>
+              <line x1="320" y1="37" x2="320" y2="207" stroke="rgba(255,255,255,.04)" stroke-width="2"/>
+              <line x1="420" y1="37" x2="420" y2="207" stroke="rgba(255,255,255,.04)" stroke-width="2"/>
+              <line x1="520" y1="37" x2="520" y2="207" stroke="rgba(255,255,255,.04)" stroke-width="2"/>
+              <line x1="620" y1="37" x2="620" y2="207" stroke="rgba(255,255,255,.04)" stroke-width="2"/>
+              <line x1="705" y1="37" x2="705" y2="207" stroke="rgba(255,255,255,.18)" stroke-width="1.5" stroke-dasharray="5,4"/>
+              <rect x="698" y="114" width="14" height="4" rx="2" fill="rgba(255,255,255,.2)"/>
+              <rect x="346" y="82" width="196" height="54" rx="10" fill="rgba(249,115,22,.05)" stroke="rgba(249,115,22,.09)" stroke-width="1"/>
+              <text x="444" y="106" text-anchor="middle" font-family="Syne,sans-serif" font-size="18" font-weight="800" fill="rgba(249,115,22,.4)">Cargo</text>
+              <text x="444" y="127" text-anchor="middle" font-family="Syne,sans-serif" font-size="18" font-weight="800" fill="rgba(249,115,22,.22)">Share</text>
+              <rect x="221" y="28" width="9" height="9" fill="#F97316" opacity=".3" rx="1"/>
+              <rect x="706" y="28" width="9" height="9" fill="#F97316" opacity=".3" rx="1"/>
+              <rect x="221" y="207" width="9" height="9" fill="#F97316" opacity=".3" rx="1"/>
+              <rect x="706" y="207" width="9" height="9" fill="#F97316" opacity=".3" rx="1"/>
+            </g>
+            <!-- OPEN CONTAINER -->
+            <g id="tContOpen" style="opacity:0;clip-path:inset(0 494px 0 0 round 6px)">
+              <rect x="221" y="28" width="494" height="186" rx="6" fill="#0D1E38"/>
+              <rect x="221" y="28" width="16" height="186" fill="#0A1830"/>
+              <rect x="221" y="28" width="494" height="22" fill="#152A47"/>
+              <rect x="276" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="336" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="396" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="456" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="516" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="576" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="636" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="696" y="28" width="7" height="22" fill="rgba(255,255,255,.06)"/>
+              <rect x="221" y="106" width="494" height="5" fill="#1A3050" rx="2"/>
+              <rect x="221" y="145" width="494" height="5" fill="#1A3050" rx="2"/>
+              <rect x="221" y="198" width="494" height="16" rx="2" fill="url(#tfG)"/>
+              <line x1="280" y1="198" x2="280" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <line x1="340" y1="198" x2="340" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <line x1="400" y1="198" x2="400" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <line x1="460" y1="198" x2="460" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <line x1="520" y1="198" x2="520" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <line x1="580" y1="198" x2="580" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <line x1="640" y1="198" x2="640" y2="214" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+              <!-- Pallet 1 -->
+              <rect x="238" y="188" width="80" height="10" rx="2" fill="#6B4E2A"/>
+              <line x1="258" y1="188" x2="258" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="278" y1="188" x2="278" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="298" y1="188" x2="298" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <rect x="240" y="148" width="76" height="40" rx="3" fill="#8B6914" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="278" y1="148" x2="278" y2="188" stroke="rgba(0,0,0,.2)" stroke-width="1"/>
+              <line x1="240" y1="168" x2="316" y2="168" stroke="rgba(0,0,0,.15)" stroke-width="1"/>
+              <rect x="245" y="153" width="16" height="11" rx="1" fill="rgba(255,255,255,.14)"/>
+              <rect x="266" y="153" width="16" height="11" rx="1" fill="rgba(255,255,255,.14)"/>
+              <rect x="248" y="114" width="52" height="34" rx="3" fill="#9B7A20" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+              <rect x="252" y="119" width="26" height="10" rx="1" fill="rgba(255,255,255,.12)"/>
+              <rect x="256" y="90" width="30" height="24" rx="2" fill="#B08C28" stroke="rgba(0,0,0,.2)" stroke-width="1"/>
+              <!-- Pallet 2 wooden crate -->
+              <rect x="330" y="188" width="88" height="10" rx="2" fill="#6B4E2A"/>
+              <line x1="353" y1="188" x2="353" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="376" y1="188" x2="376" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <rect x="332" y="134" width="84" height="54" rx="3" fill="#7A5C2A" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+              <line x1="332" y1="152" x2="416" y2="152" stroke="rgba(0,0,0,.22)" stroke-width="2"/>
+              <line x1="332" y1="170" x2="416" y2="170" stroke="rgba(0,0,0,.22)" stroke-width="2"/>
+              <line x1="354" y1="134" x2="354" y2="188" stroke="rgba(0,0,0,.18)" stroke-width="2"/>
+              <line x1="378" y1="134" x2="378" y2="188" stroke="rgba(0,0,0,.18)" stroke-width="2"/>
+              <line x1="402" y1="134" x2="402" y2="188" stroke="rgba(0,0,0,.18)" stroke-width="2"/>
+              <line x1="334" y1="136" x2="414" y2="186" stroke="rgba(0,0,0,.14)" stroke-width="1.5"/>
+              <line x1="414" y1="136" x2="334" y2="186" stroke="rgba(0,0,0,.14)" stroke-width="1.5"/>
+              <!-- Pallet 3 wrapped -->
+              <rect x="430" y="188" width="72" height="10" rx="2" fill="#6B4E2A"/>
+              <line x1="450" y1="188" x2="450" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="470" y1="188" x2="470" y2="198" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <rect x="432" y="150" width="68" height="38" rx="3" fill="#4E6070"/>
+              <line x1="432" y1="163" x2="500" y2="163" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/>
+              <line x1="432" y1="176" x2="500" y2="176" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/>
+              <line x1="444" y1="150" x2="444" y2="188" stroke="#2563EB" stroke-width="2" opacity=".5"/>
+              <line x1="486" y1="150" x2="486" y2="188" stroke="#2563EB" stroke-width="2" opacity=".5"/>
+              <!-- Free zone -->
+              <rect x="514" y="50" width="196" height="148" rx="6" fill="url(#tfrG)"/>
+              <rect id="tFreeBorder" x="514" y="50" width="196" height="148" rx="6" fill="none" stroke="#F97316" stroke-width="1.5" stroke-dasharray="8,5" opacity=".55"/>
+              <rect x="544" y="100" width="138" height="50" rx="10" fill="rgba(249,115,22,.12)" stroke="rgba(249,115,22,.22)" stroke-width="1"/>
+              <text x="613" y="119" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" font-weight="700" fill="#F97316" letter-spacing="1">ESPACIO LIBRE</text>
+              <text x="613" y="140" text-anchor="middle" font-family="Syne,sans-serif" font-size="20" font-weight="800" fill="#F97316">65%</text>
+              <path d="M505 125 L540 125" stroke="#F97316" stroke-width="1.5" fill="none" stroke-linecap="round" marker-end="url(#tArr)"/>
+              <text x="612" y="68" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(249,115,22,.4)">4.2 m × 2.4 m disponibles</text>
+              <line x1="512" y1="50" x2="512" y2="198" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4,3"/>
+              <rect x="221" y="28" width="494" height="9" rx="4" fill="#1E3560"/>
+              <rect x="221" y="207" width="494" height="7" rx="3" fill="#1E3560"/>
+              <circle cx="225" cy="32" r="3" fill="#F97316" opacity=".5"/>
+              <circle cx="711" cy="32" r="3" fill="#F97316" opacity=".5"/>
+              <circle cx="225" cy="212" r="3" fill="#F97316" opacity=".5"/>
+              <circle cx="711" cy="212" r="3" fill="#F97316" opacity=".5"/>
+              <rect x="702" y="28" width="13" height="186" fill="#1A3060" stroke="rgba(255,255,255,.14)" stroke-width="1"/>
+            </g>
+          </svg>
         </div>
-        <div class="chip-row">
-          <span class="chip cold">❄️ Refrigerado</span><span class="chip">🚚 Doble troque</span>
+        <!-- Badges -->
+        <div class="ts-badges" id="tsBadges">
+          <div class="ts-badge ts-b-blue">
+            <div class="ts-b-title">📦 Carga actual</div>
+            <div class="ts-b-body">3 pallets · 3,200 kg</div>
+            <div class="ts-b-val" style="color:#60A5FA">35%</div>
+          </div>
+          <div class="ts-badge ts-b-orange">
+            <div class="ts-b-title">✨ Espacio libre</div>
+            <div class="ts-b-body">6,800 kg disponibles</div>
+            <div class="ts-b-val" style="color:#F97316">65%</div>
+          </div>
+          <div class="ts-badge ts-b-green">
+            <div class="ts-b-title">💰 Ingreso potencial</div>
+            <div class="ts-b-body">Publicando en CargoShare</div>
+            <div class="ts-b-val" style="color:#10B981">$340,000</div>
+          </div>
+        </div>
+        <!-- Bar -->
+        <div class="ts-bar" id="tsBar">
+          <div class="ts-bar-header">
+            <span style="color:#60A5FA;font-size:11px;font-weight:700">🔵 Ocupado 35%</span>
+            <span style="color:#F97316;font-size:11px;font-weight:700">🟠 Espacio libre 65%</span>
+          </div>
+          <div class="ts-bar-track">
+            <div class="ts-bar-used" id="tsBarUsed"></div>
+            <div class="ts-bar-free" id="tsBarFree"></div>
+          </div>
         </div>
       </div>
     </div>
+    <!-- END TRUCK SCENE -->
+
   </div>
 </section>
 
@@ -392,7 +525,6 @@ footer p{font-size:13px;color:var(--gray);}
   <div class="sec-tag">Simulador de envío</div>
   <div class="sec-title rv">Cotiza, compara<br>y reserva aquí mismo</div>
   <div class="sec-sub rv">Ingresa los datos reales de tu carga. El simulador calcula el precio, recomienda el vehículo y te muestra transportistas disponibles.</div>
-
   <div class="sim-layout">
     <div class="sim-form rv">
       <div class="sim-title">📦 Datos del envío</div>
@@ -440,9 +572,7 @@ footer p{font-size:13px;color:var(--gray);}
       </div>
       <button class="btn-sim" onclick="calcular()">Ver cotización y transportistas →</button>
     </div>
-
     <div class="sim-results">
-      <!-- Vehicle -->
       <div class="res-box dim" id="panelV">
         <div class="res-title">🚛 Vehículo recomendado</div>
         <div class="veh-inner">
@@ -453,8 +583,6 @@ footer p{font-size:13px;color:var(--gray);}
         <div class="alert-b" id="valert"></div>
         <div class="veh-note" id="vnote"></div>
       </div>
-
-      <!-- Price -->
       <div class="res-box dim" id="panelP">
         <div class="res-title">💰 Detalle de precio</div>
         <div class="pr-rows">
@@ -475,8 +603,6 @@ footer p{font-size:13px;color:var(--gray);}
           <div class="pbar-pct" id="ppct">—</div>
         </div>
       </div>
-
-      <!-- Carriers -->
       <div class="res-box dim" id="panelC">
         <div class="res-title">🎯 Transportistas disponibles</div>
         <div style="font-size:13px;color:var(--gray);margin-bottom:14px;">Selecciona el que mejor se adapte y resérvalo directamente</div>
@@ -536,12 +662,8 @@ footer p{font-size:13px;color:var(--gray);}
     <div class="modal-title">Crear cuenta</div>
     <div class="modal-sub">Elige tu tipo de cuenta para comenzar</div>
     <div class="role-grid">
-      <div class="role-opt sel" id="regRoleT" onclick="pickRole('t')">
-        <span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Tengo camión propio o gestiono una flota y quiero monetizar espacio libre</div>
-      </div>
-      <div class="role-opt" id="regRoleE" onclick="pickRole('e')">
-        <span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Necesito enviar carga y quiero pagar solo por el espacio que uso</div>
-      </div>
+      <div class="role-opt sel" id="regRoleT" onclick="pickRole('t')"><span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Tengo camión propio o gestiono una flota y quiero monetizar espacio libre</div></div>
+      <div class="role-opt" id="regRoleE" onclick="pickRole('e')"><span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Necesito enviar carga y quiero pagar solo por el espacio que uso</div></div>
     </div>
     <div class="fg"><label>Nombre de la empresa</label><input type="text" placeholder="Ej: Transporte Rápido SAS"></div>
     <div class="fg"><label>Correo corporativo</label><input type="email" placeholder="correo@empresa.com"></div>
@@ -562,12 +684,8 @@ footer p{font-size:13px;color:var(--gray);}
       <div class="lc-d" id="lcd">Selecciona tu perfil para ir directo a tu panel personalizado.</div>
     </div>
     <div class="role-grid" style="margin-bottom:20px">
-      <div class="role-opt sel" id="loginRT" onclick="pickLoginRole('t')">
-        <span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Ver mis rutas, solicitudes y panel de ingresos</div>
-      </div>
-      <div class="role-opt" id="loginRE" onclick="pickLoginRole('e')">
-        <span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Ver mis envíos, cotizaciones y panel de ahorro</div>
-      </div>
+      <div class="role-opt sel" id="loginRT" onclick="pickLoginRole('t')"><span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Ver mis rutas, solicitudes y panel de ingresos</div></div>
+      <div class="role-opt" id="loginRE" onclick="pickLoginRole('e')"><span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Ver mis envíos, cotizaciones y panel de ahorro</div></div>
     </div>
     <div class="fg"><label>Correo corporativo</label><input type="email" placeholder="correo@empresa.com"></div>
     <div class="fg"><label>Contraseña</label><input type="password" placeholder="Tu contraseña"></div>
@@ -584,8 +702,6 @@ const VEH=[
   {n:'Camión sencillo',e:'🚚',maxV:40,maxW:8000,d:'Rutas largas con carga media-alta'},
   {n:'Doble troque',e:'🚛',maxV:80,maxW:18000,d:'Máxima capacidad para carga pesada'},
 ];
-
-// CARRIERS
 const CARRIERS=[
   {id:1,n:'Carlos Jiménez',t:'Transportista independiente',e:'🚛',veh:'Camión 3/4',maxV:20,maxW:4000,rat:4.9,rev:87,tags:['Verificado','Sin recargo extra'],cold:false,extra:0,deps:['Mañana 6:00 AM','Jueves 7:30 AM']},
   {id:2,n:'Transportes Andes SAS',t:'Empresa con flota',e:'🏢',veh:'Camión sencillo',maxV:40,maxW:8000,rat:4.7,rev:234,tags:['Empresa verificada','Seguro incluido'],cold:false,extra:.05,deps:['Mañana 9:00 AM','Viernes 5:00 AM']},
@@ -599,19 +715,12 @@ function liveCalc(){
   const h=parseFloat(document.getElementById('alto').value)||0;
   const q=parseInt(document.getElementById('cantidad').value)||1;
   const pr=parseFloat(document.getElementById('peso').value)||0;
-  const vol=l*a*h*q;
-  const pv=vol*333;
-  const pc=Math.max(pr,pv);
+  const vol=l*a*h*q;const pv=vol*333;const pc=Math.max(pr,pv);
   document.getElementById('vp-vol').textContent=vol.toFixed(2)+' m³';
   document.getElementById('vp-cob').textContent=pc.toFixed(0)+' kg';
   document.getElementById('vp-fac').textContent=pc===pv&&pv>pr?'Volumétrico':'Peso real';
 }
-
-function checkIns(){
-  const v=parseFloat(document.getElementById('valor').value)||0;
-  document.getElementById('insBox').classList.toggle('show',v>=3000);
-}
-
+function checkIns(){const v=parseFloat(document.getElementById('valor').value)||0;document.getElementById('insBox').classList.toggle('show',v>=3000);}
 function calcular(){
   const rArr=document.getElementById('ruta').value.split(',');
   const km=parseInt(rArr[0]),tarBase=parseFloat(rArr[1]),tradM=parseFloat(rArr[2]);
@@ -623,44 +732,24 @@ function calcular(){
   const val=parseFloat(document.getElementById('valor').value)||0;
   const urg=parseFloat(document.getElementById('urgencia').value);
   const tipo=document.getElementById('tipoCarga').value;
-  const vol=l*a*h*q;
-  const pv=vol*333;
-  const pc=Math.max(pr,pv);
+  const vol=l*a*h*q;const pv=vol*333;const pc=Math.max(pr,pv);
   const isR=tipo==='refrigerado'||tipo==='congelado';
   const coldM=isR?(tipo==='congelado'?.45:.35):0;
-  const tarifa=tarBase*urg;
-  const sub=tarifa*vol;
-  const coldA=sub*coldM;
-  const com=(sub+coldA)*.12;
-  const insAuto=val>=3000;
-  const ins=insAuto?val*.015:0;
-  const total=sub+coldA+com+ins;
-  const tradP=sub*tradM;
-  const sav=tradP-total;
-  const pct=Math.round((sav/tradP)*100);
-
-  // Vehicle
-  const veh=isR?{n:'Camión refrigerado',e:'❄️',maxV:18,maxW:3500,d:'Temperatura controlada para carga fría'}:
-    (VEH.find(v=>v.maxV>=vol&&v.maxW>=pc)||VEH[VEH.length-1]);
-  const vPct=Math.min(Math.round((vol/veh.maxV)*100),100);
-  const wPct=Math.min(Math.round((pc/veh.maxW)*100),100);
-  document.getElementById('vn').textContent=veh.n;
-  document.getElementById('vd').textContent=veh.d;
-  document.getElementById('ve').textContent=veh.e;
-  document.getElementById('vvp').textContent=vPct+'%';
-  document.getElementById('vwp').textContent=wPct+'%';
+  const tarifa=tarBase*urg;const sub=tarifa*vol;const coldA=sub*coldM;
+  const com=(sub+coldA)*.12;const insAuto=val>=3000;const ins=insAuto?val*.015:0;
+  const total=sub+coldA+com+ins;const tradP=sub*tradM;const sav=tradP-total;const pct=Math.round((sav/tradP)*100);
+  const veh=isR?{n:'Camión refrigerado',e:'❄️',maxV:18,maxW:3500,d:'Temperatura controlada para carga fría'}:(VEH.find(v=>v.maxV>=vol&&v.maxW>=pc)||VEH[VEH.length-1]);
+  const vPct=Math.min(Math.round((vol/veh.maxV)*100),100);const wPct=Math.min(Math.round((pc/veh.maxW)*100),100);
+  document.getElementById('vn').textContent=veh.n;document.getElementById('vd').textContent=veh.d;document.getElementById('ve').textContent=veh.e;
+  document.getElementById('vvp').textContent=vPct+'%';document.getElementById('vwp').textContent=wPct+'%';
   const vvb=document.getElementById('vvb');const vwb=document.getElementById('vwb');
   vvb.style.width=vPct+'%';vwb.style.width=wPct+'%';
   vvb.className='bf v'+(vPct>85?' r':'');vwb.className='bf w'+(wPct>85?' r':'');
   document.getElementById('vvl').textContent=`${vol.toFixed(2)} m³ de ${veh.maxV} m³ disponibles`;
   document.getElementById('vwl').textContent=`${pc.toFixed(0)} kg de ${veh.maxW.toLocaleString()} kg permitidos`;
-  const ov=vol>veh.maxV||pc>veh.maxW;
-  const va=document.getElementById('valert');
-  va.className='alert-b'+(ov?' show':'');
-  va.textContent='⚠️ Tu carga supera la capacidad de un vehículo. Se requieren dos unidades.';
-  document.getElementById('vnote').textContent=`CargoShare puede llenar el espacio restante con otro remitente en la misma ruta, reduciendo aún más tu costo.`;
-
-  // Prices
+  const ov=vol>veh.maxV||pc>veh.maxW;const va=document.getElementById('valert');
+  va.className='alert-b'+(ov?' show':'');va.textContent='⚠️ Tu carga supera la capacidad de un vehículo. Se requieren dos unidades.';
+  document.getElementById('vnote').textContent='CargoShare puede llenar el espacio restante con otro remitente en la misma ruta, reduciendo aún más tu costo.';
   document.getElementById('rv').textContent=vol.toFixed(2)+' m³';
   document.getElementById('rp').textContent=`${pc.toFixed(0)} kg (${pc===pv&&pv>pr?'volumétrico':'peso real'})`;
   document.getElementById('rt').textContent=`$${tarifa.toFixed(0)} USD/m³`;
@@ -674,119 +763,85 @@ function calcular(){
   if(isR) document.getElementById('rc').textContent=`+$${coldA.toFixed(0)} USD`;
   document.getElementById('rins').textContent=insAuto?`$${ins.toFixed(0)} USD (obligatorio)`:'-';
   document.getElementById('rowIns').style.opacity=insAuto?'1':'.4';
-
-  // Carriers
-  const avail=CARRIERS.filter(c=>{
-    if(isR&&!c.cold&&c.id!==2) return false;
-    if(c.maxV<vol||c.maxW<pc) return false;
-    return true;
-  });
+  const avail=CARRIERS.filter(c=>{if(isR&&!c.cold&&c.id!==2) return false;if(c.maxV<vol||c.maxW<pc) return false;return true;});
   renderCarriers(avail,tarifa,vol);
-
-  // Show panels
   ['panelV','panelP','panelC'].forEach(id=>document.getElementById(id).classList.remove('dim'));
   setTimeout(()=>document.getElementById('panelV').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
 }
-
 function renderCarriers(list,tarifa,vol){
-  const el=document.getElementById('cList');
-  document.getElementById('bookOk').classList.remove('show');
-  el.innerHTML='';
-  if(!list.length){
-    el.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--gray)">No hay transportistas disponibles para esta combinación. Prueba otra ruta o fecha.</div>';
-    return;
-  }
+  const el=document.getElementById('cList');document.getElementById('bookOk').classList.remove('show');el.innerHTML='';
+  if(!list.length){el.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--gray)">No hay transportistas disponibles para esta combinación.</div>';return;}
   list.forEach(c=>{
-    const price=(tarifa*(1+c.extra)*vol).toFixed(0);
-    const d=document.createElement('div');
-    d.className='ccard';
-    d.innerHTML=`
-      <div class="cav">${c.e}</div>
-      <div class="cinfo">
-        <div class="cname">${c.n}</div>
-        <div class="cmeta">${c.t} · ${c.veh}</div>
-        <div class="ctags">${c.tags.map(t=>`<span class="ctag ${t.includes('Retorno')||t.includes('Sin')?'g':''}">${t}</span>`).join('')}</div>
-      </div>
-      <div class="cright">
-        <div class="cstars">${'★'.repeat(Math.round(c.rat))} ${c.rat} (${c.rev})</div>
-        <div class="cprice">$${price}<span class="cunit"> USD</span></div>
-        <div class="cdepart">Salida: ${c.deps[0]}</div>
-        <button class="btn-book" onclick="book(this,'${c.n}')">Reservar →</button>
-      </div>`;
+    const price=(tarifa*(1+c.extra)*vol).toFixed(0);const d=document.createElement('div');d.className='ccard';
+    d.innerHTML=`<div class="cav">${c.e}</div><div class="cinfo"><div class="cname">${c.n}</div><div class="cmeta">${c.t} · ${c.veh}</div><div class="ctags">${c.tags.map(t=>`<span class="ctag ${t.includes('Retorno')||t.includes('Sin')?'g':''}">${t}</span>`).join('')}</div></div><div class="cright"><div class="cstars">${'★'.repeat(Math.round(c.rat))} ${c.rat} (${c.rev})</div><div class="cprice">$${price}<span class="cunit"> USD</span></div><div class="cdepart">Salida: ${c.deps[0]}</div><button class="btn-book" onclick="book(this,'${c.n}')">Reservar →</button></div>`;
     el.appendChild(d);
   });
 }
-
 function book(btn,name){
-  document.querySelectorAll('.ccard').forEach(c=>c.classList.remove('sel'));
-  btn.closest('.ccard').classList.add('sel');
-  const ok=document.getElementById('bookOk');
-  ok.querySelector('#bookOkMsg').textContent=`Solicitud enviada a ${name}. Confirmará en las próximas horas. Crea tu cuenta para completar el proceso.`;
-  ok.classList.add('show');
-  setTimeout(()=>ok.scrollIntoView({behavior:'smooth',block:'nearest'}),200);
+  document.querySelectorAll('.ccard').forEach(c=>c.classList.remove('sel'));btn.closest('.ccard').classList.add('sel');
+  const ok=document.getElementById('bookOk');ok.querySelector('#bookOkMsg').textContent=`Solicitud enviada a ${name}. Confirmará en las próximas horas. Crea tu cuenta para completar el proceso.`;
+  ok.classList.add('show');setTimeout(()=>ok.scrollIntoView({behavior:'smooth',block:'nearest'}),200);
 }
-
-// TABS
-function switchTab(btn,t){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('stepsT').style.display=t==='t'?'grid':'none';
-  document.getElementById('stepsE').style.display=t==='e'?'grid':'none';
-}
-
-// MODALS
+function switchTab(btn,t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));btn.classList.add('on');document.getElementById('stepsT').style.display=t==='t'?'grid':'none';document.getElementById('stepsE').style.display=t==='e'?'grid':'none';}
 function openRegister(){window.parent.location.href='/register';}
 function openLogin(){window.parent.location.href='/login';}
 function closeModals(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
 function toLogin(){closeModals();openLogin();}
 function toRegister(){closeModals();openRegister();}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModals();}));
-
 function openRegisterAs(role){window.parent.location.href='/register';}
 function handleRegisterSubmit(){window.parent.location.href='/register';}
-function pickRole(r){
-  document.getElementById('regRoleT').classList.toggle('sel',r==='t');
-  document.getElementById('regRoleE').classList.toggle('sel',r==='e');
-}
+function pickRole(r){document.getElementById('regRoleT').classList.toggle('sel',r==='t');document.getElementById('regRoleE').classList.toggle('sel',r==='e');}
 function pickLoginRole(r){
-  document.getElementById('loginRT').classList.toggle('sel',r==='t');
-  document.getElementById('loginRE').classList.toggle('sel',r==='e');
+  document.getElementById('loginRT').classList.toggle('sel',r==='t');document.getElementById('loginRE').classList.toggle('sel',r==='e');
   const isT=r==='t';
   document.getElementById('lct').textContent=isT?'🚛 Panel de transportista':'📦 Panel de empresa';
-  document.getElementById('lcd').textContent=isT
-    ?'Entra a gestionar tus rutas activas, ver solicitudes de carga pendientes y tu historial de ingresos.'
-    :'Entra a gestionar tus envíos activos, cotizaciones guardadas y resumen de ahorro mensual.';
-  document.getElementById('loginBtn').textContent=isT
-    ?'Entrar a mi panel de transportista →'
-    :'Entrar a mi panel de empresa →';
+  document.getElementById('lcd').textContent=isT?'Entra a gestionar tus rutas activas, ver solicitudes de carga pendientes y tu historial de ingresos.':'Entra a gestionar tus envíos activos, cotizaciones guardadas y resumen de ahorro mensual.';
+  document.getElementById('loginBtn').textContent=isT?'Entrar a mi panel de transportista →':'Entrar a mi panel de empresa →';
 }
-
-// CAROUSEL
-let slide=0;
-const track=document.getElementById('carTrack');
-const cards=[...track.querySelectorAll('.tcard')];
-const dotsEl=document.getElementById('carDots');
+let slide=0;const track=document.getElementById('carTrack');const cards=[...track.querySelectorAll('.tcard')];const dotsEl=document.getElementById('carDots');
 cards.forEach((_,i)=>{const d=document.createElement('div');d.className='car-dot'+(i===0?' on':'');d.onclick=()=>goS(i);dotsEl.appendChild(d);});
 function goS(n){slide=Math.max(0,Math.min(n,cards.length-1));track.style.transform=`translateX(-${slide*(cards[0].offsetWidth+20)}px)`;document.querySelectorAll('.car-dot').forEach((d,i)=>d.classList.toggle('on',i===slide));}
-function nextS(){goS((slide+1)%cards.length);}
-function prevS(){goS((slide-1+cards.length)%cards.length);}
-setInterval(nextS,5500);
-window.addEventListener('resize',()=>goS(slide));
-
-// REVEAL
+function nextS(){goS((slide+1)%cards.length);}function prevS(){goS((slide-1+cards.length)%cards.length);}
+setInterval(nextS,5500);window.addEventListener('resize',()=>goS(slide));
 const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');});},{threshold:.1});
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
-
-// COUNTERS
-function animN(el){
-  const t=parseInt(el.dataset.target);const s=el.dataset.suffix||'';
-  let c=0;const st=t/55;
-  const iv=setInterval(()=>{c=Math.min(c+st,t);el.textContent=Math.round(c)+s;if(c>=t)clearInterval(iv);},18);
-}
+function animN(el){const t=parseInt(el.dataset.target);const s=el.dataset.suffix||'';let c=0;const st=t/55;const iv=setInterval(()=>{c=Math.min(c+st,t);el.textContent=Math.round(c)+s;if(c>=t)clearInterval(iv);},18);}
 const cobs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.target.dataset.target){animN(e.target);cobs.unobserve(e.target);}});},{threshold:.5});
 document.querySelectorAll('[data-target]').forEach(el=>cobs.observe(el));
-
 window.addEventListener('load',liveCalc);
+
+// TRUCK ANIMATION
+(function(){
+  var animated=false;
+  var cc=document.getElementById('tContClosed');
+  var co=document.getElementById('tContOpen');
+  var badges=document.getElementById('tsBadges');
+  var bar=document.getElementById('tsBar');
+  var bu=document.getElementById('tsBarUsed');
+  var bf=document.getElementById('tsBarFree');
+  var svg=document.getElementById('truckSvg');
+  if(!cc) return;
+  function startAnim(){
+    if(animated) return; animated=true;
+    setTimeout(function(){cc.style.transition='opacity .6s';cc.style.opacity='0';},400);
+    setTimeout(function(){
+      co.style.transition='opacity .2s';co.style.opacity='1';
+      var total=494,dur=1000,start=performance.now();
+      function clip(now){var p=Math.min((now-start)/dur,1),e=1-Math.pow(1-p,3);co.style.clipPath='inset(0 '+Math.round(total*(1-e))+'px 0 0 round 6px)';if(p<1) requestAnimationFrame(clip);}
+      requestAnimationFrame(clip);
+    },900);
+    setTimeout(function(){badges.classList.add('show');},1700);
+    setTimeout(function(){bar.classList.add('show');setTimeout(function(){bu.style.width='35%';bf.style.width='65%';},150);},2000);
+  }
+  var tobs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting) startAnim();});},{threshold:0.3});
+  tobs.observe(document.getElementById('truckScene'));
+  var dash=0;
+  function animDash(){dash-=.4;var el=document.getElementById('tFreeBorder');if(el) el.setAttribute('stroke-dashoffset',dash);requestAnimationFrame(animDash);}
+  animDash();
+  function floatTruck(){if(svg) svg.style.transform='translateY('+(Math.sin(Date.now()*.0009)*1.8)+'px)';requestAnimationFrame(floatTruck);}
+  floatTruck();
+})();
 </script>
 </body>
 </html>
