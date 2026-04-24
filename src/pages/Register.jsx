@@ -42,6 +42,7 @@ export default function Register() {
     { id: 'empresa_remitente', ic: '📦', titulo: 'Empresa remitente', desc: 'Necesito enviar carga' },
     { id: 'empresa_flota', ic: '🚛', titulo: 'Empresa con flota', desc: 'Tengo camiones disponibles' },
     { id: 'ambas', ic: '🔄', titulo: 'Ambas', desc: 'Envio carga y tengo flota' },
+    { id: 'conductor', ic: '🚗', titulo: 'Soy conductor', desc: 'Quiero afiliarme a una empresa en CargoShare' },
   ]
 
   const necesitaFlota = form.rol === 'empresa_flota' || form.rol === 'ambas'
@@ -80,7 +81,10 @@ export default function Register() {
   function siguientePaso() {
     if (paso === 1) {
       if (!form.rol) { setErrores({ rol: 'Selecciona el tipo de empresa' }); return }
-      setErrores({}); setPaso(2)
+      setErrores({})
+      // Si es conductor redirigir directo al formulario de afiliacion
+      if (form.rol === 'conductor') { navigate('/conductor'); return }
+      setPaso(2)
     } else if (paso === 2) {
       const e = validarPaso2()
       if (Object.keys(e).length > 0) { setErrores(e); return }
@@ -171,7 +175,7 @@ export default function Register() {
     <div style={s.wrap}>
       <div style={s.card}>
         <div style={s.logo}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
-        <div style={s.sub}>Registro de empresa - Fase 1</div>
+        <div style={s.sub}>Registro - Fase 1</div>
 
         <div style={s.stepBar}>
           {[1, 2, 3, 4].map(n => (
@@ -179,35 +183,44 @@ export default function Register() {
           ))}
         </div>
         <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '20px' }}>
-          Paso {paso} de 4 - {['', 'Tipo de empresa', 'Datos empresariales', 'Documentos', 'Confirmar'][paso]}
+          Paso {paso} de 4 - {['', 'Tipo de cuenta', 'Datos empresariales', 'Documentos', 'Confirmar'][paso]}
         </div>
 
         {/* PASO 1 */}
         {paso === 1 && (
           <div>
-            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Que tipo de empresa eres?</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Solo empresas con minimo 1 ano de constitucion pueden registrarse en esta fase.</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Como quieres registrarte?</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Selecciona el tipo de cuenta que necesitas.</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               {tiposEmpresa.map(t => (
                 <div key={t.id} onClick={() => setForm({ ...form, rol: t.id })}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px', borderRadius: '14px', border: `2px solid ${form.rol === t.id ? '#F97316' : 'rgba(255,255,255,.1)'}`, background: form.rol === t.id ? 'rgba(249,115,22,.08)' : 'transparent', cursor: 'pointer', transition: '.2s' }}>
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '14px', padding: '16px',
+                    borderRadius: '14px',
+                    border: `2px solid ${form.rol === t.id ? (t.id === 'conductor' ? '#10B981' : '#F97316') : 'rgba(255,255,255,.1)'}`,
+                    background: form.rol === t.id ? (t.id === 'conductor' ? 'rgba(16,185,129,.08)' : 'rgba(249,115,22,.08)') : 'transparent',
+                    cursor: 'pointer', transition: '.2s'
+                  }}>
                   <div style={{ fontSize: '28px' }}>{t.ic}</div>
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: '700', color: 'white' }}>{t.titulo}</div>
                     <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{t.desc}</div>
                   </div>
-                  {form.rol === t.id && <div style={{ marginLeft: 'auto', color: '#F97316', fontSize: '18px' }}>✓</div>}
+                  {form.rol === t.id && (
+                    <div style={{ marginLeft: 'auto', color: t.id === 'conductor' ? '#10B981' : '#F97316', fontSize: '18px' }}>✓</div>
+                  )}
                 </div>
               ))}
             </div>
             {errores.rol && <div style={{ ...s.err, marginBottom: '12px' }}>⚠️ {errores.rol}</div>}
-            <button onClick={siguientePaso} style={s.btn}>Continuar →</button>
+            <button onClick={siguientePaso} style={{
+              ...s.btn,
+              background: form.rol === 'conductor' ? '#10B981' : '#F97316'
+            }}>
+              {form.rol === 'conductor' ? 'Ir al formulario de conductor →' : 'Continuar →'}
+            </button>
             <div style={{ textAlign: 'center', marginTop: '14px', fontSize: '13px', color: '#7A8FAD' }}>
               Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesion</span>
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '13px' }}>
-              <span style={{ color: '#7A8FAD' }}>Eres conductor? </span>
-              <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/conductor')}>Registrate como conductor →</span>
             </div>
           </div>
         )}
