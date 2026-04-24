@@ -653,6 +653,8 @@ function Conductor() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('registro') === 'true') { setEstado('registro'); return }
     const t = localStorage.getItem('conductor_token')
     if (t) { setToken(t); cargarPerfil(t) }
     else setEstado('login')

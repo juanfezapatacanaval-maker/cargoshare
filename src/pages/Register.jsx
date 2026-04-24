@@ -83,7 +83,7 @@ export default function Register() {
       if (!form.rol) { setErrores({ rol: 'Selecciona el tipo de empresa' }); return }
       setErrores({})
       // Si es conductor redirigir directo al formulario de afiliacion
-      if (form.rol === 'conductor') { navigate('/conductor'); return }
+      if (form.rol === 'conductor') { navigate('/conductor?registro=true'); return }
       setPaso(2)
     } else if (paso === 2) {
       const e = validarPaso2()
