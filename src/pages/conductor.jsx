@@ -371,7 +371,7 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
     setCargando(true)
     setError('')
     try {
-      const res = await fetch(`${API}/viaje/verificar-codigo`, {
+      const res = await fetch(`${API}/conductor-afiliado/verificar-codigo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ viajeId: viaje._id, codigo, tipo })
@@ -391,7 +391,7 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
     setResultadoCargue(resultado)
     // Registrar en backend
     try {
-      await fetch(`${API}/viaje/registrar-cargue`, {
+      await fetch(`${API}/conductor-afiliado/registrar-cargue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ viajeId: viaje._id, ...resultado })
@@ -404,7 +404,7 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
     setResultadoDescargue(resultado)
     setCargando(true)
     try {
-      await fetch(`${API}/viaje/finalizar`, {
+      await fetch(`${API}/conductor-afiliado/finalizar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ viajeId: viaje._id, ...resultado })
@@ -722,7 +722,7 @@ function Conductor() {
 
   async function cargarPerfil(t) {
     try {
-      const res = await fetch(`${API}/conductor/perfil`, {
+      const res = await fetch(`${API}/conductor-afiliado/perfil`, {
         headers: { 'Authorization': `Bearer ${t}` }
       })
       if (!res.ok) { localStorage.removeItem('conductor_token'); setEstado('login'); return }
@@ -753,7 +753,7 @@ function Conductor() {
     setCargando(true)
     setError('')
     try {
-      const res = await fetch(`${API}/conductor/login-conductor`, {
+      const res = await fetch(`${API}/conductor-afiliado/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cedula, password }), // endpoint es /login-conductor
