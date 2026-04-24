@@ -181,6 +181,10 @@ export default function Register() {
           <button onClick={() => navigate('/')} style={s.btn}>Volver al inicio →</button>
           <div style={{ marginTop: '12px', fontSize: '13px', color: '#7A8FAD' }}>
             ¿Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesión</span>
+              <div style={{ marginTop: '10px' }}>
+                <span style={{ color: '#7A8FAD' }}>¿Eres conductor? </span>
+                <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/conductor')}>Regístrate como conductor →</span>
+              </div>
           </div>
         </div>
       </div>

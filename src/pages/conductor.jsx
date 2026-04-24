@@ -232,11 +232,8 @@ function RegistroConductor({ onVolver }) {
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label style={S.label}>Categoría</label>
-            <select style={{ ...S.inp }} value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)}>
-              {['B1', 'B2', 'B3', 'C1', 'C2', 'C3', 'C4'].map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <input style={S.inp} type="text" placeholder="Ej: C1, C2, B3..."
+              value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)} />
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label style={S.label}>Tipo de vehículo que maneja</label>
