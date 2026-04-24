@@ -4,6 +4,7 @@ import Register from './pages/Register'
 import Admin from './pages/Admin'
 import Carrier from './pages/Carrier'
 import Shipper from './pages/Shipper'
+import Conductor from './pages/conductor'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/shipper" element={<Shipper />} />
         <Route path="/carrier" element={<Carrier />} />
+        <Route path="/conductor" element={<Conductor />} />
         <Route path="/admin-cs-2025-x9k" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

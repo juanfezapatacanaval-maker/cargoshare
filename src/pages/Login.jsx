@@ -100,6 +100,12 @@ function Login() {
           style={{width:'100%',background:'#F97316',border:'none',color:'white',padding:'13px',borderRadius:'10px',fontFamily:'DM Sans,sans-serif',fontSize:'15px',fontWeight:'700',cursor:'pointer',opacity:cargando?0.7:1}}>
           {cargando ? 'Iniciando sesión...' : rol==='empresa'?'Entrar a mi panel de empresa →':'Entrar a mi panel de transportista →'}
         </button>
+        <div onClick={()=>navigate('/conductor')}
+          style={{border:'1px solid rgba(255,255,255,.1)',borderRadius:'14px',padding:'14px',textAlign:'center',cursor:'pointer',marginTop:'12px',transition:'.2s'}}>
+          <div style={{fontSize:'22px',marginBottom:'4px'}}>🚛</div>
+          <div style={{fontSize:'13px',fontWeight:'700',color:'white'}}>Soy conductor</div>
+          <div style={{fontSize:'11px',color:'#7A8FAD',marginTop:'2px'}}>Acceso al panel de viajes</div>
+        </div>
 
         <div style={{textAlign:'center',marginTop:'16px',fontSize:'13px',color:'#7A8FAD'}}>
           ¿No tienes cuenta? <span style={{color:'#60A5FA',cursor:'pointer'}} onClick={()=>navigate('/register')}>Registrarse gratis</span>
@@ -108,4 +114,5 @@ function Login() {
     </div>
   )
 }
-export default Login
+
+        
