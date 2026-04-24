@@ -5,12 +5,13 @@ const API = 'https://cargoshare-api-production.up.railway.app/api/carrier'
 const RUTAS_API = 'https://cargoshare-api-production.up.railway.app/api/rutas'
 const VEHICULO_API = 'https://cargoshare-api-production.up.railway.app/api/vehiculo'
 const CONDUCTOR_API = 'https://cargoshare-api-production.up.railway.app/api/conductor'
+const CONDUCTOR_AFILIADO_API = 'https://cargoshare-api-production.up.railway.app/api/conductor-afiliado'
 
 const CARROCERIAS_POR_TIPO = {
-  camioneta:  [['furgon_seco','📦 Furgón Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
-  furgon:     [['furgon_seco','📦 Furgón Seco'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
-  camion:     [['furgon_seco','📦 Furgón Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
-  tractomula: [['furgon_seco','📦 Furgón Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
+  camioneta:  [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
+  furgon:     [['furgon_seco','📦 Furgon Seco'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
+  camion:     [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
+  tractomula: [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
 }
 
 export default function Carrier() {
@@ -29,8 +30,11 @@ export default function Carrier() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [solicitudes, setSolicitudes] = useState([])
 
-  // Conductores
+  // Conductores empresa
   const [conductores, setConductores] = useState([])
+  // Conductores afiliados aprobados de esta empresa
+  const [conductoresAfiliados, setConductoresAfiliados] = useState([])
+
   const [cForm, setCForm] = useState({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
   const [archivosC, setArchivosC] = useState({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
   const [guardandoC, setGuardandoC] = useState(false)
@@ -54,6 +58,7 @@ export default function Carrier() {
     cargarDashboard()
     cargarVehiculos()
     cargarConductores()
+    cargarConductoresAfiliados()
   }, [])
 
   useEffect(() => {
@@ -63,7 +68,7 @@ export default function Carrier() {
     if (vista === 'pagos') cargarPagos()
     if (vista === 'mis-rutas') cargarMisRutas()
     if (vista === 'vehiculo') cargarVehiculos()
-    if (vista === 'solicitudes') cargarSolicitudes()
+    if (vista === 'solicitudes') { cargarSolicitudes(); cargarConductoresAfiliados() }
     if (vista === 'conductores') cargarConductores()
   }, [vista])
 
@@ -95,16 +100,33 @@ export default function Carrier() {
     try { const res = await fetch(`${RUTAS_API}/solicitudes`, { headers }); const data = await res.json(); if (res.ok) setSolicitudes(data) } catch { }
     setCargando(false)
   }
-
   async function cargarConductores() {
     setCargando(true)
     try { const res = await fetch(`${CONDUCTOR_API}/mis-conductores`, { headers }); const data = await res.json(); if (res.ok) setConductores(data) } catch { }
     setCargando(false)
   }
+  async function cargarConductoresAfiliados() {
+    try {
+      // Traer conductores afiliados aprobados — filtramos por nombre de empresa en el frontend
+      const res = await fetch(`${CONDUCTOR_AFILIADO_API}/todos`, { headers })
+      const data = await res.json()
+      if (res.ok) setConductoresAfiliados(data.filter(c => c.estado === 'aprobado'))
+    } catch { }
+  }
+
+  async function asignarConductor(solicitudId, conductorAfiliadoId) {
+    try {
+      await fetch(`${RUTAS_API}/solicitudes/${solicitudId}/asignar-conductor`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ conductorAfiliadoId })
+      })
+      cargarSolicitudes()
+    } catch (e) { console.log(e) }
+  }
 
   async function registrarConductor() {
-    if (!cForm.nombre || !cForm.cedula || !cForm.categoriaLicencia || !cForm.vencimientoLicencia) { setErrorC('Nombre, cédula, categoría y vencimiento de licencia son obligatorios'); return }
-    if (!archivosC.fotoConductor || !archivosC.fotoCedula || !archivosC.fotoLicencia) { setErrorC('Debes subir la foto del conductor, la cédula y la licencia'); return }
+    if (!cForm.nombre || !cForm.cedula || !cForm.categoriaLicencia || !cForm.vencimientoLicencia) { setErrorC('Nombre, cedula, categoria y vencimiento de licencia son obligatorios'); return }
+    if (!archivosC.fotoConductor || !archivosC.fotoCedula || !archivosC.fotoLicencia) { setErrorC('Debes subir la foto del conductor, la cedula y la licencia'); return }
     setGuardandoC(true); setErrorC('')
     try {
       const formData = new FormData()
@@ -121,29 +143,30 @@ export default function Carrier() {
         setArchivosC({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
         setTimeout(() => setGuardadoC(false), 3000)
       } else { setErrorC(data.error || 'Error al registrar') }
-    } catch { setErrorC('Error de conexión') }
+    } catch { setErrorC('Error de conexion') }
     setGuardandoC(false)
   }
+
   async function responderSolicitud(id, accion) {
     try { const res = await fetch(`${RUTAS_API}/solicitudes/${id}/${accion}`, { method: 'POST', headers }); if (res.ok) cargarSolicitudes() } catch { }
   }
 
   async function registrarVehiculo() {
-    if (!vForm.placa || !vForm.tipo || !vForm.pesoMax) { setErrorV('Placa, tipo y peso máximo son obligatorios'); return }
-    if (!vForm.carroceria) { setErrorV('Selecciona el tipo de carrocería'); return }
+    if (!vForm.placa || !vForm.tipo || !vForm.pesoMax) { setErrorV('Placa, tipo y peso maximo son obligatorios'); return }
+    if (!vForm.carroceria) { setErrorV('Selecciona el tipo de carroceria'); return }
     setGuardandoV(true); setErrorV('')
     try {
       const res = await fetch(VEHICULO_API, { method: 'POST', headers, body: JSON.stringify({ placa: vForm.placa, tipo: vForm.tipo, carroceria: vForm.carroceria, marca: vForm.marca, modelo: vForm.modelo, año: Number(vForm.año), capacidad: { pesoMax: Number(vForm.pesoMax), volumenMax: Number(vForm.volumenMax), largo: Number(vForm.largo), ancho: Number(vForm.ancho), alto: Number(vForm.alto) } }) })
       const data = await res.json()
       if (res.ok) { setGuardadoV(true); cargarVehiculos(); setVForm({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' }); setTimeout(() => setGuardadoV(false), 3000) } else { setErrorV(data.error || 'Error al registrar') }
-    } catch { setErrorV('Error de conexión') }
+    } catch { setErrorV('Error de conexion') }
     setGuardandoV(false)
   }
 
   async function publicarRuta() {
     const veh = vehiculos.find(v => v._id === ruta.vehiculoId)
-    if (!veh) { setErrorRuta('Selecciona un vehículo'); return }
-    if (veh.estado !== 'aprobado') { setErrorRuta('El vehículo debe estar aprobado'); return }
+    if (!veh) { setErrorRuta('Selecciona un vehiculo'); return }
+    if (veh.estado !== 'aprobado') { setErrorRuta('El vehiculo debe estar aprobado'); return }
     if (!ruta.direccionSalida || !ruta.origen || !ruta.destino || !ruta.fechaSalida || !ruta.horaSalida || !ruta.pesoDisponible) { setErrorRuta('Completa todos los campos obligatorios'); return }
     setPublicando(true); setErrorRuta('')
     try {
@@ -153,7 +176,7 @@ export default function Carrier() {
       const data = await res.json()
       if (res.ok) { setPublicado(true); setRuta({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' }); setTimeout(() => { setPublicado(false); setVista('mis-rutas') }, 2000) }
       else { setErrorRuta(data.error || 'Error al publicar') }
-    } catch { setErrorRuta('Error de conexión') }
+    } catch { setErrorRuta('Error de conexion') }
     setPublicando(false)
   }
 
@@ -177,11 +200,11 @@ export default function Carrier() {
     { id: 'viajes', ic: '📍', label: 'Viajes activos' },
     { id: 'historial', ic: '📋', label: 'Historial' },
     { id: 'pagos', ic: '💰', label: 'Pagos y retiros' },
-    { id: 'config', ic: '⚙️', label: 'Configuración' },
+    { id: 'config', ic: '⚙️', label: 'Configuracion' },
   ]
 
-  const titles = { dashboard: 'Dashboard', vehiculo: 'Mi flota', conductores: 'Mis conductores', 'publicar-ruta': 'Publicar ruta', 'mis-rutas': 'Mis rutas', solicitudes: 'Solicitudes', viajes: 'Viajes activos', historial: 'Historial', pagos: 'Pagos y retiros', config: 'Configuración' }
-  const estadoV = (e) => ({ aprobado: { color: '#10B981', bg: 'rgba(16,185,129,.12)', label: '✅ Aprobado' }, pendiente: { color: '#F59E0B', bg: 'rgba(245,158,11,.12)', label: '⏳ Pendiente de aprobación' }, rechazado: { color: '#EF4444', bg: 'rgba(239,68,68,.12)', label: '❌ Rechazado' } }[e] || {})
+  const titles = { dashboard: 'Dashboard', vehiculo: 'Mi flota', conductores: 'Mis conductores', 'publicar-ruta': 'Publicar ruta', 'mis-rutas': 'Mis rutas', solicitudes: 'Solicitudes', viajes: 'Viajes activos', historial: 'Historial', pagos: 'Pagos y retiros', config: 'Configuracion' }
+  const estadoV = (e) => ({ aprobado: { color: '#10B981', bg: 'rgba(16,185,129,.12)', label: '✅ Aprobado' }, pendiente: { color: '#F59E0B', bg: 'rgba(245,158,11,.12)', label: '⏳ Pendiente de aprobacion' }, rechazado: { color: '#EF4444', bg: 'rgba(239,68,68,.12)', label: '❌ Rechazado' } }[e] || {})
 
   const s = {
     wrap: { display: 'flex', minHeight: '100vh', background: '#060E1C', fontFamily: 'DM Sans,sans-serif', color: 'white' },
@@ -243,9 +266,9 @@ export default function Carrier() {
             <span style={{ fontSize: '11px', color: '#7A8FAD' }}>▲</span>
           </div>
           <div style={s.userMenu(userMenuOpen)}>
-            <div style={s.umItem(false)} onClick={() => { setVista('config'); setUserMenuOpen(false) }}>⚙️ Configuración</div>
+            <div style={s.umItem(false)} onClick={() => { setVista('config'); setUserMenuOpen(false) }}>⚙️ Configuracion</div>
             <div style={{ height: '1px', background: 'rgba(255,255,255,.07)', margin: '6px 0' }}></div>
-            <div style={s.umItem(true)} onClick={logout}>🚪 Cerrar sesión</div>
+            <div style={s.umItem(true)} onClick={logout}>🚪 Cerrar sesion</div>
           </div>
         </div>
       </aside>
@@ -264,8 +287,8 @@ export default function Carrier() {
           {/* DASHBOARD */}
           {vista === 'dashboard' && (
             <div>
-              <div style={s.h2}>Buen día, {nombre.split(' ')[0]} 👋</div>
-              <div style={s.p}>Aquí está el resumen de tu actividad.</div>
+              <div style={s.h2}>Buen dia, {nombre.split(' ')[0]} 👋</div>
+              <div style={s.p}>Aqui esta el resumen de tu actividad.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando datos...</div>
                 : dashboard ? (<>
                   <div style={s.kpiGrid}>
@@ -278,16 +301,16 @@ export default function Carrier() {
                     <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px' }}>🚀 Primeros pasos</div>
                     <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: '1.8' }}>
                       ✅ Cuenta creada y aprobada<br />
-                      {vehiculos.length > 0 ? '✅' : '⬜'} Registra tu vehículo<br />
-                      {vehiculos.some(v => v.estado === 'aprobado') ? '✅' : '⬜'} Vehículo aprobado<br />
+                      {vehiculos.length > 0 ? '✅' : '⬜'} Registra tu vehiculo<br />
+                      {vehiculos.some(v => v.estado === 'aprobado') ? '✅' : '⬜'} Vehiculo aprobado<br />
                       ⬜ Publica tu primera ruta
                     </div>
                   </div>
                 </>) : (
                   <div style={{ ...s.panel, ...s.emptyState }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>📊</div>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Sin datos aún</div>
-                    <button onClick={() => setVista('vehiculo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🚛 Registrar vehículo</button>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Sin datos aun</div>
+                    <button onClick={() => setVista('vehiculo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🚛 Registrar vehiculo</button>
                   </div>
                 )}
             </div>
@@ -297,9 +320,7 @@ export default function Carrier() {
           {vista === 'vehiculo' && (
             <div>
               <div style={s.h2}>Mi flota 🚛</div>
-              <div style={s.p}>Registra y gestiona todos los vehículos de tu empresa.</div>
-
-              {/* VEHÍCULOS EXISTENTES */}
+              <div style={s.p}>Registra y gestiona todos los vehiculos de tu empresa.</div>
               {vehiculos.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
                   {vehiculos.map(v => (
@@ -315,14 +336,12 @@ export default function Carrier() {
                   ))}
                 </div>
               )}
-
-              {/* FORMULARIO NUEVO VEHÍCULO */}
-              <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'white' }}>➕ Añadir vehículo</div>
-              {guardadoV && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Vehículo registrado. Pendiente de aprobación.</div>}
+              <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'white' }}>➕ Añadir vehiculo</div>
+              {guardadoV && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Vehiculo registrado. Pendiente de aprobacion.</div>}
               <div style={s.panel}>
-                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🚛 Tipo de vehículo</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🚛 Tipo de vehiculo</div>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                  {[['camion','🚛','Camión'], ['tractomula','🚚','Tractomula'], ['camioneta','🚐','Camioneta'], ['furgon','📦','Furgón']].map(([val, ic, label]) => (
+                  {[['camion','🚛','Camion'], ['tractomula','🚚','Tractomula'], ['camioneta','🚐','Camioneta'], ['furgon','📦','Furgon']].map(([val, ic, label]) => (
                     <div key={val} style={s.tipoVehiculo(vForm.tipo === val)} onClick={() => setVForm({ ...vForm, tipo: val, carroceria: '' })}>
                       <div style={{ fontSize: '24px', marginBottom: '6px' }}>{ic}</div>
                       <div style={{ fontSize: '11px', fontWeight: '600', color: '#B8C8DC' }}>{label}</div>
@@ -331,7 +350,7 @@ export default function Carrier() {
                 </div>
                 {vForm.tipo && CARROCERIAS_POR_TIPO[vForm.tipo] && (
                   <div>
-                    <div style={{ ...s.lbl, marginBottom: '10px' }}>Tipo de carrocería *</div>
+                    <div style={{ ...s.lbl, marginBottom: '10px' }}>Tipo de carroceria *</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {CARROCERIAS_POR_TIPO[vForm.tipo].map(([val, label]) => (
                         <button key={val} style={s.tipoBtn(vForm.carroceria === val)} onClick={() => setVForm({ ...vForm, carroceria: val })}>{label}</button>
@@ -341,7 +360,7 @@ export default function Carrier() {
                 )}
               </div>
               <div style={s.panel}>
-                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📋 Datos básicos</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📋 Datos basicos</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={s.fg}><label style={s.lbl}>Placa *</label><input style={s.inp} placeholder="ABC123" value={vForm.placa} onChange={e => setVForm({ ...vForm, placa: e.target.value.toUpperCase() })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Año</label><input type="number" style={s.inp} placeholder="2020" value={vForm.año} onChange={e => setVForm({ ...vForm, año: e.target.value })} /></div>
@@ -352,8 +371,8 @@ export default function Carrier() {
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📐 Capacidad total</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div style={s.fg}><label style={s.lbl}>Peso máximo (kg) *</label><input type="number" style={s.inp} placeholder="15000" value={vForm.pesoMax} onChange={e => setVForm({ ...vForm, pesoMax: e.target.value })} /></div>
-                  <div style={s.fg}><label style={s.lbl}>Volumen máximo (m³)</label><input type="number" style={s.inp} placeholder="60" value={vForm.volumenMax} onChange={e => setVForm({ ...vForm, volumenMax: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Peso maximo (kg) *</label><input type="number" style={s.inp} placeholder="15000" value={vForm.pesoMax} onChange={e => setVForm({ ...vForm, pesoMax: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Volumen maximo (m³)</label><input type="number" style={s.inp} placeholder="60" value={vForm.volumenMax} onChange={e => setVForm({ ...vForm, volumenMax: e.target.value })} /></div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                   <div style={s.fg}><label style={s.lbl}>Largo (m)</label><input type="number" style={s.inp} placeholder="12" value={vForm.largo} onChange={e => setVForm({ ...vForm, largo: e.target.value })} /></div>
@@ -363,7 +382,7 @@ export default function Carrier() {
               </div>
               {errorV && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorV}</div>}
               <button onClick={registrarVehiculo} disabled={guardandoV} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: guardandoV ? 0.7 : 1 }}>
-                {guardandoV ? 'Registrando...' : '🚛 Registrar vehículo →'}
+                {guardandoV ? 'Registrando...' : '🚛 Registrar vehiculo →'}
               </button>
             </div>
           )}
@@ -373,8 +392,6 @@ export default function Carrier() {
             <div>
               <div style={s.h2}>Mis conductores 👤</div>
               <div style={s.p}>Registra los conductores de tu empresa. La empresa responde legalmente por ellos.</div>
-
-              {/* LISTA DE CONDUCTORES */}
               {conductores.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
                   {conductores.map(c => {
@@ -391,18 +408,16 @@ export default function Carrier() {
                             }
                             <div>
                               <div style={{ fontSize: '15px', fontWeight: '700' }}>{c.nombre}</div>
-                              <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>
-                                CC {c.cedula} · {c.telefono || 'Sin teléfono'} · Lic. {c.categoriaLicencia}
-                              </div>
+                              <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>CC {c.cedula} · {c.telefono || 'Sin telefono'} · Lic. {c.categoriaLicencia}</div>
                               {vencimiento && (
                                 <div style={{ fontSize: '11px', color: proximoVencer ? '#F59E0B' : '#10B981', marginTop: '2px' }}>
-                                  {proximoVencer ? `⚠️ Licencia vence en ${diasParaVencer} días` : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}
+                                  {proximoVencer ? `⚠️ Licencia vence en ${diasParaVencer} dias` : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}
                                 </div>
                               )}
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            {c.fotoCedula && <a href={c.fotoCedula} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60A5FA', background: 'rgba(37,99,235,.1)', padding: '4px 10px', borderRadius: '6px', textDecoration: 'none' }}>Ver cédula</a>}
+                            {c.fotoCedula && <a href={c.fotoCedula} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60A5FA', background: 'rgba(37,99,235,.1)', padding: '4px 10px', borderRadius: '6px', textDecoration: 'none' }}>Ver cedula</a>}
                             {c.fotoLicencia && <a href={c.fotoLicencia} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60A5FA', background: 'rgba(37,99,235,.1)', padding: '4px 10px', borderRadius: '6px', textDecoration: 'none' }}>Ver licencia</a>}
                           </div>
                         </div>
@@ -411,20 +426,16 @@ export default function Carrier() {
                   })}
                 </div>
               )}
-
-              {/* FORMULARIO NUEVO CONDUCTOR */}
               <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '16px' }}>➕ Añadir conductor</div>
-
-              {guardadoC && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Conductor registrado. El admin recibirá los datos para revisión.</div>}
-
+              {guardadoC && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Conductor registrado. El admin recibira los datos para revision.</div>}
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📋 Datos del conductor</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div style={s.fg}><label style={s.lbl}>Nombre completo *</label><input style={s.inp} placeholder="Carlos García" value={cForm.nombre} onChange={e => setCForm({ ...cForm, nombre: e.target.value })} /></div>
-                  <div style={s.fg}><label style={s.lbl}>Cédula *</label><input style={s.inp} placeholder="1234567890" value={cForm.cedula} onChange={e => setCForm({ ...cForm, cedula: e.target.value })} /></div>
-                  <div style={s.fg}><label style={s.lbl}>Teléfono</label><input style={s.inp} placeholder="+57 300 123 4567" value={cForm.telefono} onChange={e => setCForm({ ...cForm, telefono: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Nombre completo *</label><input style={s.inp} placeholder="Carlos Garcia" value={cForm.nombre} onChange={e => setCForm({ ...cForm, nombre: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Cedula *</label><input style={s.inp} placeholder="1234567890" value={cForm.cedula} onChange={e => setCForm({ ...cForm, cedula: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Telefono</label><input style={s.inp} placeholder="+57 300 123 4567" value={cForm.telefono} onChange={e => setCForm({ ...cForm, telefono: e.target.value })} /></div>
                   <div style={s.fg}>
-                    <label style={s.lbl}>Categoría licencia *</label>
+                    <label style={s.lbl}>Categoria licencia *</label>
                     <select style={{ ...s.inp, cursor: 'pointer' }} value={cForm.categoriaLicencia} onChange={e => setCForm({ ...cForm, categoriaLicencia: e.target.value })}>
                       {['B1','B2','B3','C1','C2','C3','C4'].map(c => <option key={c} value={c} style={{ background: '#0C1B35' }}>{c}</option>)}
                     </select>
@@ -435,14 +446,13 @@ export default function Carrier() {
                   </div>
                 </div>
               </div>
-
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>📸 Documentos *</div>
-                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Sube foto o PDF de cada documento. Máximo 10MB.</div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Sube foto o PDF de cada documento. Maximo 10MB.</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                   {[
                     { key: 'fotoConductor', label: 'Foto del conductor', ic: '📷' },
-                    { key: 'fotoCedula', label: 'Foto de la cédula', ic: '🪪' },
+                    { key: 'fotoCedula', label: 'Foto de la cedula', ic: '🪪' },
                     { key: 'fotoLicencia', label: 'Foto de la licencia', ic: '📄' },
                   ].map(doc => (
                     <div key={doc.key}>
@@ -459,9 +469,7 @@ export default function Carrier() {
                   ))}
                 </div>
               </div>
-
               {errorC && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorC}</div>}
-
               <button onClick={registrarConductor} disabled={guardandoC} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: guardandoC ? 0.7 : 1 }}>
                 {guardandoC ? 'Registrando...' : '👤 Registrar conductor →'}
               </button>
@@ -473,29 +481,23 @@ export default function Carrier() {
             <div>
               <div style={s.h2}>Publicar ruta ➕</div>
               <div style={s.p}>Ingresa los datos de tu ruta para que las empresas te encuentren.</div>
-
               {vehiculosAprobados.length === 0 && (
                 <div style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#F59E0B' }}>
-                  ⚠️ No tienes vehículos aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('vehiculo')}>Registra un vehículo</span> primero.
+                  ⚠️ No tienes vehiculos aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('vehiculo')}>Registra un vehiculo</span> primero.
                 </div>
               )}
-
-              {publicado && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ ¡Ruta publicada exitosamente!</div>}
-
+              {publicado && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Ruta publicada exitosamente!</div>}
               {vehiculosAprobados.length > 0 && (<>
-
-                {/* SELECTOR DE VEHÍCULO */}
                 <div style={s.panel}>
-                  <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🚛 Selecciona el vehículo para este viaje *</div>                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🚛 Selecciona el vehiculo para este viaje *</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {vehiculosAprobados.map(v => (
                       <div key={v._id} onClick={() => setRuta({ ...ruta, vehiculoId: v._id, pesoDisponible: '' })}
                         style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', borderRadius: '12px', border: `2px solid ${ruta.vehiculoId === v._id ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.vehiculoId === v._id ? 'rgba(249,115,22,.06)' : 'rgba(255,255,255,.02)', cursor: 'pointer', transition: '.2s' }}>
                         <div style={{ fontSize: '28px' }}>{v.tipo === 'tractomula' ? '🚚' : v.tipo === 'camioneta' ? '🚐' : v.tipo === 'furgon' ? '📦' : '🚛'}</div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: '14px', fontWeight: '700' }}>{v.placa} — {v.tipo}</div>
-                          <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>
-                            {v.carroceria?.replace('_', ' ')} · {v.capacidad?.pesoMax?.toLocaleString('es-CO')} kg · {v.marca} {v.modelo}
-                          </div>
+                          <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{v.carroceria?.replace('_', ' ')} · {v.capacidad?.pesoMax?.toLocaleString('es-CO')} kg · {v.marca} {v.modelo}</div>
                         </div>
                         {ruta.vehiculoId === v._id && <span style={{ color: '#F97316', fontSize: '18px' }}>✓</span>}
                       </div>
@@ -503,15 +505,13 @@ export default function Carrier() {
                   </div>
                   {ruta.vehiculoId && (
                     <div style={{ marginTop: '12px', background: 'rgba(37,99,235,.08)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', color: '#60A5FA' }}>
-                      🚛 Carrocería: <strong>{vehActual?.carroceria?.replace('_', ' ')}</strong> — se asigna automáticamente a la ruta
+                      🚛 Carroceria: <strong>{vehActual?.carroceria?.replace('_', ' ')}</strong> — se asigna automaticamente a la ruta
                     </div>
                   )}
                 </div>
-
-                {/* SELECTOR DE CONDUCTOR */}
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>👤 Conductor asignado para este viaje *</div>
-                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>La empresa remitente verá el perfil de este conductor antes de que salga el camión.</div>
+                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>La empresa remitente vera el perfil de este conductor antes de que salga el camion.</div>
                   {conductores.filter(c => c.estado === 'aprobado').length === 0 ? (
                     <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px', fontSize: '13px', color: '#F59E0B' }}>
                       ⚠️ No tienes conductores aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('conductores')}>Añade un conductor</span> primero.
@@ -538,32 +538,29 @@ export default function Carrier() {
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 Punto de salida y ruta</div>
                   <div style={s.fg}>
-                    <label style={s.lbl}>Dirección exacta de salida de tu flota *</label>
-                    <input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogotá" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} />
-                    <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '5px' }}>Desde aquí se calculará la distancia de recogida con Google Maps</div>
+                    <label style={s.lbl}>Direccion exacta de salida de tu flota *</label>
+                    <input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogota" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogotá" value={ruta.origen} onChange={e => setRuta({ ...ruta, origen: e.target.value })} /></div>
-                    <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellín" value={ruta.destino} onChange={e => setRuta({ ...ruta, destino: e.target.value })} /></div>
+                    <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={ruta.origen} onChange={e => setRuta({ ...ruta, origen: e.target.value })} /></div>
+                    <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellin" value={ruta.destino} onChange={e => setRuta({ ...ruta, destino: e.target.value })} /></div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div style={s.fg}><label style={s.lbl}>Fecha de salida *</label><input type="date" style={s.inp} value={ruta.fechaSalida} onChange={e => setRuta({ ...ruta, fechaSalida: e.target.value })} /></div>
                     <div style={s.fg}><label style={s.lbl}>Hora de salida *</label><input type="time" style={s.inp} value={ruta.horaSalida} onChange={e => setRuta({ ...ruta, horaSalida: e.target.value })} /></div>
                   </div>
                   <div style={s.fg}>
-                    <label style={s.lbl}>Rango máximo de recogida: <strong style={{ color: 'white' }}>{ruta.rangoRecogida} km</strong></label>
+                    <label style={s.lbl}>Rango maximo de recogida: <strong style={{ color: 'white' }}>{ruta.rangoRecogida} km</strong></label>
                     <input type="range" min="0" max="80" step="5" value={ruta.rangoRecogida} onChange={e => setRuta({ ...ruta, rangoRecogida: Number(e.target.value) })} style={{ width: '100%', accentColor: '#F97316', cursor: 'pointer', marginBottom: '4px' }} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#7A8FAD' }}><span>Solo en la dirección</span><span>80 km</span></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#7A8FAD' }}><span>Solo en la direccion</span><span>80 km</span></div>
                   </div>
                 </div>
-
-                {/* ESPACIO DISPONIBLE */}
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>⚖️ Espacio disponible en este viaje *</div>
-                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>¿Cuántos kg te sobran? El precio se calculará automáticamente.</div>
+                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Cuantos kg te sobran? El precio se calculara automaticamente.</div>
                   <div style={s.fg}>
                     <label style={s.lbl}>Peso disponible (kg) *</label>
-                    <input type="number" style={s.inp} placeholder={pesoMax ? `Máx ${pesoMax.toLocaleString('es-CO')} kg` : 'Selecciona un vehículo primero'} value={ruta.pesoDisponible} disabled={!ruta.vehiculoId}
+                    <input type="number" style={s.inp} placeholder={pesoMax ? `Max ${pesoMax.toLocaleString('es-CO')} kg` : 'Selecciona un vehiculo primero'} value={ruta.pesoDisponible} disabled={!ruta.vehiculoId}
                       onChange={e => setRuta({ ...ruta, pesoDisponible: Math.min(Number(e.target.value), pesoMax) || '' })} />
                   </div>
                   {ruta.pesoDisponible > 0 && (
@@ -577,15 +574,11 @@ export default function Carrier() {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#7A8FAD', marginTop: '6px' }}>
                         <span>Disponible: <strong style={{ color: 'white' }}>{Number(ruta.pesoDisponible).toLocaleString('es-CO')} kg</strong></span>
-                        <span>Total camión: <strong style={{ color: 'white' }}>{pesoMax.toLocaleString('es-CO')} kg</strong></span>
-                      </div>
-                      <div style={{ marginTop: '14px', background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.12)', borderRadius: '10px', padding: '12px 16px', fontSize: '12px', color: '#7A8FAD' }}>
-                        💡 El precio lo verá la empresa remitente cuando ingrese el peso y dimensiones de su carga — se calcula automáticamente con las tarifas SICE-TAC.
+                        <span>Total camion: <strong style={{ color: 'white' }}>{pesoMax.toLocaleString('es-CO')} kg</strong></span>
                       </div>
                     </div>
                   )}
                 </div>
-
                 {errorRuta && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorRuta}</div>}
                 <button onClick={publicarRuta} disabled={publicando} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: publicando ? 0.7 : 1 }}>
                   {publicando ? 'Publicando...' : 'Publicar ruta →'}
@@ -620,13 +613,6 @@ export default function Carrier() {
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#7A8FAD', flexWrap: 'wrap', alignItems: 'center' }}>
                       <span>⚖️ {r.espacio?.pesoDisponible?.toLocaleString('es-CO')} kg disponibles</span>
-                      <span>·</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ background: 'rgba(255,255,255,.08)', borderRadius: '100px', height: '6px', width: '60px', overflow: 'hidden' }}>
-                          <div style={{ width: `${r.espacio?.porcentajeDisponible || 0}%`, height: '100%', background: '#F97316', borderRadius: '100px' }} />
-                        </div>
-                        <span>{r.espacio?.porcentajeDisponible || 0}%</span>
-                      </div>
                       <span>· 🚛 {r.carroceria?.replace('_', ' ')}</span>
                     </div>
                   </div>
@@ -639,13 +625,13 @@ export default function Carrier() {
           {vista === 'solicitudes' && (
             <div>
               <div style={s.h2}>Solicitudes 📬</div>
-              <div style={s.p}>Tienes <strong style={{ color: 'white' }}>6 horas</strong> para responder cada solicitud antes de que se cancele automáticamente.</div>
+              <div style={s.p}>Tienes <strong style={{ color: 'white' }}>6 horas</strong> para responder cada solicitud antes de que se cancele automaticamente.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
                 : solicitudes.length === 0 ? (
                   <div style={{ ...s.panel, ...s.emptyState }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>📬</div>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Sin solicitudes aún</div>
-                    <div>Cuando una empresa reserve tu ruta aparecerá aquí</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Sin solicitudes aun</div>
+                    <div>Cuando una empresa reserve tu ruta aparecera aqui</div>
                   </div>
                 ) : solicitudes.map(sol => (
                   <div key={sol._id} style={s.solCard}>
@@ -662,9 +648,9 @@ export default function Carrier() {
                       {[
                         ['Tipo de carga', `${sol.carga?.tipo || '-'}`],
                         ['Peso real', `${sol.carga?.pesoReal?.toLocaleString('es-CO') || '-'} kg`],
-                        ['Dirección recogida', sol.direccionRecogida || '-'],
+                        ['Direccion recogida', sol.direccionRecogida || '-'],
                         ['Km extra', sol.kmExtra > 0 ? `${sol.kmExtra} km fuera del rango` : '✅ Dentro del rango'],
-                        ['Recibes tú', `$${sol.precioCarrier?.toLocaleString('es-CO') || '-'} COP`],
+                        ['Recibes tu', `$${sol.precioCarrier?.toLocaleString('es-CO') || '-'} COP`],
                         ['Total al cliente', `$${sol.precioTotal?.toLocaleString('es-CO') || '-'} COP`],
                       ].map(([k, v]) => (
                         <div key={k} style={{ background: 'rgba(255,255,255,.03)', borderRadius: '8px', padding: '10px 12px' }}>
@@ -673,10 +659,64 @@ export default function Carrier() {
                         </div>
                       ))}
                     </div>
+
+                    {/* BOTONES PENDIENTE */}
                     {sol.estado === 'pendiente' && (
                       <div style={{ display: 'flex', gap: '10px' }}>
                         <button onClick={() => responderSolicitud(sol._id, 'aceptar')} style={{ flex: 1, background: 'rgba(16,185,129,.12)', color: '#10B981', border: '1px solid rgba(16,185,129,.3)', padding: '12px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>✅ Aceptar reserva</button>
                         <button onClick={() => responderSolicitud(sol._id, 'rechazar')} style={{ flex: 1, background: 'rgba(239,68,68,.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,.2)', padding: '12px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>❌ Rechazar</button>
+                      </div>
+                    )}
+
+                    {/* ── ASIGNAR CONDUCTOR AFILIADO (cuando esta aceptado) ── */}
+                    {sol.estado === 'aceptado' && (
+                      <div style={{ marginTop: '12px', background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '10px', padding: '16px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>
+                          👤 Asignar conductor afiliado a este viaje
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '12px' }}>
+                          El conductor asignado vera este viaje en su panel y podra ingresar el codigo de recogida.
+                        </div>
+
+                        {/* Conductor ya asignado */}
+                        {sol.conductorAfiliadoId && (
+                          <div style={{ background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '18px' }}>✅</span>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: '700', color: '#10B981' }}>
+                                {sol.conductorAfiliadoId?.nombre || 'Conductor asignado'}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#7A8FAD' }}>
+                                CC {sol.conductorAfiliadoId?.cedula} · Lic. {sol.conductorAfiliadoId?.categoriaLicencia}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Lista de conductores afiliados */}
+                        {conductoresAfiliados.length === 0 ? (
+                          <div style={{ fontSize: '12px', color: '#7A8FAD' }}>
+                            No hay conductores afiliados aprobados disponibles. El conductor debe solicitar acceso desde /conductor.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {conductoresAfiliados.map(c => {
+                              const asignado = sol.conductorAfiliadoId?._id === c._id || sol.conductorAfiliadoId === c._id
+                              return (
+                                <div key={c._id}
+                                  onClick={() => asignarConductor(sol._id, c._id)}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '9px', border: `1px solid ${asignado ? 'rgba(16,185,129,.4)' : 'rgba(255,255,255,.08)'}`, background: asignado ? 'rgba(16,185,129,.08)' : 'transparent', cursor: 'pointer', transition: '.15s' }}>
+                                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>👤</div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '13px', fontWeight: '600' }}>{c.nombre}</div>
+                                    <div style={{ fontSize: '11px', color: '#7A8FAD' }}>CC {c.cedula} · {c.nombreEmpresa} · Lic. {c.categoriaLicencia}</div>
+                                  </div>
+                                  {asignado && <span style={{ color: '#10B981', fontSize: '14px', fontWeight: '700' }}>✓ Asignado</span>}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -689,7 +729,7 @@ export default function Carrier() {
           {vista === 'viajes' && (
             <div>
               <div style={s.h2}>Viajes activos 📍</div>
-              <div style={s.p}>Tus envíos en curso.</div>
+              <div style={s.p}>Tus envios en curso.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
                 : viajes.filter(v => v.estado === 'activo' || v.estado === 'en_transito').length === 0 ? (
                   <div style={{ ...s.panel, ...s.emptyState }}>
@@ -716,7 +756,7 @@ export default function Carrier() {
               <div style={s.p}>Todos tus viajes completados.</div>
               <div style={s.panel}>
                 {viajes.filter(v => v.estado === 'completado').length === 0 ? (
-                  <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin historial aún</div></div>
+                  <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin historial aun</div></div>
                 ) : viajes.filter(v => v.estado === 'completado').map(v => (
                   <div key={v._id} style={{ ...s.rutaCard, display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{ fontSize: '24px' }}>✅</div>
@@ -735,7 +775,7 @@ export default function Carrier() {
               <div style={s.p}>Tu historial de ingresos y retiros.</div>
               <div style={s.panel}>
                 {pagos.length === 0 ? (
-                  <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>💰</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin movimientos aún</div></div>
+                  <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>💰</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin movimientos aun</div></div>
                 ) : pagos.map(p => (
                   <div key={p._id} style={s.pagoRow}>
                     <div><div style={{ fontSize: '13px', fontWeight: '700' }}>{p.descripcion || (p.tipo === 'ingreso' ? 'Ingreso por viaje' : 'Retiro')}</div><div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(p.fecha).toLocaleDateString('es-CO')}</div></div>
@@ -749,7 +789,7 @@ export default function Carrier() {
           {/* CONFIG */}
           {vista === 'config' && (
             <div>
-              <div style={s.h2}>Configuración ⚙️</div>
+              <div style={s.h2}>Configuracion ⚙️</div>
               <div style={s.p}>Ajusta tu cuenta.</div>
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🏢 Datos de la empresa</div>
@@ -757,8 +797,8 @@ export default function Carrier() {
                 <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '20px' }}>{nombre}</div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,.06)', marginBottom: '20px' }}></div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div><div style={{ fontSize: '14px', fontWeight: '600' }}>Cerrar sesión</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>Salir de tu cuenta</div></div>
-                  <button onClick={logout} style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,.25)', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🚪 Cerrar sesión</button>
+                  <div><div style={{ fontSize: '14px', fontWeight: '600' }}>Cerrar sesion</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>Salir de tu cuenta</div></div>
+                  <button onClick={logout} style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,.25)', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🚪 Cerrar sesion</button>
                 </div>
               </div>
             </div>
