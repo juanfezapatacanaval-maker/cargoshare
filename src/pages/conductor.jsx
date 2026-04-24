@@ -237,12 +237,8 @@ function RegistroConductor({ onVolver }) {
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label style={S.label}>Tipo de vehículo que maneja</label>
-            <select style={{ ...S.inp }} value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)}>
-              <option value="camioneta">Camioneta</option>
-              <option value="furgon">Furgón mediano</option>
-              <option value="camion_rigido">Camión rígido</option>
-              <option value="tractomula">Tractomula</option>
-            </select>
+            <input style={S.inp} type="text" placeholder="Ej: Camioneta, Furgón, Camión rígido, Tractomula..."
+              value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)} />
           </div>
 
           {/* Fotos */}

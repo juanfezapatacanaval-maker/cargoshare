@@ -11,9 +11,7 @@ export default function Register() {
   const [errorApi, setErrorApi] = useState('')
 
   const [form, setForm] = useState({
-    // Paso 1
     rol: '',
-    // Paso 2
     nombre: '',
     correo: '',
     password: '',
@@ -43,7 +41,7 @@ export default function Register() {
   const tiposEmpresa = [
     { id: 'empresa_remitente', ic: '📦', titulo: 'Empresa remitente', desc: 'Necesito enviar carga' },
     { id: 'empresa_flota', ic: '🚛', titulo: 'Empresa con flota', desc: 'Tengo camiones disponibles' },
-    { id: 'ambas', ic: '🔄', titulo: 'Ambas', desc: 'Envío carga y tengo flota' },
+    { id: 'ambas', ic: '🔄', titulo: 'Ambas', desc: 'Envio carga y tengo flota' },
   ]
 
   const necesitaFlota = form.rol === 'empresa_flota' || form.rol === 'ambas'
@@ -51,21 +49,19 @@ export default function Register() {
   function validarPaso2() {
     const e = {}
     if (!form.nombre.trim()) e.nombre = 'Obligatorio'
-    if (!form.correo.includes('@')) e.correo = 'Correo inválido'
-    if (form.password.length < 8) e.password = 'Mínimo 8 caracteres'
-    if (form.password !== form.passwordConfirm) e.passwordConfirm = 'Las contraseñas no coinciden'
+    if (!form.correo.includes('@')) e.correo = 'Correo invalido'
+    if (form.password.length < 8) e.password = 'Minimo 8 caracteres'
+    if (form.password !== form.passwordConfirm) e.passwordConfirm = 'Las contrasenas no coinciden'
     if (!form.nit.trim()) e.nit = 'Obligatorio'
-    if (!form.correoEmpresa.includes('@')) e.correoEmpresa = 'Correo inválido'
+    if (!form.correoEmpresa.includes('@')) e.correoEmpresa = 'Correo invalido'
     if (!form.telefono.trim()) e.telefono = 'Obligatorio'
     if (!form.ciudad.trim()) e.ciudad = 'Obligatorio'
     if (!form.fechaConstitucion) e.fechaConstitucion = 'Obligatorio'
     if (!form.nombreRepLegal.trim()) e.nombreRepLegal = 'Obligatorio'
     if (!form.cedulaRepLegal.trim()) e.cedulaRepLegal = 'Obligatorio'
-
-    // Validar mínimo 1 año
     if (form.fechaConstitucion) {
-      const años = Math.floor((new Date() - new Date(form.fechaConstitucion)) / (1000 * 60 * 60 * 24 * 365))
-      if (años < 1) e.fechaConstitucion = 'La empresa debe tener mínimo 1 año de constitución'
+      const anos = Math.floor((new Date() - new Date(form.fechaConstitucion)) / (1000 * 60 * 60 * 24 * 365))
+      if (anos < 1) e.fechaConstitucion = 'La empresa debe tener minimo 1 ano de constitucion'
     }
     return e
   }
@@ -73,63 +69,48 @@ export default function Register() {
   function validarPaso3() {
     const e = {}
     if (!archivos.rut) e.rut = 'El RUT es obligatorio'
-    if (!archivos.camaraComercio) e.camaraComercio = 'La Cámara de Comercio es obligatoria'
+    if (!archivos.camaraComercio) e.camaraComercio = 'La Camara de Comercio es obligatoria'
     if (!archivos.certRepresentacion) e.certRepresentacion = 'El certificado es obligatorio'
-    if (!archivos.cedulaRep) e.cedulaRep = 'La cédula del representante es obligatoria'
-    if (necesitaFlota && !archivos.habilitacionMT) e.habilitacionMT = 'La habilitación MinTransporte es obligatoria'
-    if (necesitaFlota && !archivos.polizaRC) e.polizaRC = 'La póliza es obligatoria'
+    if (!archivos.cedulaRep) e.cedulaRep = 'La cedula del representante es obligatoria'
+    if (necesitaFlota && !archivos.habilitacionMT) e.habilitacionMT = 'La habilitacion MinTransporte es obligatoria'
+    if (necesitaFlota && !archivos.polizaRC) e.polizaRC = 'La poliza es obligatoria'
     return e
   }
 
   function siguientePaso() {
     if (paso === 1) {
       if (!form.rol) { setErrores({ rol: 'Selecciona el tipo de empresa' }); return }
-      setErrores({})
-      setPaso(2)
+      setErrores({}); setPaso(2)
     } else if (paso === 2) {
       const e = validarPaso2()
       if (Object.keys(e).length > 0) { setErrores(e); return }
-      setErrores({})
-      setPaso(3)
+      setErrores({}); setPaso(3)
     } else if (paso === 3) {
       const e = validarPaso3()
       if (Object.keys(e).length > 0) { setErrores(e); return }
-      setErrores({})
-      setPaso(4)
+      setErrores({}); setPaso(4)
     }
   }
 
   async function enviarRegistro() {
-    setCargando(true)
-    setErrorApi('')
+    setCargando(true); setErrorApi('')
     try {
       const formData = new FormData()
-
-      // Datos del formulario
       Object.entries(form).forEach(([k, v]) => { if (v) formData.append(k, v) })
-
-      // Archivos
       Object.entries(archivos).forEach(([k, v]) => { if (v) formData.append(k, v) })
-
-      const res = await fetch(`${API}/register`, {
-        method: 'POST',
-        body: formData, // NO poner Content-Type, FormData lo maneja solo
-      })
+      const res = await fetch(`${API}/register`, { method: 'POST', body: formData })
       const data = await res.json()
       if (!res.ok) { setErrorApi(data.error || 'Error al registrar'); setCargando(false); return }
       setEnviado(true)
-    } catch {
-      setErrorApi('Error de conexión con el servidor')
-    }
+    } catch { setErrorApi('Error de conexion con el servidor') }
     setCargando(false)
   }
 
-  const calcularAños = () => {
+  const calcularAnos = () => {
     if (!form.fechaConstitucion) return null
     return Math.floor((new Date() - new Date(form.fechaConstitucion)) / (1000 * 60 * 60 * 24 * 365))
   }
 
-  // ESTILOS
   const s = {
     wrap: { minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Sans,sans-serif', padding: '20px' },
     card: { background: '#0C1B35', border: '1px solid rgba(255,255,255,.1)', borderRadius: '22px', padding: '40px', width: '520px', maxWidth: '100%' },
@@ -148,7 +129,6 @@ export default function Register() {
     fileBox: (tieneArchivo, hayError) => ({ width: '100%', background: tieneArchivo ? 'rgba(16,185,129,.06)' : 'rgba(255,255,255,.03)', border: `2px dashed ${hayError ? '#EF4444' : tieneArchivo ? '#10B981' : 'rgba(255,255,255,.15)'}`, borderRadius: '12px', padding: '16px', textAlign: 'center', cursor: 'pointer', transition: '.2s', boxSizing: 'border-box' }),
   }
 
-  // PANTALLA DE ÉXITO
   if (enviado) return (
     <div style={s.wrap}>
       <div style={s.card}>
@@ -157,7 +137,7 @@ export default function Register() {
           <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Solicitud enviada</div>
           <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: '1.7', marginBottom: '28px' }}>
             Recibimos tu solicitud para unirte a <strong style={{ color: 'white' }}>CargoShare</strong>.<br />
-            Revisaremos tu información y en <strong style={{ color: '#F97316' }}>24 a 48 horas hábiles</strong> recibirás un correo con la confirmación.
+            Revisaremos tu informacion y en <strong style={{ color: '#F97316' }}>24 a 48 horas habiles</strong> recibiras un correo con la confirmacion.
           </div>
           <div style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '20px', marginBottom: '24px', textAlign: 'left' }}>
             <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Resumen</div>
@@ -167,7 +147,7 @@ export default function Register() {
               ['Correo', form.correo],
               ['Tipo', tiposEmpresa.find(t => t.id === form.rol)?.titulo],
               ['Ciudad', form.ciudad],
-              ['Años de operación', `${calcularAños()} año${calcularAños() !== 1 ? 's' : ''}`],
+              ['Anos de operacion', `${calcularAnos()} ano${calcularAnos() !== 1 ? 's' : ''}`],
             ].map(([k, v]) => (
               <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,.05)', fontSize: '13px' }}>
                 <span style={{ color: '#7A8FAD' }}>{k}</span>
@@ -176,15 +156,11 @@ export default function Register() {
             ))}
           </div>
           <div style={{ background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.18)', borderRadius: '12px', padding: '14px', marginBottom: '24px', fontSize: '13px', color: 'rgba(255,200,140,.9)' }}>
-            📧 Te enviaremos un correo a <strong>{form.correo}</strong> cuando tu cuenta esté aprobada.
+            Correo de confirmacion: <strong>{form.correo}</strong>
           </div>
-          <button onClick={() => navigate('/')} style={s.btn}>Volver al inicio →</button>
+          <button onClick={() => navigate('/')} style={s.btn}>Volver al inicio</button>
           <div style={{ marginTop: '12px', fontSize: '13px', color: '#7A8FAD' }}>
-            ¿Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesión</span>
-              <div style={{ marginTop: '10px' }}>
-                <span style={{ color: '#7A8FAD' }}>¿Eres conductor? </span>
-                <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/conductor')}>Regístrate como conductor →</span>
-              </div>
+            Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesion</span>
           </div>
         </div>
       </div>
@@ -195,23 +171,22 @@ export default function Register() {
     <div style={s.wrap}>
       <div style={s.card}>
         <div style={s.logo}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
-        <div style={s.sub}>Registro de empresa — Fase 1</div>
+        <div style={s.sub}>Registro de empresa - Fase 1</div>
 
-        {/* BARRA DE PROGRESO */}
         <div style={s.stepBar}>
           {[1, 2, 3, 4].map(n => (
             <div key={n} style={s.step(paso === n, paso > n)} />
           ))}
         </div>
         <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '20px' }}>
-          Paso {paso} de 4 — {['', 'Tipo de empresa', 'Datos empresariales', 'Documentos', 'Confirmar'][paso]}
+          Paso {paso} de 4 - {['', 'Tipo de empresa', 'Datos empresariales', 'Documentos', 'Confirmar'][paso]}
         </div>
 
-        {/* PASO 1 — TIPO DE EMPRESA */}
+        {/* PASO 1 */}
         {paso === 1 && (
           <div>
-            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>¿Qué tipo de empresa eres?</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Solo empresas con mínimo 1 año de constitución pueden registrarse en esta fase.</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Que tipo de empresa eres?</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Solo empresas con minimo 1 ano de constitucion pueden registrarse en esta fase.</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               {tiposEmpresa.map(t => (
                 <div key={t.id} onClick={() => setForm({ ...form, rol: t.id })}
@@ -228,22 +203,24 @@ export default function Register() {
             {errores.rol && <div style={{ ...s.err, marginBottom: '12px' }}>⚠️ {errores.rol}</div>}
             <button onClick={siguientePaso} style={s.btn}>Continuar →</button>
             <div style={{ textAlign: 'center', marginTop: '14px', fontSize: '13px', color: '#7A8FAD' }}>
-              ¿Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesión</span>
+              Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesion</span>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '13px' }}>
+              <span style={{ color: '#7A8FAD' }}>Eres conductor? </span>
+              <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/conductor')}>Registrate como conductor →</span>
             </div>
           </div>
         )}
 
-        {/* PASO 2 — DATOS EMPRESARIALES */}
+        {/* PASO 2 */}
         {paso === 2 && (
           <div>
             <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Datos de la empresa</div>
-
             <div style={s.fg}>
-              <label style={s.lbl}>Razón social *</label>
+              <label style={s.lbl}>Razon social *</label>
               <input style={errores.nombre ? s.inpErr : s.inp} placeholder="Textiles del Valle S.A.S" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value, razonSocial: e.target.value })} />
               {errores.nombre && <div style={s.err}>⚠️ {errores.nombre}</div>}
             </div>
-
             <div style={s.grid2}>
               <div style={s.fg}>
                 <label style={s.lbl}>NIT *</label>
@@ -252,98 +229,89 @@ export default function Register() {
               </div>
               <div style={s.fg}>
                 <label style={s.lbl}>Ciudad *</label>
-                <input style={errores.ciudad ? s.inpErr : s.inp} placeholder="Bogotá" value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} />
+                <input style={errores.ciudad ? s.inpErr : s.inp} placeholder="Bogota" value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} />
                 {errores.ciudad && <div style={s.err}>⚠️ {errores.ciudad}</div>}
               </div>
             </div>
-
             <div style={s.fg}>
-              <label style={s.lbl}>Dirección</label>
+              <label style={s.lbl}>Direccion</label>
               <input style={s.inp} placeholder="Calle 13 #86-60, Zona Industrial" value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} />
             </div>
-
             <div style={s.fg}>
-              <label style={s.lbl}>Fecha de constitución *</label>
+              <label style={s.lbl}>Fecha de constitucion *</label>
               <input type="date" style={errores.fechaConstitucion ? s.inpErr : s.inp} value={form.fechaConstitucion} onChange={e => setForm({ ...form, fechaConstitucion: e.target.value })} />
               {errores.fechaConstitucion && <div style={s.err}>⚠️ {errores.fechaConstitucion}</div>}
-              {form.fechaConstitucion && calcularAños() >= 1 && (
-                <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px' }}>✅ {calcularAños()} año{calcularAños() !== 1 ? 's' : ''} de operación</div>
+              {form.fechaConstitucion && calcularAnos() >= 1 && (
+                <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px' }}>✅ {calcularAnos()} ano{calcularAnos() !== 1 ? 's' : ''} de operacion</div>
               )}
             </div>
-
             <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '12px', padding: '16px', marginBottom: '14px' }}>
               <div style={{ fontSize: '13px', fontWeight: '700', color: 'white', marginBottom: '12px' }}>👤 Representante legal</div>
               <div style={s.grid2}>
                 <div style={s.fg}>
                   <label style={s.lbl}>Nombre *</label>
-                  <input style={errores.nombreRepLegal ? s.inpErr : s.inp} placeholder="Carlos García" value={form.nombreRepLegal} onChange={e => setForm({ ...form, nombreRepLegal: e.target.value })} />
+                  <input style={errores.nombreRepLegal ? s.inpErr : s.inp} placeholder="Carlos Garcia" value={form.nombreRepLegal} onChange={e => setForm({ ...form, nombreRepLegal: e.target.value })} />
                   {errores.nombreRepLegal && <div style={s.err}>⚠️ {errores.nombreRepLegal}</div>}
                 </div>
                 <div style={s.fg}>
-                  <label style={s.lbl}>Cédula *</label>
+                  <label style={s.lbl}>Cedula *</label>
                   <input style={errores.cedulaRepLegal ? s.inpErr : s.inp} placeholder="1234567890" value={form.cedulaRepLegal} onChange={e => setForm({ ...form, cedulaRepLegal: e.target.value })} />
                   {errores.cedulaRepLegal && <div style={s.err}>⚠️ {errores.cedulaRepLegal}</div>}
                 </div>
               </div>
             </div>
-
             <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '12px', padding: '16px', marginBottom: '14px' }}>
               <div style={{ fontSize: '13px', fontWeight: '700', color: 'white', marginBottom: '12px' }}>🔐 Acceso a la plataforma</div>
               <div style={s.fg}>
-                <label style={s.lbl}>Correo corporativo * <span style={{ color: '#7A8FAD', fontWeight: '400' }}>(no Gmail personal)</span></label>
+                <label style={s.lbl}>Correo corporativo *</label>
                 <input type="email" style={errores.correoEmpresa ? s.inpErr : s.inp} placeholder="contacto@tuempresa.com" value={form.correoEmpresa} onChange={e => setForm({ ...form, correoEmpresa: e.target.value, correo: e.target.value })} />
                 {errores.correoEmpresa && <div style={s.err}>⚠️ {errores.correoEmpresa}</div>}
               </div>
               <div style={s.fg}>
-                <label style={s.lbl}>Teléfono *</label>
+                <label style={s.lbl}>Telefono *</label>
                 <input style={errores.telefono ? s.inpErr : s.inp} placeholder="+57 300 123 4567" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} />
                 {errores.telefono && <div style={s.err}>⚠️ {errores.telefono}</div>}
               </div>
               <div style={s.grid2}>
                 <div style={s.fg}>
-                  <label style={s.lbl}>Contraseña *</label>
-                  <input type="password" style={errores.password ? s.inpErr : s.inp} placeholder="Mínimo 8 caracteres" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+                  <label style={s.lbl}>Contrasena *</label>
+                  <input type="password" style={errores.password ? s.inpErr : s.inp} placeholder="Minimo 8 caracteres" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
                   {errores.password && <div style={s.err}>⚠️ {errores.password}</div>}
                 </div>
                 <div style={s.fg}>
-                  <label style={s.lbl}>Confirmar contraseña *</label>
-                  <input type="password" style={errores.passwordConfirm ? s.inpErr : s.inp} placeholder="Repite la contraseña" value={form.passwordConfirm} onChange={e => setForm({ ...form, passwordConfirm: e.target.value })} />
+                  <label style={s.lbl}>Confirmar contrasena *</label>
+                  <input type="password" style={errores.passwordConfirm ? s.inpErr : s.inp} placeholder="Repite la contrasena" value={form.passwordConfirm} onChange={e => setForm({ ...form, passwordConfirm: e.target.value })} />
                   {errores.passwordConfirm && <div style={s.err}>⚠️ {errores.passwordConfirm}</div>}
                 </div>
               </div>
             </div>
-
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setPaso(1)} style={s.btnSec}>← Atrás</button>
+              <button onClick={() => setPaso(1)} style={s.btnSec}>Atras</button>
               <button onClick={siguientePaso} style={{ ...s.btn, marginTop: '8px' }}>Continuar →</button>
             </div>
           </div>
         )}
 
-        {/* PASO 3 — DOCUMENTOS */}
+        {/* PASO 3 */}
         {paso === 3 && (
           <div>
             <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Documentos requeridos</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Sube PDF o imagen de cada documento. Máximo 10MB por archivo.</div>
-
+            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Sube PDF o imagen de cada documento. Maximo 10MB por archivo.</div>
             {[
               { key: 'rut', label: 'RUT activo y vigente', obligatorio: true },
-              { key: 'camaraComercio', label: 'Cámara de Comercio (máx. 90 días)', obligatorio: true },
-              { key: 'certRepresentacion', label: 'Certificado de existencia y representación legal', obligatorio: true },
-              { key: 'cedulaRep', label: 'Cédula del representante legal', obligatorio: true },
+              { key: 'camaraComercio', label: 'Camara de Comercio (max. 90 dias)', obligatorio: true },
+              { key: 'certRepresentacion', label: 'Certificado de existencia y representacion legal', obligatorio: true },
+              { key: 'cedulaRep', label: 'Cedula del representante legal', obligatorio: true },
               ...(necesitaFlota ? [
-                { key: 'habilitacionMT', label: 'Habilitación MinTransporte', obligatorio: true },
-                { key: 'polizaRC', label: 'Póliza de responsabilidad civil contractual', obligatorio: true },
+                { key: 'habilitacionMT', label: 'Habilitacion MinTransporte', obligatorio: true },
+                { key: 'polizaRC', label: 'Poliza de responsabilidad civil contractual', obligatorio: true },
               ] : []),
             ].map(doc => (
               <div key={doc.key} style={{ marginBottom: '14px' }}>
                 <label style={s.lbl}>{doc.label} {doc.obligatorio ? '*' : ''}</label>
                 <label style={s.fileBox(!!archivos[doc.key], !!errores[doc.key])}>
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
-                    onChange={e => {
-                      const file = e.target.files[0]
-                      if (file) setArchivos({ ...archivos, [doc.key]: file })
-                    }} />
+                    onChange={e => { const file = e.target.files[0]; if (file) setArchivos({ ...archivos, [doc.key]: file }) }} />
                   {archivos[doc.key] ? (
                     <div>
                       <div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div>
@@ -360,31 +328,29 @@ export default function Register() {
                 {errores[doc.key] && <div style={s.err}>⚠️ {errores[doc.key]}</div>}
               </div>
             ))}
-
             <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-              <button onClick={() => setPaso(2)} style={s.btnSec}>← Atrás</button>
+              <button onClick={() => setPaso(2)} style={s.btnSec}>Atras</button>
               <button onClick={siguientePaso} style={{ ...s.btn, marginTop: '8px' }}>Revisar y enviar →</button>
             </div>
           </div>
         )}
 
-        {/* PASO 4 — CONFIRMAR */}
+        {/* PASO 4 */}
         {paso === 4 && (
           <div>
             <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Confirma tu solicitud</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Revisa que todo esté correcto antes de enviar.</div>
-
+            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Revisa que todo este correcto antes de enviar.</div>
             <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '18px', marginBottom: '16px' }}>
               <div style={{ fontSize: '12px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', marginBottom: '12px' }}>Datos de la empresa</div>
               {[
                 ['Tipo', tiposEmpresa.find(t => t.id === form.rol)?.titulo],
-                ['Razón social', form.nombre],
+                ['Razon social', form.nombre],
                 ['NIT', form.nit],
                 ['Ciudad', form.ciudad],
-                ['Años de operación', `${calcularAños()} año${calcularAños() !== 1 ? 's' : ''}`],
+                ['Anos de operacion', `${calcularAnos()} ano${calcularAnos() !== 1 ? 's' : ''}`],
                 ['Rep. legal', form.nombreRepLegal],
                 ['Correo corporativo', form.correoEmpresa],
-                ['Teléfono', form.telefono],
+                ['Telefono', form.telefono],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,.05)', fontSize: '13px' }}>
                   <span style={{ color: '#7A8FAD' }}>{k}</span>
@@ -392,7 +358,6 @@ export default function Register() {
                 </div>
               ))}
             </div>
-
             <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '18px', marginBottom: '20px' }}>
               <div style={{ fontSize: '12px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', marginBottom: '12px' }}>Documentos adjuntos</div>
               {Object.entries(archivos).filter(([, v]) => v).map(([k, v]) => (
@@ -402,11 +367,9 @@ export default function Register() {
                 </div>
               ))}
             </div>
-
             {errorApi && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '14px' }}>⚠️ {errorApi}</div>}
-
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setPaso(3)} style={s.btnSec}>← Atrás</button>
+              <button onClick={() => setPaso(3)} style={s.btnSec}>Atras</button>
               <button onClick={enviarRegistro} disabled={cargando} style={{ ...s.btn, marginTop: '8px', opacity: cargando ? 0.7 : 1 }}>
                 {cargando ? 'Enviando solicitud...' : '✅ Enviar solicitud →'}
               </button>
