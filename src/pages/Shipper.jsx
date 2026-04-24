@@ -35,12 +35,12 @@ function calcularPrecio(pesoReal, largo, ancho, alto, tipoVehiculo, carroceria, 
 }
 
 const CARROCERIAS = [
-  ['furgon_seco','📦','Furgón Seco'],['estacas','🪵','Estacas'],
+  ['furgon_seco','📦','Furgon Seco'],['estacas','🪵','Estacas'],
   ['refrigerado','❄️','Refrigerado'],['congelado','🧊','Congelado'],
   ['cisterna','🛢️','Cisterna'],['cama_baja','🔩','Cama Baja'],
 ]
 const TIPOS_CARGA = [
-  ['general','📦','General'],['fragil','🔮','Frágil'],
+  ['general','📦','General'],['fragil','🔮','Fragil'],
   ['maquinaria','🏗️','Maquinaria'],['refrigerado','❄️','Refrigerado'],['congelado','🧊','Congelado'],
 ]
 
@@ -52,6 +52,7 @@ export default function Shipper() {
   const [vista, setVista] = useState('dashboard')
   const [dashboard, setDashboard] = useState(null)
   const [envios, setEnvios] = useState([])
+  const [solicitudes, setSolicitudes] = useState([])
   const [cargando, setCargando] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
@@ -83,6 +84,7 @@ export default function Shipper() {
   useEffect(() => {
     if (vista === 'dashboard') cargarDashboard()
     if (vista === 'envios' || vista === 'historial') cargarEnvios()
+    if (vista === 'codigos') cargarSolicitudes()
   }, [vista])
 
   async function cargarDashboard() {
@@ -97,9 +99,19 @@ export default function Shipper() {
     setCargando(false)
   }
 
+  async function cargarSolicitudes() {
+    setCargando(true)
+    try {
+      const res = await fetch(`${RUTAS_API}/mis-solicitudes`, { headers })
+      const data = await res.json()
+      if (res.ok) setSolicitudes(data)
+    } catch {}
+    setCargando(false)
+  }
+
   async function buscarRutas() {
     if (!busqueda.origen || !busqueda.destino || !busqueda.pesoReal || !busqueda.carroceriaNecesaria) {
-      setErrorBusqueda('Origen, destino, peso y tipo de carrocería son obligatorios'); return
+      setErrorBusqueda('Origen, destino, peso y tipo de carroceria son obligatorios'); return
     }
     setBuscando(true); setErrorBusqueda(''); setRutasMatch([]); setBuscado(false)
     try {
@@ -108,7 +120,7 @@ export default function Shipper() {
       const data = await res.json()
       if (res.ok) { setRutasMatch(data); setBuscado(true) }
       else { setErrorBusqueda(data.error || 'Error al buscar') }
-    } catch { setErrorBusqueda('Error de conexión') }
+    } catch { setErrorBusqueda('Error de conexion') }
     setBuscando(false)
   }
 
@@ -130,7 +142,7 @@ export default function Shipper() {
       const data = await res.json()
       if (res.ok) { setReservado(true); setTimeout(() => { setReservado(false); setVista('envios'); setBuscado(false); setRutaSeleccionada(null) }, 2500) }
       else { setErrorReserva(data.error || 'Error al reservar') }
-    } catch { setErrorReserva('Error de conexión') }
+    } catch { setErrorReserva('Error de conexion') }
     setReservando(false)
   }
 
@@ -143,11 +155,12 @@ export default function Shipper() {
   const navItems = [
     { id: 'dashboard', ic: '📊', label: 'Dashboard' },
     { id: 'nuevo', ic: '🔍', label: 'Buscar rutas' },
-    { id: 'envios', ic: '📍', label: 'Envíos activos' },
+    { id: 'codigos', ic: '🔑', label: 'Mis codigos' },
+    { id: 'envios', ic: '📍', label: 'Envios activos' },
     { id: 'historial', ic: '📋', label: 'Historial' },
-    { id: 'config', ic: '⚙️', label: 'Configuración' },
+    { id: 'config', ic: '⚙️', label: 'Configuracion' },
   ]
-  const titles = { dashboard: 'Dashboard', nuevo: 'Buscar rutas', 'confirmar-reserva': 'Confirmar reserva', envios: 'Envíos activos', historial: 'Historial', config: 'Configuración' }
+  const titles = { dashboard: 'Dashboard', nuevo: 'Buscar rutas', 'confirmar-reserva': 'Confirmar reserva', codigos: 'Mis codigos', envios: 'Envios activos', historial: 'Historial', config: 'Configuracion' }
 
   const s = {
     wrap: { display: 'flex', minHeight: '100vh', background: '#060E1C', fontFamily: 'DM Sans,sans-serif', color: 'white' },
@@ -182,6 +195,15 @@ export default function Shipper() {
     envioCard: { background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '12px', padding: '16px', marginBottom: '10px' },
     rutaCard: { background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '18px', marginBottom: '12px' },
     desglose: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,.04)' },
+    codigoBox: (color) => ({
+      background: `rgba(${color},.08)`,
+      border: `2px solid rgba(${color},.3)`,
+      borderRadius: '14px',
+      padding: '20px',
+      textAlign: 'center',
+      flex: 1,
+    }),
+    codigoNum: { fontFamily: 'monospace', fontSize: '32px', fontWeight: '800', letterSpacing: '6px', marginBottom: '6px' },
   }
 
   return (
@@ -206,9 +228,9 @@ export default function Shipper() {
             <span style={{ fontSize: '11px', color: '#7A8FAD' }}>▲</span>
           </div>
           <div style={s.userMenu(userMenuOpen)}>
-            <div style={s.umItem(false)} onClick={() => { setVista('config'); setUserMenuOpen(false) }}>⚙️ Configuración</div>
+            <div style={s.umItem(false)} onClick={() => { setVista('config'); setUserMenuOpen(false) }}>⚙️ Configuracion</div>
             <div style={{ height: '1px', background: 'rgba(255,255,255,.07)', margin: '6px 0' }}></div>
-            <div style={s.umItem(true)} onClick={logout}>🚪 Cerrar sesión</div>
+            <div style={s.umItem(true)} onClick={logout}>🚪 Cerrar sesion</div>
           </div>
         </div>
       </aside>
@@ -224,69 +246,68 @@ export default function Shipper() {
 
         <div style={s.content}>
 
+          {/* DASHBOARD */}
           {vista === 'dashboard' && (
             <div>
-              <div style={s.h2}>Buen día, {nombre.split(' ')[0]} 👋</div>
-              <div style={s.p}>Aquí está el resumen de tu actividad.</div>
+              <div style={s.h2}>Buen dia, {nombre.split(' ')[0]} 👋</div>
+              <div style={s.p}>Aqui esta el resumen de tu actividad.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando datos...</div>
                 : dashboard ? (<>
                   <div style={s.kpiGrid}>
-                    <div style={s.kpi}><div style={s.kpiLabel}>📦 Total envíos</div><div style={s.kpiVal('#60A5FA')}>{dashboard.totalEnvios}</div></div>
+                    <div style={s.kpi}><div style={s.kpiLabel}>📦 Total envios</div><div style={s.kpiVal('#60A5FA')}>{dashboard.totalEnvios}</div></div>
                     <div style={s.kpi}><div style={s.kpiLabel}>🚚 Activos</div><div style={s.kpiVal('#F59E0B')}>{dashboard.enviosActivos}</div></div>
                     <div style={s.kpi}><div style={s.kpiLabel}>✅ Completados</div><div style={s.kpiVal('#10B981')}>{dashboard.enviosCompletados}</div></div>
                     <div style={s.kpi}><div style={s.kpiLabel}>💸 Gasto total</div><div style={s.kpiVal('#F97316')}>${dashboard.gastoTotal?.toLocaleString('es-CO')}</div></div>
                   </div>
                   <div style={s.panel}>
-                    <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px' }}>🚀 ¿Cómo funciona?</div>
+                    <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px' }}>🚀 Como funciona?</div>
                     <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: '1.8' }}>
                       1️⃣ Busca rutas disponibles que van a tu destino<br />
-                      2️⃣ Ingresa tu carga — el precio se calcula automático<br />
-                      3️⃣ Reserva la ruta que más te convenga<br />
-                      4️⃣ La empresa transportadora acepta en máx. 6 horas
+                      2️⃣ Ingresa tu carga — el precio se calcula automatico<br />
+                      3️⃣ Reserva la ruta que mas te convenga<br />
+                      4️⃣ La empresa transportadora acepta en max. 6 horas
                     </div>
                   </div>
                 </>) : (
                   <div style={{ ...s.panel, ...s.emptyState }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>📊</div>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '16px' }}>Sin datos aún</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '16px' }}>Sin datos aun</div>
                     <button onClick={() => setVista('nuevo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🔍 Buscar rutas</button>
                   </div>
                 )}
             </div>
           )}
 
+          {/* BUSCAR RUTAS */}
           {vista === 'nuevo' && (
             <div>
               <div style={s.h2}>Buscar rutas 🔍</div>
-              <div style={s.p}>Ingresa los datos de tu carga y te mostramos las rutas disponibles con precio automático.</div>
-
+              <div style={s.p}>Ingresa los datos de tu carga y te mostramos las rutas disponibles con precio automatico.</div>
               <div style={s.panel}>
-                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 ¿De dónde a dónde?</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 De donde a donde?</div>
                 <div style={s.fg}>
-                  <label style={s.lbl}>Dirección exacta de recogida *</label>
-                  <input style={s.inp} placeholder="Ej: Cra 30 #10-45, Bogotá" value={busqueda.direccionRecogida} onChange={e => setBusqueda({ ...busqueda, direccionRecogida: e.target.value })} />
-                  <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '5px' }}>Desde aquí se calcula si hay km extra de recogida</div>
+                  <label style={s.lbl}>Direccion exacta de recogida *</label>
+                  <input style={s.inp} placeholder="Ej: Cra 30 #10-45, Bogota" value={busqueda.direccionRecogida} onChange={e => setBusqueda({ ...busqueda, direccionRecogida: e.target.value })} />
+                  <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '5px' }}>Desde aqui se calcula si hay km extra de recogida</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogotá" value={busqueda.origen} onChange={e => setBusqueda({ ...busqueda, origen: e.target.value })} /></div>
-                  <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellín" value={busqueda.destino} onChange={e => setBusqueda({ ...busqueda, destino: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={busqueda.origen} onChange={e => setBusqueda({ ...busqueda, origen: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellin" value={busqueda.destino} onChange={e => setBusqueda({ ...busqueda, destino: e.target.value })} /></div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={s.fg}><label style={s.lbl}>Fecha que necesitas</label><input type="date" style={s.inp} value={busqueda.fechaNecesaria} onChange={e => setBusqueda({ ...busqueda, fechaNecesaria: e.target.value })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Hora aproximada</label><input type="time" style={s.inp} value={busqueda.horaNecesaria} onChange={e => setBusqueda({ ...busqueda, horaNecesaria: e.target.value })} /></div>
                 </div>
               </div>
-
               <div style={s.panel}>
-                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>🚛 ¿Qué tipo de vehículo necesitas? *</div>
-                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>Solo verás rutas con este tipo de carrocería</div>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>🚛 Que tipo de vehiculo necesitas? *</div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>Solo veras rutas con este tipo de carroceria</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {CARROCERIAS.map(([val, ic, label]) => (
                     <button key={val} style={s.tipoBtn(busqueda.carroceriaNecesaria === val)} onClick={() => setBusqueda({ ...busqueda, carroceriaNecesaria: val })}>{ic} {label}</button>
                   ))}
                 </div>
               </div>
-
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📦 Datos de tu carga *</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginBottom: '16px' }}>
@@ -305,29 +326,26 @@ export default function Shipper() {
                 </div>
                 {busqueda.pesoReal && busqueda.largo && busqueda.ancho && busqueda.alto && (
                   <div style={{ background: 'rgba(37,99,235,.08)', border: '1px solid rgba(37,99,235,.12)', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', color: '#60A5FA' }}>
-                    📐 Peso volumétrico: <strong>{Math.round(pesoVol).toLocaleString('es-CO')} kg</strong>
+                    📐 Peso volumetrico: <strong>{Math.round(pesoVol).toLocaleString('es-CO')} kg</strong>
                     {' · '}Peso cobrable: <strong>{Math.round(pesoCobrable).toLocaleString('es-CO')} kg</strong>
-                    {pesoVol > Number(busqueda.pesoReal) && <span style={{ color: '#F59E0B' }}> ⚠️ Se cobra por volumen</span>}
+                    {pesoVol > Number(busqueda.pesoReal) && <span style={{ color: '#F59E0B' }}> Se cobra por volumen</span>}
                   </div>
                 )}
               </div>
-
               {errorBusqueda && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorBusqueda}</div>}
-
               <button onClick={buscarRutas} disabled={buscando} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: buscando ? 0.7 : 1, marginBottom: '32px' }}>
                 {buscando ? 'Buscando...' : '🔍 Buscar rutas disponibles →'}
               </button>
-
               {buscado && (
                 <div>
                   <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>
-                    {rutasMatch.length === 0 ? '😔 No encontramos rutas disponibles' : `✅ ${rutasMatch.length} ruta${rutasMatch.length > 1 ? 's' : ''} encontrada${rutasMatch.length > 1 ? 's' : ''}`}
+                    {rutasMatch.length === 0 ? 'No encontramos rutas disponibles' : `✅ ${rutasMatch.length} ruta${rutasMatch.length > 1 ? 's' : ''} encontrada${rutasMatch.length > 1 ? 's' : ''}`}
                   </div>
                   {rutasMatch.length === 0 ? (
                     <div style={{ ...s.panel, ...s.emptyState }}>
                       <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
                       <div style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '8px' }}>Sin rutas disponibles ahora</div>
-                      <div style={{ fontSize: '13px' }}>Intenta con fechas más flexibles o revisa más tarde</div>
+                      <div style={{ fontSize: '13px' }}>Intenta con fechas mas flexibles o revisa mas tarde</div>
                     </div>
                   ) : rutasMatch.map(r => {
                     const precio = calcularPrecio(Number(busqueda.pesoReal)||0, Number(busqueda.largo)||0.1, Number(busqueda.ancho)||0.1, Number(busqueda.alto)||0.1, r.tipoVehiculo, r.carroceria, r.distanciaKm||400, r.kmExtraRecogida||0)
@@ -337,7 +355,7 @@ export default function Shipper() {
                           <div>
                             <div style={{ fontSize: '15px', fontWeight: '700' }}>📍 {r.origen} → {r.destino}</div>
                             <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '3px' }}>{r.fechaSalida ? new Date(r.fechaSalida).toLocaleDateString('es-CO') : ''} · {r.horaSalida}</div>
-                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>🏢 {r.empresa?.nombre || 'Empresa verificada'} · ⭐ {r.empresa?.calificacion || '5.0'} · 📅 {r.empresa?.añosOperacion || '1'} año(s)</div>
+                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>🏢 {r.empresa?.nombre || 'Empresa verificada'} · ⭐ {r.empresa?.calificacion || '5.0'}</div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
                             <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '22px', fontWeight: '800', color: '#F97316' }}>${precio.total.toLocaleString('es-CO')}</div>
@@ -350,8 +368,6 @@ export default function Shipper() {
                           {(r.kmExtraRecogida||0) > 0 ? <span style={{ color: '#F59E0B' }}>⚠️ {r.kmExtraRecogida} km extra (+${precio.recargoPorKmExtra.toLocaleString('es-CO')})</span> : <span style={{ color: '#10B981' }}>✅ Dentro del rango</span>}
                           {r.esExacto === false && <span style={{ color: '#60A5FA' }}>📅 Fecha similar</span>}
                         </div>
-
-                        {/* PERFIL DEL CONDUCTOR */}
                         {r.conductor ? (
                           <div style={{ background: 'rgba(37,99,235,.06)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                             {r.conductor.foto
@@ -360,9 +376,7 @@ export default function Shipper() {
                             }
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '12px', fontWeight: '700', color: 'white' }}>👤 Conductor asignado: {r.conductor.nombre}</div>
-                              <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>
-                                CC {r.conductor.cedula} · {r.conductor.telefono || 'Sin teléfono'} · Lic. {r.conductor.licencia}
-                              </div>
+                              <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>CC {r.conductor.cedula} · {r.conductor.telefono || 'Sin telefono'} · Lic. {r.conductor.licencia}</div>
                             </div>
                           </div>
                         ) : (
@@ -381,13 +395,12 @@ export default function Shipper() {
             </div>
           )}
 
+          {/* CONFIRMAR RESERVA */}
           {vista === 'confirmar-reserva' && rutaSeleccionada && precioDesglose && (
             <div>
               <div style={s.h2}>Confirmar reserva ✅</div>
               <div style={s.p}>Revisa el desglose antes de enviar la solicitud a la empresa transportadora.</div>
-
-              {reservado && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '20px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ ¡Solicitud enviada! La empresa tiene 6 horas para responder.</div>}
-
+              {reservado && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '20px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Solicitud enviada! La empresa tiene 6 horas para responder.</div>}
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '14px' }}>🚛 Ruta seleccionada</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -395,9 +408,9 @@ export default function Shipper() {
                     ['Ruta', `${rutaSeleccionada.origen} → ${rutaSeleccionada.destino}`],
                     ['Fecha salida', rutaSeleccionada.fechaSalida ? new Date(rutaSeleccionada.fechaSalida).toLocaleDateString('es-CO') : '-'],
                     ['Hora salida', rutaSeleccionada.horaSalida || '-'],
-                    ['Carrocería', rutaSeleccionada.carroceria?.replace('_', ' ') || '-'],
+                    ['Carroceria', rutaSeleccionada.carroceria?.replace('_', ' ') || '-'],
                     ['Empresa', rutaSeleccionada.empresa?.nombre || 'Empresa verificada'],
-                    ['Tu dirección recogida', busqueda.direccionRecogida || '-'],
+                    ['Tu direccion recogida', busqueda.direccionRecogida || '-'],
                   ].map(([k, v]) => (
                     <div key={k} style={{ background: 'rgba(255,255,255,.03)', borderRadius: '8px', padding: '10px 12px' }}>
                       <div style={{ fontSize: '10px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', marginBottom: '3px' }}>{k}</div>
@@ -406,14 +419,13 @@ export default function Shipper() {
                   ))}
                 </div>
               </div>
-
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>💰 Desglose de precio</div>
                 <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Peso cobrable</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{precioDesglose.pesoCobrable.toLocaleString('es-CO')} kg</span></div>
                 <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Flete base</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.precioBase.toLocaleString('es-CO')} COP</span></div>
                 {precioDesglose.recargoPorKmExtra > 0 && <div style={s.desglose}><span style={{ fontSize: '13px', color: '#F59E0B' }}>Recargo km extra</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>+${precioDesglose.recargoPorKmExtra.toLocaleString('es-CO')} COP</span></div>}
-                <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Comisión CargoShare (35%)</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.comision.toLocaleString('es-CO')} COP</span></div>
-                <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>IVA sobre comisión (19%)</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.iva.toLocaleString('es-CO')} COP</span></div>
+                <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Comision CargoShare (35%)</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.comision.toLocaleString('es-CO')} COP</span></div>
+                <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>IVA sobre comision (19%)</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.iva.toLocaleString('es-CO')} COP</span></div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,.08)', margin: '10px 0' }}></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ fontSize: '15px', fontWeight: '700' }}>Total a pagar</span>
@@ -424,9 +436,7 @@ export default function Shipper() {
                   * La empresa transportadora recibe ${precioDesglose.precioCarrier.toLocaleString('es-CO')} COP.
                 </div>
               </div>
-
               {errorReserva && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorReserva}</div>}
-
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button onClick={() => setVista('nuevo')} style={{ flex: 1, background: 'rgba(255,255,255,.05)', color: '#7A8FAD', border: '1px solid rgba(255,255,255,.1)', padding: '13px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>← Volver</button>
                 <button onClick={confirmarReserva} disabled={reservando || reservado} style={{ flex: 2, background: '#F97316', color: 'white', border: 'none', padding: '13px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: reservando ? 0.7 : 1 }}>
@@ -436,15 +446,86 @@ export default function Shipper() {
             </div>
           )}
 
+          {/* ── MIS CODIGOS ── */}
+          {vista === 'codigos' && (
+            <div>
+              <div style={s.h2}>Mis codigos 🔑</div>
+              <div style={s.p}>Estos son los codigos de tus envios aceptados. Dalos al conductor cuando llegue.</div>
+
+              {cargando ? (
+                <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
+              ) : solicitudes.filter(s => s.estado === 'aceptado' || s.estado === 'en_ruta').length === 0 ? (
+                <div style={{ ...s.panel, ...s.emptyState }}>
+                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>🔑</div>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '8px' }}>Sin codigos activos</div>
+                  <div style={{ fontSize: '13px', marginBottom: '20px' }}>Los codigos aparecen cuando la empresa transportadora acepta tu solicitud.</div>
+                  <button onClick={() => setVista('nuevo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🔍 Buscar rutas</button>
+                </div>
+              ) : solicitudes.filter(sol => sol.estado === 'aceptado' || sol.estado === 'en_ruta').map(sol => (
+                <div key={sol._id} style={{ ...s.panel, marginBottom: '20px' }}>
+                  {/* Header del envio */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                    <div>
+                      <div style={{ fontSize: '16px', fontWeight: '700' }}>
+                        {sol.ruta?.origen || '-'} → {sol.ruta?.destino || '-'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>
+                        {sol.empresaCarrier?.nombre || 'Empresa transportadora'}
+                      </div>
+                    </div>
+                    <div style={s.badge(sol.estado)}>
+                      {sol.estado === 'en_ruta' ? '🚛 En ruta' : '✅ Aceptado'}
+                    </div>
+                  </div>
+
+                  {/* Codigos */}
+                  <div style={{ display: 'flex', gap: '14px', marginBottom: '16px' }}>
+                    {/* Codigo recogida */}
+                    <div style={s.codigoBox('249,115,22')}>
+                      <div style={{ fontSize: '11px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+                        📍 Codigo de recogida
+                      </div>
+                      <div style={{ ...s.codigoNum, color: '#F97316' }}>
+                        {sol.codigoRecogida || '------'}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: 1.5 }}>
+                        Dale este codigo al conductor cuando llegue a recoger tu carga
+                      </div>
+                    </div>
+
+                    {/* Codigo entrega */}
+                    <div style={s.codigoBox('16,185,129')}>
+                      <div style={{ fontSize: '11px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+                        🏁 Codigo de entrega
+                      </div>
+                      <div style={{ ...s.codigoNum, color: '#10B981' }}>
+                        {sol.codigoEntrega || '------'}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: 1.5 }}>
+                        Dale este codigo al conductor cuando llegue a entregar tu carga
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info adicional */}
+                  <div style={{ background: 'rgba(255,255,255,.03)', borderRadius: '10px', padding: '12px 14px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.7 }}>
+                    ⚠️ <strong style={{ color: 'white' }}>Importante:</strong> No compartas estos codigos con nadie que no sea el conductor asignado. El conductor debe ingresar el codigo en su app para verificar la recogida y la entrega.
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ENVIOS ACTIVOS */}
           {vista === 'envios' && (
             <div>
-              <div style={s.h2}>Envíos activos 📍</div>
-              <div style={s.p}>Tus envíos en curso.</div>
+              <div style={s.h2}>Envios activos 📍</div>
+              <div style={s.p}>Tus envios en curso.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
                 : envios.filter(v => v.estado !== 'completado').length === 0 ? (
                   <div style={{ ...s.panel, ...s.emptyState }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px' }}>📍</div>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '16px' }}>No tienes envíos activos</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '16px' }}>No tienes envios activos</div>
                     <button onClick={() => setVista('nuevo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🔍 Buscar rutas</button>
                   </div>
                 ) : envios.filter(v => v.estado !== 'completado').map(v => (
@@ -455,7 +536,7 @@ export default function Shipper() {
                         <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{v.carga?.tipo || 'General'} · {v.carga?.pesoReal?.toLocaleString('es-CO') || 0} kg</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={s.badge(v.estado)}>{v.estado === 'en_transito' ? 'En tránsito' : v.estado === 'pendiente' ? '⏳ Esperando respuesta' : 'Activo'}</div>
+                        <div style={s.badge(v.estado)}>{v.estado === 'en_transito' ? 'En transito' : v.estado === 'pendiente' ? '⏳ Esperando respuesta' : 'Activo'}</div>
                         <div style={{ fontSize: '14px', fontWeight: '700', color: '#F97316', marginTop: '4px' }}>${v.precioTotal?.toLocaleString('es-CO')} COP</div>
                       </div>
                     </div>
@@ -465,13 +546,14 @@ export default function Shipper() {
             </div>
           )}
 
+          {/* HISTORIAL */}
           {vista === 'historial' && (
             <div>
               <div style={s.h2}>Historial 📋</div>
-              <div style={s.p}>Todos tus envíos completados.</div>
+              <div style={s.p}>Todos tus envios completados.</div>
               <div style={s.panel}>
                 {envios.filter(v => v.estado === 'completado').length === 0 ? (
-                  <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin historial aún</div></div>
+                  <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin historial aun</div></div>
                 ) : envios.filter(v => v.estado === 'completado').map(v => (
                   <div key={v._id} style={{ ...s.envioCard, display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{ fontSize: '24px' }}>✅</div>
@@ -483,9 +565,10 @@ export default function Shipper() {
             </div>
           )}
 
+          {/* CONFIG */}
           {vista === 'config' && (
             <div>
-              <div style={s.h2}>Configuración ⚙️</div>
+              <div style={s.h2}>Configuracion ⚙️</div>
               <div style={s.p}>Ajusta tu cuenta.</div>
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>🏢 Datos de la empresa</div>
@@ -493,8 +576,8 @@ export default function Shipper() {
                 <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '20px' }}>{nombre}</div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,.06)', marginBottom: '20px' }}></div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div><div style={{ fontSize: '14px', fontWeight: '600' }}>Cerrar sesión</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>Salir de tu cuenta</div></div>
-                  <button onClick={logout} style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,.25)', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🚪 Cerrar sesión</button>
+                  <div><div style={{ fontSize: '14px', fontWeight: '600' }}>Cerrar sesion</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>Salir de tu cuenta</div></div>
+                  <button onClick={logout} style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,.25)', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🚪 Cerrar sesion</button>
                 </div>
               </div>
             </div>
