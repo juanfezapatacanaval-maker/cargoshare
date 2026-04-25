@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const API = 'https://cargoshare-api-production.up.railway.app/api/carrier'
@@ -12,6 +12,102 @@ const CARROCERIAS_POR_TIPO = {
   furgon:     [['furgon_seco','📦 Furgon Seco'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
   camion:     [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
   tractomula: [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
+}
+
+// ─── MAPA GPS LEAFLET ─────────────────────────────────────────────
+function MapaGPS({ solicitudId, origen, destino }) {
+  const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const markerRef = useRef(null)
+  const [ubicacion, setUbicacion] = useState(null)
+  const [sinSenal, setSinSenal] = useState(false)
+
+  useEffect(() => {
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link')
+      link.id = 'leaflet-css'
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelado = false
+    async function fetchUbicacion() {
+      try {
+        const res = await fetch(`${RUTAS_API}/solicitudes/${solicitudId}/ubicacion`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelado && data.ubicacionActual?.lat) {
+          setUbicacion(data.ubicacionActual)
+          setSinSenal(false)
+        } else if (!cancelado) {
+          setSinSenal(true)
+        }
+      } catch { }
+    }
+    fetchUbicacion()
+    const interval = setInterval(fetchUbicacion, 5000)
+    return () => { cancelado = true; clearInterval(interval) }
+  }, [solicitudId])
+
+  useEffect(() => {
+    if (!ubicacion || !mapRef.current) return
+    import('leaflet').then(L => {
+      const Lm = L.default || L
+      if (!mapInstanceRef.current) {
+        mapInstanceRef.current = Lm.map(mapRef.current, { zoomControl: true, attributionControl: false }).setView([ubicacion.lat, ubicacion.lng], 13)
+        Lm.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstanceRef.current)
+        const icono = Lm.divIcon({
+          className: '',
+          html: `<div style="background:#F97316;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.4)">🚛</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        })
+        markerRef.current = Lm.marker([ubicacion.lat, ubicacion.lng], { icon: icono }).addTo(mapInstanceRef.current)
+          .bindPopup(`<b>Conductor en ruta</b><br>${origen} → ${destino}`)
+      } else {
+        markerRef.current?.setLatLng([ubicacion.lat, ubicacion.lng])
+        mapInstanceRef.current.panTo([ubicacion.lat, ubicacion.lng])
+      }
+    })
+  }, [ubicacion])
+
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove()
+        mapInstanceRef.current = null
+      }
+    }
+  }, [])
+
+  return (
+    <div style={{ marginTop: '14px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)' }}>
+      <div style={{ background: 'rgba(249,115,22,.08)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+        <span style={{ fontSize: '14px' }}>📡</span>
+        <span style={{ fontSize: '12px', fontWeight: '700', color: '#F97316' }}>
+          {sinSenal ? 'Esperando senal GPS del conductor...' : 'Conductor en tiempo real'}
+        </span>
+        {!sinSenal && ubicacion && (
+          <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#7A8FAD' }}>
+            Actualizado hace {Math.round((Date.now() - new Date(ubicacion.actualizadoEn)) / 1000)}s
+          </span>
+        )}
+      </div>
+      {sinSenal ? (
+        <div style={{ background: '#0C1B35', padding: '32px', textAlign: 'center', color: '#7A8FAD', fontSize: '13px' }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚛</div>
+          El conductor aun no ha activado el GPS o esta fuera de cobertura
+        </div>
+      ) : (
+        <div ref={mapRef} style={{ height: '280px', width: '100%', background: '#0C1B35' }} />
+      )}
+    </div>
+  )
 }
 
 export default function Carrier() {
@@ -29,10 +125,7 @@ export default function Carrier() {
   const [cargando, setCargando] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [solicitudes, setSolicitudes] = useState([])
-
-  // Conductores empresa
   const [conductores, setConductores] = useState([])
-  // Conductores afiliados aprobados de esta empresa
   const [conductoresAfiliados, setConductoresAfiliados] = useState([])
 
   const [cForm, setCForm] = useState({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
@@ -107,7 +200,6 @@ export default function Carrier() {
   }
   async function cargarConductoresAfiliados() {
     try {
-      // Traer conductores afiliados aprobados — filtramos por nombre de empresa en el frontend
       const res = await fetch(`${CONDUCTOR_AFILIADO_API}/todos`, { headers })
       const data = await res.json()
       if (res.ok) setConductoresAfiliados(data.filter(c => c.estado === 'aprobado'))
@@ -137,8 +229,7 @@ export default function Carrier() {
       const res = await fetch(CONDUCTOR_API, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
       const data = await res.json()
       if (res.ok) {
-        setGuardadoC(true)
-        cargarConductores()
+        setGuardadoC(true); cargarConductores()
         setCForm({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
         setArchivosC({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
         setTimeout(() => setGuardadoC(false), 3000)
@@ -402,18 +493,11 @@ export default function Carrier() {
                       <div key={c._id} style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${proximoVencer ? 'rgba(245,158,11,.3)' : 'rgba(255,255,255,.07)'}`, borderRadius: '12px', padding: '16px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            {c.fotoConductor
-                              ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} />
-                              : <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👤</div>
-                            }
+                            {c.fotoConductor ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} /> : <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👤</div>}
                             <div>
                               <div style={{ fontSize: '15px', fontWeight: '700' }}>{c.nombre}</div>
                               <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>CC {c.cedula} · {c.telefono || 'Sin telefono'} · Lic. {c.categoriaLicencia}</div>
-                              {vencimiento && (
-                                <div style={{ fontSize: '11px', color: proximoVencer ? '#F59E0B' : '#10B981', marginTop: '2px' }}>
-                                  {proximoVencer ? `⚠️ Licencia vence en ${diasParaVencer} dias` : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}
-                                </div>
-                              )}
+                              {vencimiento && <div style={{ fontSize: '11px', color: proximoVencer ? '#F59E0B' : '#10B981', marginTop: '2px' }}>{proximoVencer ? `⚠️ Licencia vence en ${diasParaVencer} dias` : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}</div>}
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '8px' }}>
@@ -450,20 +534,12 @@ export default function Carrier() {
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>📸 Documentos *</div>
                 <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Sube foto o PDF de cada documento. Maximo 10MB.</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                  {[
-                    { key: 'fotoConductor', label: 'Foto del conductor', ic: '📷' },
-                    { key: 'fotoCedula', label: 'Foto de la cedula', ic: '🪪' },
-                    { key: 'fotoLicencia', label: 'Foto de la licencia', ic: '📄' },
-                  ].map(doc => (
+                  {[{ key: 'fotoConductor', label: 'Foto del conductor', ic: '📷' }, { key: 'fotoCedula', label: 'Foto de la cedula', ic: '🪪' }, { key: 'fotoLicencia', label: 'Foto de la licencia', ic: '📄' }].map(doc => (
                     <div key={doc.key}>
                       <label style={s.lbl}>{doc.label} *</label>
                       <label style={{ display: 'block', background: archivosC[doc.key] ? 'rgba(16,185,129,.06)' : 'rgba(255,255,255,.03)', border: `2px dashed ${archivosC[doc.key] ? '#10B981' : 'rgba(255,255,255,.15)'}`, borderRadius: '12px', padding: '16px', textAlign: 'center', cursor: 'pointer' }}>
-                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
-                          onChange={e => { const f = e.target.files[0]; if (f) setArchivosC({ ...archivosC, [doc.key]: f }) }} />
-                        {archivosC[doc.key]
-                          ? <div><div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div><div style={{ fontSize: '11px', color: '#10B981' }}>{archivosC[doc.key].name}</div></div>
-                          : <div><div style={{ fontSize: '24px', marginBottom: '6px' }}>{doc.ic}</div><div style={{ fontSize: '11px', color: '#7A8FAD' }}>Subir archivo</div></div>
-                        }
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }} onChange={e => { const f = e.target.files[0]; if (f) setArchivosC({ ...archivosC, [doc.key]: f }) }} />
+                        {archivosC[doc.key] ? <div><div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div><div style={{ fontSize: '11px', color: '#10B981' }}>{archivosC[doc.key].name}</div></div> : <div><div style={{ fontSize: '24px', marginBottom: '6px' }}>{doc.ic}</div><div style={{ fontSize: '11px', color: '#7A8FAD' }}>Subir archivo</div></div>}
                       </label>
                     </div>
                   ))}
@@ -481,11 +557,7 @@ export default function Carrier() {
             <div>
               <div style={s.h2}>Publicar ruta ➕</div>
               <div style={s.p}>Ingresa los datos de tu ruta para que las empresas te encuentren.</div>
-              {vehiculosAprobados.length === 0 && (
-                <div style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#F59E0B' }}>
-                  ⚠️ No tienes vehiculos aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('vehiculo')}>Registra un vehiculo</span> primero.
-                </div>
-              )}
+              {vehiculosAprobados.length === 0 && <div style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#F59E0B' }}>⚠️ No tienes vehiculos aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('vehiculo')}>Registra un vehiculo</span> primero.</div>}
               {publicado && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Ruta publicada exitosamente!</div>}
               {vehiculosAprobados.length > 0 && (<>
                 <div style={s.panel}>
@@ -503,28 +575,19 @@ export default function Carrier() {
                       </div>
                     ))}
                   </div>
-                  {ruta.vehiculoId && (
-                    <div style={{ marginTop: '12px', background: 'rgba(37,99,235,.08)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', color: '#60A5FA' }}>
-                      🚛 Carroceria: <strong>{vehActual?.carroceria?.replace('_', ' ')}</strong> — se asigna automaticamente a la ruta
-                    </div>
-                  )}
+                  {ruta.vehiculoId && <div style={{ marginTop: '12px', background: 'rgba(37,99,235,.08)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', color: '#60A5FA' }}>🚛 Carroceria: <strong>{vehActual?.carroceria?.replace('_', ' ')}</strong> — se asigna automaticamente a la ruta</div>}
                 </div>
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>👤 Conductor asignado para este viaje *</div>
                   <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>La empresa remitente vera el perfil de este conductor antes de que salga el camion.</div>
                   {conductores.filter(c => c.estado === 'aprobado').length === 0 ? (
-                    <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px', fontSize: '13px', color: '#F59E0B' }}>
-                      ⚠️ No tienes conductores aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('conductores')}>Añade un conductor</span> primero.
-                    </div>
+                    <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px', fontSize: '13px', color: '#F59E0B' }}>⚠️ No tienes conductores aprobados. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setVista('conductores')}>Añade un conductor</span> primero.</div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {conductores.filter(c => c.estado === 'aprobado').map(c => (
                         <div key={c._id} onClick={() => setRuta({ ...ruta, conductorId: c._id })}
                           style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', border: `2px solid ${ruta.conductorId === c._id ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.conductorId === c._id ? 'rgba(249,115,22,.06)' : 'rgba(255,255,255,.02)', cursor: 'pointer', transition: '.2s' }}>
-                          {c.fotoConductor
-                            ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }} />
-                            : <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>👤</div>
-                          }
+                          {c.fotoConductor ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }} /> : <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>👤</div>}
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '14px', fontWeight: '700' }}>{c.nombre}</div>
                             <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '1px' }}>CC {c.cedula} · Lic. {c.categoriaLicencia}</div>
@@ -537,10 +600,7 @@ export default function Carrier() {
                 </div>
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 Punto de salida y ruta</div>
-                  <div style={s.fg}>
-                    <label style={s.lbl}>Direccion exacta de salida de tu flota *</label>
-                    <input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogota" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} />
-                  </div>
+                  <div style={s.fg}><label style={s.lbl}>Direccion exacta de salida de tu flota *</label><input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogota" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={ruta.origen} onChange={e => setRuta({ ...ruta, origen: e.target.value })} /></div>
                     <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellin" value={ruta.destino} onChange={e => setRuta({ ...ruta, destino: e.target.value })} /></div>
@@ -560,8 +620,7 @@ export default function Carrier() {
                   <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Cuantos kg te sobran? El precio se calculara automaticamente.</div>
                   <div style={s.fg}>
                     <label style={s.lbl}>Peso disponible (kg) *</label>
-                    <input type="number" style={s.inp} placeholder={pesoMax ? `Max ${pesoMax.toLocaleString('es-CO')} kg` : 'Selecciona un vehiculo primero'} value={ruta.pesoDisponible} disabled={!ruta.vehiculoId}
-                      onChange={e => setRuta({ ...ruta, pesoDisponible: Math.min(Number(e.target.value), pesoMax) || '' })} />
+                    <input type="number" style={s.inp} placeholder={pesoMax ? `Max ${pesoMax.toLocaleString('es-CO')} kg` : 'Selecciona un vehiculo primero'} value={ruta.pesoDisponible} disabled={!ruta.vehiculoId} onChange={e => setRuta({ ...ruta, pesoDisponible: Math.min(Number(e.target.value), pesoMax) || '' })} />
                   </div>
                   {ruta.pesoDisponible > 0 && (
                     <div>
@@ -645,66 +704,40 @@ export default function Carrier() {
                       </span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                      {[
-                        ['Tipo de carga', `${sol.carga?.tipo || '-'}`],
-                        ['Peso real', `${sol.carga?.pesoReal?.toLocaleString('es-CO') || '-'} kg`],
-                        ['Direccion recogida', sol.direccionRecogida || '-'],
-                        ['Km extra', sol.kmExtra > 0 ? `${sol.kmExtra} km fuera del rango` : '✅ Dentro del rango'],
-                        ['Recibes tu', `$${sol.precioCarrier?.toLocaleString('es-CO') || '-'} COP`],
-                        ['Total al cliente', `$${sol.precioTotal?.toLocaleString('es-CO') || '-'} COP`],
-                      ].map(([k, v]) => (
+                      {[['Tipo de carga', `${sol.carga?.tipo || '-'}`], ['Peso real', `${sol.carga?.pesoReal?.toLocaleString('es-CO') || '-'} kg`], ['Direccion recogida', sol.direccionRecogida || '-'], ['Km extra', sol.kmExtra > 0 ? `${sol.kmExtra} km fuera del rango` : '✅ Dentro del rango'], ['Recibes tu', `$${sol.precioCarrier?.toLocaleString('es-CO') || '-'} COP`], ['Total al cliente', `$${sol.precioTotal?.toLocaleString('es-CO') || '-'} COP`]].map(([k, v]) => (
                         <div key={k} style={{ background: 'rgba(255,255,255,.03)', borderRadius: '8px', padding: '10px 12px' }}>
                           <div style={{ fontSize: '10px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '3px' }}>{k}</div>
                           <div style={{ fontSize: '13px', fontWeight: '600' }}>{v}</div>
                         </div>
                       ))}
                     </div>
-
-                    {/* BOTONES PENDIENTE */}
                     {sol.estado === 'pendiente' && (
                       <div style={{ display: 'flex', gap: '10px' }}>
                         <button onClick={() => responderSolicitud(sol._id, 'aceptar')} style={{ flex: 1, background: 'rgba(16,185,129,.12)', color: '#10B981', border: '1px solid rgba(16,185,129,.3)', padding: '12px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>✅ Aceptar reserva</button>
                         <button onClick={() => responderSolicitud(sol._id, 'rechazar')} style={{ flex: 1, background: 'rgba(239,68,68,.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,.2)', padding: '12px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>❌ Rechazar</button>
                       </div>
                     )}
-
-                    {/* ── ASIGNAR CONDUCTOR AFILIADO (cuando esta aceptado) ── */}
                     {sol.estado === 'aceptado' && (
                       <div style={{ marginTop: '12px', background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '10px', padding: '16px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>
-                          👤 Asignar conductor afiliado a este viaje
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '12px' }}>
-                          El conductor asignado vera este viaje en su panel y podra ingresar el codigo de recogida.
-                        </div>
-
-                        {/* Conductor ya asignado */}
+                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>👤 Asignar conductor afiliado a este viaje</div>
+                        <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '12px' }}>El conductor asignado vera este viaje en su panel y podra ingresar el codigo de recogida.</div>
                         {sol.conductorAfiliadoId && (
                           <div style={{ background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontSize: '18px' }}>✅</span>
                             <div>
-                              <div style={{ fontSize: '13px', fontWeight: '700', color: '#10B981' }}>
-                                {sol.conductorAfiliadoId?.nombre || 'Conductor asignado'}
-                              </div>
-                              <div style={{ fontSize: '11px', color: '#7A8FAD' }}>
-                                CC {sol.conductorAfiliadoId?.cedula} · Lic. {sol.conductorAfiliadoId?.categoriaLicencia}
-                              </div>
+                              <div style={{ fontSize: '13px', fontWeight: '700', color: '#10B981' }}>{sol.conductorAfiliadoId?.nombre || 'Conductor asignado'}</div>
+                              <div style={{ fontSize: '11px', color: '#7A8FAD' }}>CC {sol.conductorAfiliadoId?.cedula} · Lic. {sol.conductorAfiliadoId?.categoriaLicencia}</div>
                             </div>
                           </div>
                         )}
-
-                        {/* Lista de conductores afiliados */}
                         {conductoresAfiliados.length === 0 ? (
-                          <div style={{ fontSize: '12px', color: '#7A8FAD' }}>
-                            No hay conductores afiliados aprobados disponibles. El conductor debe solicitar acceso desde /conductor.
-                          </div>
+                          <div style={{ fontSize: '12px', color: '#7A8FAD' }}>No hay conductores afiliados aprobados disponibles.</div>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {conductoresAfiliados.map(c => {
                               const asignado = sol.conductorAfiliadoId?._id === c._id || sol.conductorAfiliadoId === c._id
                               return (
-                                <div key={c._id}
-                                  onClick={() => asignarConductor(sol._id, c._id)}
+                                <div key={c._id} onClick={() => asignarConductor(sol._id, c._id)}
                                   style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '9px', border: `1px solid ${asignado ? 'rgba(16,185,129,.4)' : 'rgba(255,255,255,.08)'}`, background: asignado ? 'rgba(16,185,129,.08)' : 'transparent', cursor: 'pointer', transition: '.15s' }}>
                                   <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>👤</div>
                                   <div style={{ flex: 1 }}>
@@ -725,11 +758,11 @@ export default function Carrier() {
             </div>
           )}
 
-          {/* VIAJES ACTIVOS */}
+          {/* VIAJES ACTIVOS — con mapa GPS */}
           {vista === 'viajes' && (
             <div>
               <div style={s.h2}>Viajes activos 📍</div>
-              <div style={s.p}>Tus envios en curso.</div>
+              <div style={s.p}>Tus envios en curso. Cuando el conductor este en ruta veras su ubicacion en tiempo real.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
                 : viajes.filter(v => v.estado === 'activo' || v.estado === 'en_transito').length === 0 ? (
                   <div style={{ ...s.panel, ...s.emptyState }}>
@@ -738,11 +771,23 @@ export default function Carrier() {
                     <div>Acepta una solicitud para empezar</div>
                   </div>
                 ) : viajes.filter(v => v.estado === 'activo' || v.estado === 'en_transito').map(v => (
-                  <div key={v._id} style={s.rutaCard}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div><div style={{ fontSize: '14px', fontWeight: '700' }}>🚛 {v.origen} → {v.destino}</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(v.fecha).toLocaleDateString('es-CO')}</div></div>
+                  <div key={v._id} style={{ ...s.panel, marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: '700' }}>🚛 {v.origen} → {v.destino}</div>
+                        <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(v.fecha).toLocaleDateString('es-CO')}</div>
+                      </div>
                       <div style={{ fontSize: '14px', fontWeight: '700', color: '#F97316' }}>${v.precio?.toLocaleString('es-CO')}</div>
                     </div>
+
+                    {/* MAPA GPS — se activa cuando el conductor esta en ruta */}
+                    {(v.estado === 'en_transito' || v.estado === 'en_ruta') && v._id && (
+                      <MapaGPS
+                        solicitudId={v._id}
+                        origen={v.origen}
+                        destino={v.destino}
+                      />
+                    )}
                   </div>
                 ))
               }

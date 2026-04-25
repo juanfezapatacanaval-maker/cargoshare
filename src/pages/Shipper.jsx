@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const API = 'https://cargoshare-api-production.up.railway.app/api/shipper'
@@ -43,6 +43,107 @@ const TIPOS_CARGA = [
   ['general','📦','General'],['fragil','🔮','Fragil'],
   ['maquinaria','🏗️','Maquinaria'],['refrigerado','❄️','Refrigerado'],['congelado','🧊','Congelado'],
 ]
+
+// ─── MAPA GPS LEAFLET ─────────────────────────────────────────────
+// Muestra la ubicacion en tiempo real del conductor en un mapa interactivo
+function MapaGPS({ solicitudId, origen, destino }) {
+  const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const markerRef = useRef(null)
+  const [ubicacion, setUbicacion] = useState(null)
+  const [sinSenal, setSinSenal] = useState(false)
+
+  // Cargar Leaflet CSS una sola vez
+  useEffect(() => {
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link')
+      link.id = 'leaflet-css'
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
+    }
+  }, [])
+
+  // Polling de ubicacion cada 5 segundos
+  useEffect(() => {
+    let cancelado = false
+    async function fetchUbicacion() {
+      try {
+        const res = await fetch(`${RUTAS_API}/solicitudes/${solicitudId}/ubicacion`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelado && data.ubicacionActual?.lat) {
+          setUbicacion(data.ubicacionActual)
+          setSinSenal(false)
+        } else if (!cancelado) {
+          setSinSenal(true)
+        }
+      } catch { }
+    }
+    fetchUbicacion()
+    const interval = setInterval(fetchUbicacion, 5000)
+    return () => { cancelado = true; clearInterval(interval) }
+  }, [solicitudId])
+
+  // Inicializar mapa y mover pin cuando cambia ubicacion
+  useEffect(() => {
+    if (!ubicacion || !mapRef.current) return
+    import('leaflet').then(L => {
+      const Lm = L.default || L
+      if (!mapInstanceRef.current) {
+        mapInstanceRef.current = Lm.map(mapRef.current, { zoomControl: true, attributionControl: false }).setView([ubicacion.lat, ubicacion.lng], 13)
+        Lm.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstanceRef.current)
+        const icono = Lm.divIcon({
+          className: '',
+          html: `<div style="background:#F97316;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.4)">🚛</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        })
+        markerRef.current = Lm.marker([ubicacion.lat, ubicacion.lng], { icon: icono }).addTo(mapInstanceRef.current)
+          .bindPopup(`<b>Conductor en ruta</b><br>${origen} → ${destino}`)
+      } else {
+        markerRef.current?.setLatLng([ubicacion.lat, ubicacion.lng])
+        mapInstanceRef.current.panTo([ubicacion.lat, ubicacion.lng])
+      }
+    })
+  }, [ubicacion])
+
+  // Cleanup al desmontar
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove()
+        mapInstanceRef.current = null
+      }
+    }
+  }, [])
+
+  return (
+    <div style={{ marginTop: '14px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)' }}>
+      <div style={{ background: 'rgba(249,115,22,.08)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+        <span style={{ fontSize: '14px' }}>📡</span>
+        <span style={{ fontSize: '12px', fontWeight: '700', color: '#F97316' }}>
+          {sinSenal ? 'Esperando senal GPS del conductor...' : 'Conductor en tiempo real'}
+        </span>
+        {!sinSenal && ubicacion && (
+          <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#7A8FAD' }}>
+            Actualizado hace {Math.round((Date.now() - new Date(ubicacion.actualizadoEn)) / 1000)}s
+          </span>
+        )}
+      </div>
+      {sinSenal ? (
+        <div style={{ background: '#0C1B35', padding: '32px', textAlign: 'center', color: '#7A8FAD', fontSize: '13px' }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚛</div>
+          El conductor aun no ha activado el GPS o esta fuera de cobertura
+        </div>
+      ) : (
+        <div ref={mapRef} style={{ height: '280px', width: '100%', background: '#0C1B35' }} />
+      )}
+    </div>
+  )
+}
 
 export default function Shipper() {
   const navigate = useNavigate()
@@ -195,14 +296,7 @@ export default function Shipper() {
     envioCard: { background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '12px', padding: '16px', marginBottom: '10px' },
     rutaCard: { background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '18px', marginBottom: '12px' },
     desglose: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,.04)' },
-    codigoBox: (color) => ({
-      background: `rgba(${color},.08)`,
-      border: `2px solid rgba(${color},.3)`,
-      borderRadius: '14px',
-      padding: '20px',
-      textAlign: 'center',
-      flex: 1,
-    }),
+    codigoBox: (color) => ({ background: `rgba(${color},.08)`, border: `2px solid rgba(${color},.3)`, borderRadius: '14px', padding: '20px', textAlign: 'center', flex: 1 }),
     codigoNum: { fontFamily: 'monospace', fontSize: '32px', fontWeight: '800', letterSpacing: '6px', marginBottom: '6px' },
   }
 
@@ -288,7 +382,6 @@ export default function Shipper() {
                 <div style={s.fg}>
                   <label style={s.lbl}>Direccion exacta de recogida *</label>
                   <input style={s.inp} placeholder="Ej: Cra 30 #10-45, Bogota" value={busqueda.direccionRecogida} onChange={e => setBusqueda({ ...busqueda, direccionRecogida: e.target.value })} />
-                  <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '5px' }}>Desde aqui se calcula si hay km extra de recogida</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={busqueda.origen} onChange={e => setBusqueda({ ...busqueda, origen: e.target.value })} /></div>
@@ -376,7 +469,7 @@ export default function Shipper() {
                             }
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '12px', fontWeight: '700', color: 'white' }}>👤 Conductor asignado: {r.conductor.nombre}</div>
-                              <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>CC {r.conductor.cedula} · {r.conductor.telefono || 'Sin telefono'} · Lic. {r.conductor.licencia}</div>
+                              <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>CC {r.conductor.cedula} · Lic. {r.conductor.licencia}</div>
                             </div>
                           </div>
                         ) : (
@@ -446,12 +539,11 @@ export default function Shipper() {
             </div>
           )}
 
-          {/* ── MIS CODIGOS ── */}
+          {/* MIS CODIGOS */}
           {vista === 'codigos' && (
             <div>
               <div style={s.h2}>Mis codigos 🔑</div>
               <div style={s.p}>Estos son los codigos de tus envios aceptados. Dalos al conductor cuando llegue.</div>
-
               {cargando ? (
                 <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
               ) : solicitudes.filter(s => s.estado === 'aceptado' || s.estado === 'en_ruta').length === 0 ? (
@@ -463,64 +555,38 @@ export default function Shipper() {
                 </div>
               ) : solicitudes.filter(sol => sol.estado === 'aceptado' || sol.estado === 'en_ruta').map(sol => (
                 <div key={sol._id} style={{ ...s.panel, marginBottom: '20px' }}>
-                  {/* Header del envio */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                     <div>
-                      <div style={{ fontSize: '16px', fontWeight: '700' }}>
-                        {sol.ruta?.origen || '-'} → {sol.ruta?.destino || '-'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>
-                        {sol.empresaCarrier?.nombre || 'Empresa transportadora'}
-                      </div>
+                      <div style={{ fontSize: '16px', fontWeight: '700' }}>{sol.ruta?.origen || '-'} → {sol.ruta?.destino || '-'}</div>
+                      <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>{sol.empresaCarrier?.nombre || 'Empresa transportadora'}</div>
                     </div>
-                    <div style={s.badge(sol.estado)}>
-                      {sol.estado === 'en_ruta' ? '🚛 En ruta' : '✅ Aceptado'}
-                    </div>
+                    <div style={s.badge(sol.estado)}>{sol.estado === 'en_ruta' ? '🚛 En ruta' : '✅ Aceptado'}</div>
                   </div>
-
-                  {/* Codigos */}
                   <div style={{ display: 'flex', gap: '14px', marginBottom: '16px' }}>
-                    {/* Codigo recogida */}
                     <div style={s.codigoBox('249,115,22')}>
-                      <div style={{ fontSize: '11px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
-                        📍 Codigo de recogida
-                      </div>
-                      <div style={{ ...s.codigoNum, color: '#F97316' }}>
-                        {sol.codigoRecogida || '------'}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: 1.5 }}>
-                        Dale este codigo al conductor cuando llegue a recoger tu carga
-                      </div>
+                      <div style={{ fontSize: '11px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>📍 Codigo de recogida</div>
+                      <div style={{ ...s.codigoNum, color: '#F97316' }}>{sol.codigoRecogida || '------'}</div>
+                      <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: 1.5 }}>Dale este codigo al conductor cuando llegue a recoger tu carga</div>
                     </div>
-
-                    {/* Codigo entrega */}
                     <div style={s.codigoBox('16,185,129')}>
-                      <div style={{ fontSize: '11px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
-                        🏁 Codigo de entrega
-                      </div>
-                      <div style={{ ...s.codigoNum, color: '#10B981' }}>
-                        {sol.codigoEntrega || '------'}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: 1.5 }}>
-                        Dale este codigo al conductor cuando llegue a entregar tu carga
-                      </div>
+                      <div style={{ fontSize: '11px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>🏁 Codigo de entrega</div>
+                      <div style={{ ...s.codigoNum, color: '#10B981' }}>{sol.codigoEntrega || '------'}</div>
+                      <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: 1.5 }}>Dale este codigo al conductor cuando llegue a entregar tu carga</div>
                     </div>
                   </div>
-
-                  {/* Info adicional */}
                   <div style={{ background: 'rgba(255,255,255,.03)', borderRadius: '10px', padding: '12px 14px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.7 }}>
-                    ⚠️ <strong style={{ color: 'white' }}>Importante:</strong> No compartas estos codigos con nadie que no sea el conductor asignado. El conductor debe ingresar el codigo en su app para verificar la recogida y la entrega.
+                    ⚠️ <strong style={{ color: 'white' }}>Importante:</strong> No compartas estos codigos con nadie que no sea el conductor asignado.
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* ENVIOS ACTIVOS */}
+          {/* ENVIOS ACTIVOS — con mapa GPS */}
           {vista === 'envios' && (
             <div>
               <div style={s.h2}>Envios activos 📍</div>
-              <div style={s.p}>Tus envios en curso.</div>
+              <div style={s.p}>Tus envios en curso. Cuando el conductor este en ruta veras su ubicacion en tiempo real.</div>
               {cargando ? <div style={{ textAlign: 'center', padding: '60px', color: '#7A8FAD' }}>Cargando...</div>
                 : envios.filter(v => v.estado !== 'completado').length === 0 ? (
                   <div style={{ ...s.panel, ...s.emptyState }}>
@@ -529,17 +595,26 @@ export default function Shipper() {
                     <button onClick={() => setVista('nuevo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🔍 Buscar rutas</button>
                   </div>
                 ) : envios.filter(v => v.estado !== 'completado').map(v => (
-                  <div key={v._id} style={s.envioCard}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div key={v._id} style={{ ...s.panel, marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
-                        <div style={{ fontSize: '14px', fontWeight: '700' }}>{v.origen} → {v.destino}</div>
+                        <div style={{ fontSize: '15px', fontWeight: '700' }}>{v.origen} → {v.destino}</div>
                         <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{v.carga?.tipo || 'General'} · {v.carga?.pesoReal?.toLocaleString('es-CO') || 0} kg</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={s.badge(v.estado)}>{v.estado === 'en_transito' ? 'En transito' : v.estado === 'pendiente' ? '⏳ Esperando respuesta' : 'Activo'}</div>
+                        <div style={s.badge(v.estado)}>{v.estado === 'en_transito' ? '🚛 En transito' : v.estado === 'pendiente' ? '⏳ Esperando respuesta' : 'Activo'}</div>
                         <div style={{ fontSize: '14px', fontWeight: '700', color: '#F97316', marginTop: '4px' }}>${v.precioTotal?.toLocaleString('es-CO')} COP</div>
                       </div>
                     </div>
+
+                    {/* MAPA GPS — solo cuando el conductor esta en ruta */}
+                    {(v.estado === 'en_transito' || v.estado === 'en_ruta') && v._id && (
+                      <MapaGPS
+                        solicitudId={v._id}
+                        origen={v.origen}
+                        destino={v.destino}
+                      />
+                    )}
                   </div>
                 ))
               }
