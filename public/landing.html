@@ -31,12 +31,10 @@ nav{position:fixed;top:0;width:100%;z-index:300;display:flex;align-items:center;
 .btn-cta{background:var(--orange);border:none;color:white;padding:9px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
 .btn-cta:hover{background:var(--orange2);transform:translateY(-1px);}
 
-/* HERO — centered layout */
+/* HERO */
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 48px 60px;position:relative;overflow:hidden;gap:0;}
 .hero-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 50% 38%,rgba(26,79,216,.17) 0%,transparent 65%),radial-gradient(ellipse 30% 28% at 82% 72%,rgba(249,115,22,.08) 0%,transparent 55%);}
 .grid-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:72px 72px;}
-
-/* Center text block */
 .hero-center{position:relative;z-index:2;text-align:center;max-width:800px;width:100%;margin-bottom:52px;}
 .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);padding:5px 14px;border-radius:100px;margin-bottom:28px;font-size:12px;color:var(--green);font-weight:600;}
 .pill-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 2s infinite;}
@@ -44,7 +42,7 @@ nav{position:fixed;top:0;width:100%;z-index:300;display:flex;align-items:center;
 h1{font-family:'Syne',sans-serif;font-size:66px;font-weight:800;line-height:1.04;letter-spacing:-3px;margin-bottom:22px;}
 .grad{background:linear-gradient(135deg,var(--orange) 0%,#FBBF24 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .hero-sub{font-size:17px;color:var(--gray);line-height:1.65;margin-bottom:36px;max-width:520px;margin-left:auto;margin-right:auto;}
-.hero-btns{display:flex;gap:12px;justify-content:center;}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
 .btn-p{background:var(--orange);color:white;border:none;padding:14px 30px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.25s;}
 .btn-p:hover{background:var(--orange2);transform:translateY(-2px);box-shadow:0 14px 36px rgba(249,115,22,.3);}
 .btn-o{background:transparent;color:white;border:1px solid rgba(255,255,255,.18);padding:14px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:.25s;}
@@ -78,7 +76,6 @@ h1{font-family:'Syne',sans-serif;font-size:66px;font-weight:800;line-height:1.04
 .chip-row{display:flex;gap:5px;flex-wrap:wrap;}
 .chip{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);color:var(--blue-light);font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;}
 .chip.cold{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green);}
-/* Live ticker */
 .ticker-head{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
 .ticker-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .ticker-row:last-child{border-bottom:none;padding-bottom:0;}
@@ -190,7 +187,7 @@ h1{font-family:'Syne',sans-serif;font-size:66px;font-weight:800;line-height:1.04
 .ccard:hover{border-color:rgba(249,115,22,.28);transform:translateX(3px);}
 .ccard.sel{border-color:var(--orange);background:rgba(249,115,22,.07);}
 .cav{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(26,79,216,.15);}
-.cinfo{flex:1;}
+.cinfo{flex:1;min-width:0;}
 .cname{font-size:14px;font-weight:700;}
 .cmeta{font-size:11.5px;color:var(--gray);margin-top:1px;}
 .ctags{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
@@ -246,7 +243,7 @@ footer p{font-size:13px;color:var(--gray);}
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
 .overlay.open{display:flex;}
-.modal{background:#0C1B35;border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:38px;width:480px;max-width:95vw;position:relative;animation:mup .3s ease;}
+.modal{background:#0C1B35;border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:38px;width:480px;max-width:95vw;position:relative;animation:mup .3s ease;max-height:90vh;overflow-y:auto;}
 @keyframes mup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .modal-x{position:absolute;top:13px;right:13px;background:rgba(255,255,255,.07);border:none;color:white;width:29px;height:29px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
 .modal-x:hover{background:rgba(255,255,255,.13);}
@@ -273,6 +270,130 @@ footer p{font-size:13px;color:var(--gray);}
 .lc-d{font-size:12px;color:var(--gray);line-height:1.5;}
 .rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease;}
 .rv.in{opacity:1;transform:translateY(0);}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE MOVIL — max-width: 768px
+═══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* NAV MOVIL */
+  nav {
+    padding: 0 20px;
+    height: 56px;
+  }
+  .nav-links { display: none; }
+  .nav-actions { gap: 8px; }
+  .btn-ghost { padding: 7px 12px; font-size: 12px; }
+  .btn-cta { padding: 7px 14px; font-size: 12px; }
+
+  /* HERO MOVIL */
+  .hero {
+    padding: 80px 20px 40px;
+    min-height: auto;
+  }
+  .hero-center { margin-bottom: 32px; }
+  h1 {
+    font-size: 36px;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+  }
+  .hero-sub { font-size: 15px; margin-bottom: 28px; }
+  .hero-btns { flex-direction: column; align-items: center; }
+  .btn-p, .btn-o { width: 100%; max-width: 320px; text-align: center; }
+
+  /* Hero bottom — solo mostrar card central en movil */
+  .hero-bottom {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+  .hcard-stack:first-child { display: none; }
+  .hcard-stack:last-child { display: none; }
+  .hcard-center { padding: 16px; }
+  .ticker-value { font-size: 15px; }
+
+  /* SECTIONS */
+  .sec { padding: 52px 20px; }
+  .sec-title { font-size: 28px; letter-spacing: -1px; }
+  .sec-sub { font-size: 14px; max-width: 100%; }
+
+  /* BENEFITS */
+  .ben-head { flex-direction: column; gap: 16px; margin-bottom: 28px; }
+  .ben-grid { grid-template-columns: 1fr; gap: 12px; }
+  .bcard { padding: 20px; }
+
+  /* STATS */
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .sb-item {
+    padding: 28px 16px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-item:nth-child(2n) { border-right: none; }
+  .sb-item:nth-last-child(-n+2) { border-bottom: none; }
+  .sb-num { font-size: 30px; }
+  .sb-lbl { font-size: 12px; }
+
+  /* HOW IT WORKS */
+  .hiw-head { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+  .tabs { width: 100%; }
+  .tab { flex: 1; text-align: center; padding: 8px 10px; font-size: 12px; }
+  .steps { grid-template-columns: 1fr; gap: 12px; }
+  .scard { padding: 22px 18px; }
+  .sc-num { font-size: 52px; }
+
+  /* SIMULATOR */
+  .sim-layout { grid-template-columns: 1fr; gap: 20px; }
+  .sim-form { padding: 20px; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .vol-pill { grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 10px; }
+  .vp-v { font-size: 13px; }
+  .total-amt { font-size: 32px; }
+  /* Carriers en movil — stack vertical */
+  .ccard { flex-wrap: wrap; gap: 10px; }
+  .cright { width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; text-align: left; }
+  .btn-book { margin-top: 0; }
+
+  /* TESTIMONIALS */
+  .tcard { min-width: calc(100% - 0px); }
+  .tt { font-size: 13px; }
+
+  /* CTA */
+  .cta-sec { padding: 0 20px 52px; }
+  .cta-in { padding: 40px 24px; }
+  .cta-in h2 { font-size: 28px; letter-spacing: -1px; }
+  .cta-in p { font-size: 14px; margin-bottom: 24px; }
+  .cta-btns { flex-direction: column; align-items: center; }
+  .cta-btn { width: 100%; max-width: 320px; }
+
+  /* FOOTER */
+  footer { padding: 24px 20px; flex-direction: column; text-align: center; gap: 8px; }
+
+  /* MODAL */
+  .modal { padding: 28px 20px; border-radius: 16px; }
+  .modal-title { font-size: 20px; }
+  .role-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .role-opt { padding: 12px 8px; }
+  .role-opt .ric { font-size: 22px; }
+  .role-opt .rd { display: none; }
+}
+
+/* TABLET */
+@media (min-width: 769px) and (max-width: 1024px) {
+  nav { padding: 0 32px; }
+  .nav-links { gap: 20px; }
+  .hero { padding: 90px 32px 50px; }
+  h1 { font-size: 48px; }
+  .hero-bottom { grid-template-columns: 1fr 1.3fr; }
+  .hcard-stack:last-child { display: none; }
+  .sec { padding: 64px 32px; }
+  .sec-title { font-size: 34px; }
+  .ben-grid { grid-template-columns: repeat(2, 1fr); }
+  .sim-layout { grid-template-columns: 340px 1fr; }
+  .cta-sec { padding: 0 32px 64px; }
+  .cta-in { padding: 52px 40px; }
+  footer { padding: 28px 32px; }
+}
 </style>
 </head>
 <body>
@@ -294,8 +415,6 @@ footer p{font-size:13px;color:var(--gray);}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-bg"></div><div class="grid-bg"></div>
-
-  <!-- TEXTO CENTRADO -->
   <div class="hero-center">
     <div class="pill"><span class="pill-dot"></span>Operando en Colombia — Únete gratis</div>
     <h1>El espacio vacío<br>se convierte en<br><span class="grad">ingresos reales</span></h1>
@@ -305,11 +424,7 @@ footer p{font-size:13px;color:var(--gray);}
       <button class="btn-o" onclick="document.getElementById('simulator').scrollIntoView({behavior:'smooth'})">Ver simulador</button>
     </div>
   </div>
-
-  <!-- CARDS INFERIORES 3 COLUMNAS -->
   <div class="hero-bottom">
-
-    <!-- IZQUIERDA -->
     <div class="hcard-stack">
       <div class="hcard">
         <div class="hc-lbl">Ruta disponible ahora</div>
@@ -326,8 +441,6 @@ footer p{font-size:13px;color:var(--gray);}
         </div>
       </div>
     </div>
-
-    <!-- CENTRO: Ticker en vivo -->
     <div class="hcard-center">
       <div class="ticker-head">
         <span style="width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 2s infinite;display:inline-block;flex-shrink:0;"></span>
@@ -335,67 +448,37 @@ footer p{font-size:13px;color:var(--gray);}
       </div>
       <div class="ticker-row">
         <div class="ticker-icon" style="background:rgba(16,185,129,.12);">💰</div>
-        <div class="ticker-info">
-          <div class="ticker-label">Generados hoy</div>
-          <div class="ticker-value" style="color:var(--green);">$847,230</div>
-        </div>
+        <div class="ticker-info"><div class="ticker-label">Generados hoy</div><div class="ticker-value" style="color:var(--green);">$847,230</div></div>
         <span class="ticker-badge" style="background:rgba(16,185,129,.12);color:var(--green);">↑ COP</span>
       </div>
       <div class="ticker-row">
         <div class="ticker-icon" style="background:rgba(37,99,235,.12);">🚛</div>
-        <div class="ticker-info">
-          <div class="ticker-label">Rutas activas</div>
-          <div class="ticker-value" style="color:var(--blue-light);">127</div>
-        </div>
+        <div class="ticker-info"><div class="ticker-label">Rutas activas</div><div class="ticker-value" style="color:var(--blue-light);">127</div></div>
         <span class="ticker-badge" style="background:rgba(96,165,250,.12);color:var(--blue-light);">en ruta</span>
       </div>
       <div class="ticker-row">
         <div class="ticker-icon" style="background:rgba(249,115,22,.12);">⚡</div>
-        <div class="ticker-info">
-          <div class="ticker-label">Match promedio</div>
-          <div class="ticker-value" style="color:var(--orange);">3.2 min</div>
-        </div>
+        <div class="ticker-info"><div class="ticker-label">Match promedio</div><div class="ticker-value" style="color:var(--orange);">3.2 min</div></div>
         <span class="ticker-badge" style="background:rgba(249,115,22,.12);color:var(--orange);">rápido</span>
       </div>
       <div class="ticker-row">
         <div class="ticker-icon" style="background:rgba(251,191,36,.12);">📍</div>
-        <div class="ticker-info">
-          <div class="ticker-label">Ciudades conectadas</div>
-          <div class="ticker-value" style="color:#FBBF24;">24</div>
-        </div>
+        <div class="ticker-info"><div class="ticker-label">Ciudades conectadas</div><div class="ticker-value" style="color:#FBBF24;">24</div></div>
         <span class="ticker-badge" style="background:rgba(251,191,36,.12);color:#FBBF24;">Colombia</span>
       </div>
     </div>
-
-    <!-- DERECHA -->
     <div class="hcard-stack">
-      <div class="hcard">
-        <div class="hc-lbl">Tu ahorro este mes</div>
-        <div class="sav-num">$1,240</div>
-        <div class="sav-sub">vs fletes tradicionales</div>
-      </div>
-      <div class="hcard">
-        <div class="mat-ic">⚡</div>
-        <div class="mat-t">3 matches disponibles</div>
-        <div class="mat-s">Para tu ruta Bogotá → Cali</div>
-      </div>
-      <div class="hcard">
-        <div class="hc-lbl">Empresas verificadas</div>
-        <div class="sav-num" style="color:var(--blue-light);font-size:22px;">+340</div>
-        <div class="sav-sub">registradas en la plataforma</div>
-      </div>
+      <div class="hcard"><div class="hc-lbl">Tu ahorro este mes</div><div class="sav-num">$1,240</div><div class="sav-sub">vs fletes tradicionales</div></div>
+      <div class="hcard"><div class="mat-ic">⚡</div><div class="mat-t">3 matches disponibles</div><div class="mat-s">Para tu ruta Bogotá → Cali</div></div>
+      <div class="hcard"><div class="hc-lbl">Empresas verificadas</div><div class="sav-num" style="color:var(--blue-light);font-size:22px;">+340</div><div class="sav-sub">registradas en la plataforma</div></div>
     </div>
-
   </div>
 </section>
 
 <!-- BENEFITS -->
 <section class="sec ben-sec" id="benefits">
   <div class="ben-head">
-    <div>
-      <div class="sec-tag">¿Por qué CargoShare?</div>
-      <div class="sec-title rv">La logística tiene<br>un problema enorme</div>
-    </div>
+    <div><div class="sec-tag">¿Por qué CargoShare?</div><div class="sec-title rv">La logística tiene<br>un problema enorme</div></div>
     <div class="sec-sub rv">El 69% de los camiones en Colombia regresan vacíos. Las PYMEs gastan hasta el 24% de sus ingresos en logística. CargoShare resuelve ambos problemas.</div>
   </div>
   <div class="ben-grid">
@@ -453,11 +536,11 @@ footer p{font-size:13px;color:var(--gray);}
       </div>
       <div class="frow"><label>Tipo de carga</label>
         <select id="tipoCarga">
-          <option value="general">📦 General (cajas, pallets, retail)</option>
-          <option value="fragil">🔮 Frágil (vidrio, electrónicos)</option>
+          <option value="general">📦 General</option>
+          <option value="fragil">🔮 Frágil</option>
           <option value="maquinaria">🏗️ Maquinaria pequeña</option>
-          <option value="refrigerado">❄️ Refrigerado (0°C a 8°C)</option>
-          <option value="congelado">🧊 Congelado (-18°C a -5°C)</option>
+          <option value="refrigerado">❄️ Refrigerado</option>
+          <option value="congelado">🧊 Congelado</option>
         </select>
       </div>
       <div class="frow"><label>Dimensiones por paquete</label>
@@ -469,12 +552,12 @@ footer p{font-size:13px;color:var(--gray);}
       </div>
       <div class="g2" style="margin-bottom:16px">
         <div class="frow"><label>Cantidad</label><input type="number" id="cantidad" value="5" min="1" oninput="liveCalc()"></div>
-        <div class="frow"><label>Peso real total (kg)</label><input type="number" id="peso" value="800" min="1" oninput="liveCalc()"></div>
+        <div class="frow"><label>Peso real (kg)</label><input type="number" id="peso" value="800" min="1" oninput="liveCalc()"></div>
       </div>
       <div class="vol-pill">
         <div><div class="vp-v" id="vp-vol">4.80 m³</div><div class="vp-k">Volumen total</div></div>
         <div><div class="vp-v or" id="vp-cob">800 kg</div><div class="vp-k">Peso cobrable</div></div>
-        <div><div class="vp-v gr" id="vp-fac">Peso real</div><div class="vp-k">Factor aplicado</div></div>
+        <div><div class="vp-v gr" id="vp-fac">Peso real</div><div class="vp-k">Factor</div></div>
       </div>
       <div class="frow"><label>Valor declarado (USD)</label><input type="number" id="valor" value="2000" min="0" oninput="checkIns()"></div>
       <div class="ins-box" id="insBox">🛡️ Seguro obligatorio activado — cargas ≥ $3,000 USD incluyen seguro automático (1.5% del valor declarado).</div>
@@ -576,8 +659,8 @@ footer p{font-size:13px;color:var(--gray);}
     <div class="modal-title">Crear cuenta</div>
     <div class="modal-sub">Elige tu tipo de cuenta para comenzar</div>
     <div class="role-grid">
-      <div class="role-opt sel" id="regRoleT" onclick="pickRole('t')"><span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Tengo camión propio o gestiono una flota y quiero monetizar espacio libre</div></div>
-      <div class="role-opt" id="regRoleE" onclick="pickRole('e')"><span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Necesito enviar carga y quiero pagar solo por el espacio que uso</div></div>
+      <div class="role-opt sel" id="regRoleT" onclick="pickRole('t')"><span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Tengo camión propio o gestiono una flota</div></div>
+      <div class="role-opt" id="regRoleE" onclick="pickRole('e')"><span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Necesito enviar carga</div></div>
     </div>
     <div class="fg"><label>Nombre de la empresa</label><input type="text" placeholder="Ej: Transporte Rápido SAS"></div>
     <div class="fg"><label>Correo corporativo</label><input type="email" placeholder="correo@empresa.com"></div>
@@ -598,8 +681,8 @@ footer p{font-size:13px;color:var(--gray);}
       <div class="lc-d" id="lcd">Selecciona tu perfil para ir directo a tu panel personalizado.</div>
     </div>
     <div class="role-grid" style="margin-bottom:20px">
-      <div class="role-opt sel" id="loginRT" onclick="pickLoginRole('t')"><span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Ver mis rutas, solicitudes y panel de ingresos</div></div>
-      <div class="role-opt" id="loginRE" onclick="pickLoginRole('e')"><span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Ver mis envíos, cotizaciones y panel de ahorro</div></div>
+      <div class="role-opt sel" id="loginRT" onclick="pickLoginRole('t')"><span class="ric">🚛</span><div class="rn">Transportista</div><div class="rd">Ver mis rutas y panel de ingresos</div></div>
+      <div class="role-opt" id="loginRE" onclick="pickLoginRole('e')"><span class="ric">📦</span><div class="rn">Empresa</div><div class="rd">Ver mis envíos y cotizaciones</div></div>
     </div>
     <div class="fg"><label>Correo corporativo</label><input type="email" placeholder="correo@empresa.com"></div>
     <div class="fg"><label>Contraseña</label><input type="password" placeholder="Tu contraseña"></div>
@@ -610,7 +693,7 @@ footer p{font-size:13px;color:var(--gray);}
 
 <script>
 const VEH=[{n:'Furgón pequeño',e:'🚐',maxV:8,maxW:1500,d:'Ideal para cargas pequeñas hasta 1.5 toneladas'},{n:'Camión 3/4',e:'🚛',maxV:20,maxW:4000,d:'El más común en rutas intermunicipales de Colombia'},{n:'Camión sencillo',e:'🚚',maxV:40,maxW:8000,d:'Rutas largas con carga media-alta'},{n:'Doble troque',e:'🚛',maxV:80,maxW:18000,d:'Máxima capacidad para carga pesada'}];
-const CARRIERS=[{id:1,n:'Carlos Jiménez',t:'Transportista independiente',e:'🚛',veh:'Camión 3/4',maxV:20,maxW:4000,rat:4.9,rev:87,tags:['Verificado','Sin recargo extra'],cold:false,extra:0,deps:['Mañana 6:00 AM','Jueves 7:30 AM']},{id:2,n:'Transportes Andes SAS',t:'Empresa con flota',e:'🏢',veh:'Camión sencillo',maxV:40,maxW:8000,rat:4.7,rev:234,tags:['Empresa verificada','Seguro incluido'],cold:false,extra:.05,deps:['Mañana 9:00 AM','Viernes 5:00 AM']},{id:3,n:'Frigorutas Colombia',t:'Especialista en frío',e:'❄️',veh:'Camión refrigerado',maxV:18,maxW:3500,rat:4.8,rev:112,tags:['Refrigerado','Congelado','Verificado'],cold:true,extra:.35,deps:['Jueves 8:00 AM','Sábado 6:00 AM']},{id:4,n:'Jorge Morales',t:'Transportista independiente',e:'🚐',veh:'Furgón grande',maxV:12,maxW:2000,rat:4.6,rev:45,tags:['Verificado','Retorno vacío — precio reducido'],cold:false,extra:-.1,deps:['Viernes 7:00 AM']}];
+const CARRIERS=[{id:1,n:'Carlos Jiménez',t:'Transportista independiente',e:'🚛',veh:'Camión 3/4',maxV:20,maxW:4000,rat:4.9,rev:87,tags:['Verificado','Sin recargo extra'],cold:false,extra:0,deps:['Mañana 6:00 AM']},{id:2,n:'Transportes Andes SAS',t:'Empresa con flota',e:'🏢',veh:'Camión sencillo',maxV:40,maxW:8000,rat:4.7,rev:234,tags:['Empresa verificada','Seguro incluido'],cold:false,extra:.05,deps:['Mañana 9:00 AM']},{id:3,n:'Frigorutas Colombia',t:'Especialista en frío',e:'❄️',veh:'Camión refrigerado',maxV:18,maxW:3500,rat:4.8,rev:112,tags:['Refrigerado','Congelado','Verificado'],cold:true,extra:.35,deps:['Jueves 8:00 AM']},{id:4,n:'Jorge Morales',t:'Transportista independiente',e:'🚐',veh:'Furgón grande',maxV:12,maxW:2000,rat:4.6,rev:45,tags:['Verificado','Retorno vacío — precio reducido'],cold:false,extra:-.1,deps:['Viernes 7:00 AM']}];
 function liveCalc(){const l=parseFloat(document.getElementById('largo').value)||0,a=parseFloat(document.getElementById('ancho').value)||0,h=parseFloat(document.getElementById('alto').value)||0,q=parseInt(document.getElementById('cantidad').value)||1,pr=parseFloat(document.getElementById('peso').value)||0,vol=l*a*h*q,pv=vol*333,pc=Math.max(pr,pv);document.getElementById('vp-vol').textContent=vol.toFixed(2)+' m³';document.getElementById('vp-cob').textContent=pc.toFixed(0)+' kg';document.getElementById('vp-fac').textContent=pc===pv&&pv>pr?'Volumétrico':'Peso real';}
 function checkIns(){const v=parseFloat(document.getElementById('valor').value)||0;document.getElementById('insBox').classList.toggle('show',v>=3000);}
 function calcular(){const rArr=document.getElementById('ruta').value.split(','),km=parseInt(rArr[0]),tarBase=parseFloat(rArr[1]),tradM=parseFloat(rArr[2]),l=parseFloat(document.getElementById('largo').value)||0,a=parseFloat(document.getElementById('ancho').value)||0,h=parseFloat(document.getElementById('alto').value)||0,q=parseInt(document.getElementById('cantidad').value)||1,pr=parseFloat(document.getElementById('peso').value)||0,val=parseFloat(document.getElementById('valor').value)||0,urg=parseFloat(document.getElementById('urgencia').value),tipo=document.getElementById('tipoCarga').value,vol=l*a*h*q,pv=vol*333,pc=Math.max(pr,pv),isR=tipo==='refrigerado'||tipo==='congelado',coldM=isR?(tipo==='congelado'?.45:.35):0,tarifa=tarBase*urg,sub=tarifa*vol,coldA=sub*coldM,com=(sub+coldA)*.12,insAuto=val>=3000,ins=insAuto?val*.015:0,total=sub+coldA+com+ins,tradP=sub*tradM,sav=tradP-total,pct=Math.round((sav/tradP)*100);
@@ -623,23 +706,26 @@ const ov=vol>veh.maxV||pc>veh.maxW,va=document.getElementById('valert');va.class
 document.getElementById('vnote').textContent='CargoShare puede llenar el espacio restante con otro remitente en la misma ruta, reduciendo aún más tu costo.';
 document.getElementById('rv').textContent=vol.toFixed(2)+' m³';document.getElementById('rp').textContent=`${pc.toFixed(0)} kg (${pc===pv&&pv>pr?'volumétrico':'peso real'})`;document.getElementById('rt').textContent=`$${tarifa.toFixed(0)} USD/m³`;document.getElementById('rs').textContent=`$${sub.toFixed(0)} USD`;document.getElementById('rcom').textContent=`$${com.toFixed(0)} USD`;document.getElementById('rtot').textContent=`$${total.toFixed(0)} USD`;document.getElementById('rsav').textContent=`↓ Ahorras ~$${sav.toFixed(0)} USD vs flete tradicional completo`;document.getElementById('pf').style.width=Math.min(pct,88)+'%';document.getElementById('ppct').textContent=`Ahorro del ${pct}%`;document.getElementById('rowCold').style.display=isR?'flex':'none';if(isR)document.getElementById('rc').textContent=`+$${coldA.toFixed(0)} USD`;document.getElementById('rins').textContent=insAuto?`$${ins.toFixed(0)} USD (obligatorio)`:'-';document.getElementById('rowIns').style.opacity=insAuto?'1':'.4';
 const avail=CARRIERS.filter(c=>{if(isR&&!c.cold&&c.id!==2)return false;if(c.maxV<vol||c.maxW<pc)return false;return true;});renderCarriers(avail,tarifa,vol);['panelV','panelP','panelC'].forEach(id=>document.getElementById(id).classList.remove('dim'));setTimeout(()=>document.getElementById('panelV').scrollIntoView({behavior:'smooth',block:'nearest'}),100);}
-function renderCarriers(list,tarifa,vol){const el=document.getElementById('cList');document.getElementById('bookOk').classList.remove('show');el.innerHTML='';if(!list.length){el.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--gray)">No hay transportistas disponibles.</div>';return;}list.forEach(c=>{const price=(tarifa*(1+c.extra)*vol).toFixed(0),d=document.createElement('div');d.className='ccard';d.innerHTML=`<div class="cav">${c.e}</div><div class="cinfo"><div class="cname">${c.n}</div><div class="cmeta">${c.t} · ${c.veh}</div><div class="ctags">${c.tags.map(t=>`<span class="ctag ${t.includes('Retorno')||t.includes('Sin')?'g':''}">${t}</span>`).join('')}</div></div><div class="cright"><div class="cstars">${'★'.repeat(Math.round(c.rat))} ${c.rat} (${c.rev})</div><div class="cprice">$${price}<span class="cunit"> USD</span></div><div class="cdepart">Salida: ${c.deps[0]}</div><button class="btn-book" onclick="book(this,'${c.n}')">Reservar →</button></div>`;el.appendChild(d);});}
+function renderCarriers(list,tarifa,vol){const el=document.getElementById('cList');document.getElementById('bookOk').classList.remove('show');el.innerHTML='';if(!list.length){el.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--gray)">No hay transportistas disponibles.</div>';return;}list.forEach(c=>{const price=(tarifa*(1+c.extra)*vol).toFixed(0),d=document.createElement('div');d.className='ccard';d.innerHTML=`<div class="cav">${c.e}</div><div class="cinfo"><div class="cname">${c.n}</div><div class="cmeta">${c.t}</div><div class="ctags">${c.tags.map(t=>`<span class="ctag ${t.includes('Retorno')||t.includes('Sin')?'g':''}">${t}</span>`).join('')}</div></div><div class="cright"><div class="cstars">${'★'.repeat(Math.round(c.rat))} ${c.rat}</div><div class="cprice">$${price}<span class="cunit"> USD</span></div><div class="cdepart">${c.deps[0]}</div><button class="btn-book" onclick="book(this,'${c.n}')">Reservar →</button></div>`;el.appendChild(d);});}
 function book(btn,name){document.querySelectorAll('.ccard').forEach(c=>c.classList.remove('sel'));btn.closest('.ccard').classList.add('sel');const ok=document.getElementById('bookOk');ok.querySelector('#bookOkMsg').textContent=`Solicitud enviada a ${name}. Confirmará en las próximas horas.`;ok.classList.add('show');setTimeout(()=>ok.scrollIntoView({behavior:'smooth',block:'nearest'}),200);}
 function switchTab(btn,t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));btn.classList.add('on');document.getElementById('stepsT').style.display=t==='t'?'grid':'none';document.getElementById('stepsE').style.display=t==='e'?'grid':'none';}
-function openRegister(){window.parent.location.href='/register';}
-function openLogin(){window.parent.location.href='/login';}
+function openRegister(){window.location.href='/register';}
+function openLogin(){window.location.href='/login';}
 function closeModals(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
-function toLogin(){closeModals();openLogin();}function toRegister(){closeModals();openRegister();}
+function toLogin(){closeModals();openLogin();}
+function toRegister(){closeModals();openRegister();}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModals();}));
-function openRegisterAs(){window.parent.location.href='/register';}
-function handleRegisterSubmit(){window.parent.location.href='/register';}
+function openRegisterAs(){window.location.href='/register';}
+function handleRegisterSubmit(){window.location.href='/register';}
 function pickRole(r){document.getElementById('regRoleT').classList.toggle('sel',r==='t');document.getElementById('regRoleE').classList.toggle('sel',r==='e');}
-function pickLoginRole(r){document.getElementById('loginRT').classList.toggle('sel',r==='t');document.getElementById('loginRE').classList.toggle('sel',r==='e');const isT=r==='t';document.getElementById('lct').textContent=isT?'🚛 Panel de transportista':'📦 Panel de empresa';document.getElementById('lcd').textContent=isT?'Entra a gestionar tus rutas activas, ver solicitudes de carga pendientes y tu historial de ingresos.':'Entra a gestionar tus envíos activos, cotizaciones guardadas y resumen de ahorro mensual.';document.getElementById('loginBtn').textContent=isT?'Entrar a mi panel de transportista →':'Entrar a mi panel de empresa →';}
+function pickLoginRole(r){document.getElementById('loginRT').classList.toggle('sel',r==='t');document.getElementById('loginRE').classList.toggle('sel',r==='e');const isT=r==='t';document.getElementById('lct').textContent=isT?'🚛 Panel de transportista':'📦 Panel de empresa';document.getElementById('lcd').textContent=isT?'Entra a gestionar tus rutas activas y panel de ingresos.':'Entra a gestionar tus envíos activos y resumen de ahorro.';document.getElementById('loginBtn').textContent=isT?'Entrar a mi panel de transportista →':'Entrar a mi panel de empresa →';}
 let slide=0;const track=document.getElementById('carTrack'),cards=[...track.querySelectorAll('.tcard')],dotsEl=document.getElementById('carDots');
 cards.forEach((_,i)=>{const d=document.createElement('div');d.className='car-dot'+(i===0?' on':'');d.onclick=()=>goS(i);dotsEl.appendChild(d);});
 function goS(n){slide=Math.max(0,Math.min(n,cards.length-1));track.style.transform=`translateX(-${slide*(cards[0].offsetWidth+20)}px)`;document.querySelectorAll('.car-dot').forEach((d,i)=>d.classList.toggle('on',i===slide));}
-function nextS(){goS((slide+1)%cards.length);}function prevS(){goS((slide-1+cards.length)%cards.length);}
-setInterval(nextS,5500);window.addEventListener('resize',()=>goS(slide));
+function nextS(){goS((slide+1)%cards.length);}
+function prevS(){goS((slide-1+cards.length)%cards.length);}
+setInterval(nextS,5500);
+window.addEventListener('resize',()=>goS(slide));
 const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');});},{threshold:.1});
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 function animN(el){const t=parseInt(el.dataset.target),s=el.dataset.suffix||'';let c=0;const st=t/55,iv=setInterval(()=>{c=Math.min(c+st,t);el.textContent=Math.round(c)+s;if(c>=t)clearInterval(iv);},18);}
