@@ -216,7 +216,7 @@ export default function Shipper() {
     }
     setBuscando(true); setErrorBusqueda(''); setRutasMatch([]); setBuscado(false)
     try {
-      const params = new URLSearchParams({ origen: busqueda.origen, destino: busqueda.destino, carroceria: busqueda.carroceriaNecesaria, peso: busqueda.pesoReal, fecha: busqueda.fechaNecesaria || '' })
+      const params = new URLSearchParams({ origen: busqueda.origen, destino: busqueda.destino, carroceria: busqueda.carroceriaNecesaria, peso: busqueda.pesoReal, fecha: busqueda.fechaNecesaria || '', direccionRecogida: busqueda.direccionRecogida || '' })
       const res = await fetch(`${RUTAS_API}/buscar?${params}`, { headers })
       const data = await res.json()
       if (res.ok) { setRutasMatch(data); setBuscado(true) }
