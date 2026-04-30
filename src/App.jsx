@@ -5,6 +5,7 @@ import Admin from './pages/Admin'
 import Carrier from './pages/Carrier'
 import Shipper from './pages/Shipper'
 import Conductor from './pages/conductor'
+import Independiente from './pages/Independiente'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/shipper" element={<Shipper />} />
         <Route path="/carrier" element={<Carrier />} />
         <Route path="/conductor" element={<Conductor />} />
+        <Route path="/independiente" element={<Independiente />} />
         <Route path="/admin-cs-2025-x9k" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

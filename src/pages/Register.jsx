@@ -40,9 +40,10 @@ export default function Register() {
 
   const tiposEmpresa = [
     { id: 'empresa_remitente', ic: '📦', titulo: 'Empresa remitente', desc: 'Necesito enviar carga' },
-    { id: 'empresa_flota', ic: '🚛', titulo: 'Empresa con flota', desc: 'Tengo camiones disponibles' },
-    { id: 'ambas', ic: '🔄', titulo: 'Ambas', desc: 'Envio carga y tengo flota' },
-    { id: 'conductor', ic: '🚗', titulo: 'Soy conductor', desc: 'Quiero afiliarme a una empresa en CargoShare' },
+    { id: 'empresa_flota',     ic: '🚛', titulo: 'Empresa con flota', desc: 'Tengo camiones disponibles' },
+    { id: 'ambas',             ic: '🔄', titulo: 'Ambas', desc: 'Envio carga y tengo flota' },
+    { id: 'independiente',     ic: '🚚', titulo: 'Transportista independiente', desc: 'Tengo mi propio camion y quiero generar ingresos' },
+    { id: 'conductor',         ic: '🚗', titulo: 'Soy conductor', desc: 'Quiero afiliarme a una empresa en CargoShare' },
   ]
 
   const necesitaFlota = form.rol === 'empresa_flota' || form.rol === 'ambas'
@@ -80,10 +81,10 @@ export default function Register() {
 
   function siguientePaso() {
     if (paso === 1) {
-      if (!form.rol) { setErrores({ rol: 'Selecciona el tipo de empresa' }); return }
+      if (!form.rol) { setErrores({ rol: 'Selecciona el tipo de cuenta' }); return }
       setErrores({})
-      // Si es conductor redirigir directo al formulario de afiliacion
       if (form.rol === 'conductor') { navigate('/conductor?registro=true'); return }
+      if (form.rol === 'independiente') { navigate('/independiente?registro=true'); return }
       setPaso(2)
     } else if (paso === 2) {
       const e = validarPaso2()
@@ -140,27 +141,7 @@ export default function Register() {
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>⏳</div>
           <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Solicitud enviada</div>
           <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: '1.7', marginBottom: '28px' }}>
-            Recibimos tu solicitud para unirte a <strong style={{ color: 'white' }}>CargoShare</strong>.<br />
-            Revisaremos tu informacion y en <strong style={{ color: '#F97316' }}>24 a 48 horas habiles</strong> recibiras un correo con la confirmacion.
-          </div>
-          <div style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '20px', marginBottom: '24px', textAlign: 'left' }}>
-            <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Resumen</div>
-            {[
-              ['Empresa', form.razonSocial || form.nombre],
-              ['NIT', form.nit],
-              ['Correo', form.correo],
-              ['Tipo', tiposEmpresa.find(t => t.id === form.rol)?.titulo],
-              ['Ciudad', form.ciudad],
-              ['Anos de operacion', `${calcularAnos()} ano${calcularAnos() !== 1 ? 's' : ''}`],
-            ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,.05)', fontSize: '13px' }}>
-                <span style={{ color: '#7A8FAD' }}>{k}</span>
-                <span style={{ fontWeight: '700', color: 'white' }}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.18)', borderRadius: '12px', padding: '14px', marginBottom: '24px', fontSize: '13px', color: 'rgba(255,200,140,.9)' }}>
-            Correo de confirmacion: <strong>{form.correo}</strong>
+            Recibimos tu solicitud. Revisaremos tu informacion en <strong style={{ color: '#F97316' }}>24 a 48 horas habiles</strong>.
           </div>
           <button onClick={() => navigate('/')} style={s.btn}>Volver al inicio</button>
           <div style={{ marginTop: '12px', fontSize: '13px', color: '#7A8FAD' }}>
@@ -178,12 +159,10 @@ export default function Register() {
         <div style={s.sub}>Registro - Fase 1</div>
 
         <div style={s.stepBar}>
-          {[1, 2, 3, 4].map(n => (
-            <div key={n} style={s.step(paso === n, paso > n)} />
-          ))}
+          {[1,2,3,4].map(n => <div key={n} style={s.step(paso===n, paso>n)} />)}
         </div>
         <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '20px' }}>
-          Paso {paso} de 4 - {['', 'Tipo de cuenta', 'Datos empresariales', 'Documentos', 'Confirmar'][paso]}
+          Paso {paso} de 4 — {['','Tipo de cuenta','Datos empresariales','Documentos','Confirmar'][paso]}
         </div>
 
         {/* PASO 1 */}
@@ -197,8 +176,8 @@ export default function Register() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '14px', padding: '16px',
                     borderRadius: '14px',
-                    border: `2px solid ${form.rol === t.id ? (t.id === 'conductor' ? '#10B981' : '#F97316') : 'rgba(255,255,255,.1)'}`,
-                    background: form.rol === t.id ? (t.id === 'conductor' ? 'rgba(16,185,129,.08)' : 'rgba(249,115,22,.08)') : 'transparent',
+                    border: `2px solid ${form.rol === t.id ? (t.id === 'conductor' || t.id === 'independiente' ? '#10B981' : '#F97316') : 'rgba(255,255,255,.1)'}`,
+                    background: form.rol === t.id ? (t.id === 'conductor' || t.id === 'independiente' ? 'rgba(16,185,129,.08)' : 'rgba(249,115,22,.08)') : 'transparent',
                     cursor: 'pointer', transition: '.2s'
                   }}>
                   <div style={{ fontSize: '28px' }}>{t.ic}</div>
@@ -207,17 +186,25 @@ export default function Register() {
                     <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{t.desc}</div>
                   </div>
                   {form.rol === t.id && (
-                    <div style={{ marginLeft: 'auto', color: t.id === 'conductor' ? '#10B981' : '#F97316', fontSize: '18px' }}>✓</div>
+                    <div style={{ marginLeft: 'auto', color: (t.id === 'conductor' || t.id === 'independiente') ? '#10B981' : '#F97316', fontSize: '18px' }}>✓</div>
                   )}
                 </div>
               ))}
             </div>
+            {/* Aviso independiente */}
+            {form.rol === 'independiente' && (
+              <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '12px', padding: '14px', marginBottom: '16px', fontSize: '13px', color: '#10B981', lineHeight: 1.6 }}>
+                🚚 <strong>Transportista independiente</strong> — Te llevaremos a un formulario especial donde registras tu camion, licencia y documentos. Sin NIT empresarial.
+              </div>
+            )}
             {errores.rol && <div style={{ ...s.err, marginBottom: '12px' }}>⚠️ {errores.rol}</div>}
             <button onClick={siguientePaso} style={{
               ...s.btn,
-              background: form.rol === 'conductor' ? '#10B981' : '#F97316'
+              background: (form.rol === 'conductor' || form.rol === 'independiente') ? '#10B981' : '#F97316'
             }}>
-              {form.rol === 'conductor' ? 'Ir al formulario de conductor →' : 'Continuar →'}
+              {form.rol === 'conductor' ? 'Ir al formulario de conductor →' :
+               form.rol === 'independiente' ? 'Ir al formulario de independiente →' :
+               'Continuar →'}
             </button>
             <div style={{ textAlign: 'center', marginTop: '14px', fontSize: '13px', color: '#7A8FAD' }}>
               Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesion</span>
@@ -292,7 +279,7 @@ export default function Register() {
                   {errores.password && <div style={s.err}>⚠️ {errores.password}</div>}
                 </div>
                 <div style={s.fg}>
-                  <label style={s.lbl}>Confirmar contrasena *</label>
+                  <label style={s.lbl}>Confirmar *</label>
                   <input type="password" style={errores.passwordConfirm ? s.inpErr : s.inp} placeholder="Repite la contrasena" value={form.passwordConfirm} onChange={e => setForm({ ...form, passwordConfirm: e.target.value })} />
                   {errores.passwordConfirm && <div style={s.err}>⚠️ {errores.passwordConfirm}</div>}
                 </div>
@@ -309,7 +296,7 @@ export default function Register() {
         {paso === 3 && (
           <div>
             <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>Documentos requeridos</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Sube PDF o imagen de cada documento. Maximo 10MB por archivo.</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Sube PDF o imagen. Maximo 10MB por archivo.</div>
             {[
               { key: 'rut', label: 'RUT activo y vigente', obligatorio: true },
               { key: 'camaraComercio', label: 'Camara de Comercio (max. 90 dias)', obligatorio: true },
@@ -326,16 +313,9 @@ export default function Register() {
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
                     onChange={e => { const file = e.target.files[0]; if (file) setArchivos({ ...archivos, [doc.key]: file }) }} />
                   {archivos[doc.key] ? (
-                    <div>
-                      <div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div>
-                      <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '600' }}>{archivos[doc.key].name}</div>
-                      <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Click para cambiar</div>
-                    </div>
+                    <div><div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div><div style={{ fontSize: '12px', color: '#10B981', fontWeight: '600' }}>{archivos[doc.key].name}</div></div>
                   ) : (
-                    <div>
-                      <div style={{ fontSize: '24px', marginBottom: '6px' }}>📄</div>
-                      <div style={{ fontSize: '12px', color: '#7A8FAD' }}>Click para subir PDF o imagen</div>
-                    </div>
+                    <div><div style={{ fontSize: '24px', marginBottom: '6px' }}>📄</div><div style={{ fontSize: '12px', color: '#7A8FAD' }}>Click para subir PDF o imagen</div></div>
                   )}
                 </label>
                 {errores[doc.key] && <div style={s.err}>⚠️ {errores[doc.key]}</div>}

@@ -39,9 +39,7 @@ function Login() {
       localStorage.setItem('rol', data.rol)
       localStorage.setItem('nombre', data.nombre)
 
-      // Redirigir segun rol seleccionado y rol real
       if (data.rol === 'ambas') {
-        // Usuario con ambos roles — ir al panel que eligio
         if (rol === 'transportista') navigate('/carrier')
         else navigate('/shipper')
       } else if (data.rol === 'empresa' || data.rol === 'remitente') {
@@ -94,11 +92,11 @@ function Login() {
         </div>
         <div style={{ fontSize: '14px', color: '#7A8FAD', marginBottom: '28px' }}>Inicia sesion en tu cuenta</div>
 
-        {/* ROL — 3 opciones */}
+        {/* ROL — 3 opciones empresas */}
         <div style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', marginBottom: '10px' }}>
-          Entrar como
+          Entrar como empresa
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '16px' }}>
           {rolCard('empresa', '📦', 'Remitente', 'Enviar carga')}
           {rolCard('transportista', '🚛', 'Transportista', 'Gestionar rutas')}
           {rolCard('ambas', '🔄', 'Ambos roles', 'Tengo los dos')}
@@ -107,12 +105,12 @@ function Login() {
         {/* Aviso para ambas */}
         {rol === 'ambas' && (
           <div style={{ background: 'rgba(96,165,250,.08)', border: '1px solid rgba(96,165,250,.2)', borderRadius: '10px', padding: '12px 14px', marginBottom: '18px', fontSize: '12px', color: '#60A5FA', lineHeight: 1.6 }}>
-            Con <strong>Ambos roles</strong> puedes elegir a cual panel entrar. Selecciona el que necesites ahora:
+            Con <strong>Ambos roles</strong> puedes elegir a cual panel entrar:
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
-              <button onClick={() => { setRol('empresa') }} style={{ background: 'rgba(249,115,22,.15)', border: '1px solid rgba(249,115,22,.3)', color: '#F97316', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif' }}>
+              <button onClick={() => setRol('empresa')} style={{ background: 'rgba(249,115,22,.15)', border: '1px solid rgba(249,115,22,.3)', color: '#F97316', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif' }}>
                 📦 Panel Remitente
               </button>
-              <button onClick={() => { setRol('transportista') }} style={{ background: 'rgba(96,165,250,.15)', border: '1px solid rgba(96,165,250,.3)', color: '#60A5FA', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif' }}>
+              <button onClick={() => setRol('transportista')} style={{ background: 'rgba(96,165,250,.15)', border: '1px solid rgba(96,165,250,.3)', color: '#60A5FA', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif' }}>
                 🚛 Panel Transportista
               </button>
             </div>
@@ -148,11 +146,27 @@ function Login() {
             'Selecciona un panel arriba →'}
         </button>
 
-        <div onClick={() => navigate('/conductor')}
-          style={{ border: '1px solid rgba(255,255,255,.1)', borderRadius: '14px', padding: '14px', textAlign: 'center', cursor: 'pointer', marginTop: '12px', transition: '.2s' }}>
-          <div style={{ fontSize: '22px', marginBottom: '4px' }}>🚛</div>
-          <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Soy conductor</div>
-          <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Acceso al panel de viajes</div>
+        {/* Divisor */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0 16px' }}>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,.08)' }} />
+          <span style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.7px' }}>O accede como</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,.08)' }} />
+        </div>
+
+        {/* Accesos directos — conductor e independiente */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div onClick={() => navigate('/conductor')}
+            style={{ border: '1px solid rgba(255,255,255,.1)', borderRadius: '14px', padding: '14px', textAlign: 'center', cursor: 'pointer', transition: '.2s' }}>
+            <div style={{ fontSize: '22px', marginBottom: '4px' }}>🚛</div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Conductor</div>
+            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Panel de viajes</div>
+          </div>
+          <div onClick={() => navigate('/independiente')}
+            style={{ border: '1px solid rgba(16,185,129,.25)', background: 'rgba(16,185,129,.04)', borderRadius: '14px', padding: '14px', textAlign: 'center', cursor: 'pointer', transition: '.2s' }}>
+            <div style={{ fontSize: '22px', marginBottom: '4px' }}>🚚</div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Independiente</div>
+            <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>Tengo mi camion</div>
+          </div>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px', color: '#7A8FAD' }}>
