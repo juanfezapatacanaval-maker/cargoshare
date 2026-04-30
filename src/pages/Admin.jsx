@@ -4,6 +4,7 @@ const API = 'https://cargoshare-api-production.up.railway.app/api/auth'
 const VEHICULO_API = 'https://cargoshare-api-production.up.railway.app/api/vehiculo'
 const CONDUCTOR_API = 'https://cargoshare-api-production.up.railway.app/api/conductor'
 const CONDUCTOR_AFILIADO_API = 'https://cargoshare-api-production.up.railway.app/api/conductor-afiliado'
+const INDEPENDIENTE_API = 'https://cargoshare-api-production.up.railway.app/api/independiente'
 
 export default function Admin() {
   const [auth, setAuth] = useState(false)
@@ -25,6 +26,9 @@ export default function Admin() {
   const [buscarConductor, setBuscarConductor] = useState('')
   const [buscarAfiliado, setBuscarAfiliado] = useState('')
   const [motivoRechazoAfiliado, setMotivoRechazoAfiliado] = useState({})
+  const [independientes, setIndependientes] = useState([])
+  const [buscarIndependiente, setBuscarIndependiente] = useState('')
+  const [motivoRechazoInd, setMotivoRechazoInd] = useState({})
 
   const ADMIN_PASS = import.meta.env.VITE_ADMIN_PASS
 
@@ -35,6 +39,7 @@ export default function Admin() {
       cargarVehiculos()
       cargarConductores()
       cargarConductoresAfiliados()
+      cargarIndependientes()
     } else setPassErr(true)
   }
 
@@ -72,6 +77,25 @@ export default function Admin() {
       const res = await fetch(`${CONDUCTOR_AFILIADO_API}/todos`)
       const data = await res.json()
       setConductoresAfiliados(data)
+    } catch { }
+  }
+
+  async function cargarIndependientes() {
+    try {
+      const res = await fetch(`${INDEPENDIENTE_API}/todos`)
+      const data = await res.json()
+      setIndependientes(data)
+    } catch { }
+  }
+
+  async function cambiarEstadoIndependiente(id, estado) {
+    try {
+      await fetch(`${INDEPENDIENTE_API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado, motivoRechazo: motivoRechazoInd[id] || '' })
+      })
+      setIndependientes(c => c.map(i => i._id === id ? { ...i, estado } : i))
     } catch { }
   }
 
@@ -134,6 +158,7 @@ export default function Admin() {
   const pendientes = solicitudes.filter(s => s.estado === 'pendiente').length
   const vehiculosPendientes = vehiculos.filter(v => v.estado === 'pendiente').length
   const afiliadosPendientes = conductoresAfiliados.filter(c => c.estado === 'pendiente').length
+  const independientesPendientes = independientes.filter(i => i.estado === 'pendiente').length
   const necesitaFlota = (u) => u.rol === 'empresa_flota' || u.rol === 'ambas'
 
   // Filtros de buscador
@@ -205,7 +230,7 @@ export default function Admin() {
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           {(pendientes > 0 || vehiculosPendientes > 0 || afiliadosPendientes > 0) && (
             <div style={{ background: '#F97316', color: 'white', fontSize: '12px', fontWeight: '700', padding: '5px 12px', borderRadius: '100px' }}>
-              🔔 {pendientes + vehiculosPendientes + afiliadosPendientes} pendientes
+              🔔 {pendientes + vehiculosPendientes + afiliadosPendientes + independientesPendientes} pendientes
             </div>
           )}
           <button onClick={() => setAuth(false)} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '8px 16px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', cursor: 'pointer' }}>🚪 Salir</button>
@@ -226,6 +251,9 @@ export default function Admin() {
           </button>
           <button onClick={() => { setVista('conductores-afiliados'); cargarConductoresAfiliados() }} style={s.tabBtn(vista === 'conductores-afiliados')}>
             🚗 Conductores afiliados {afiliadosPendientes > 0 && <span style={{ marginLeft: '6px', background: 'rgba(255,255,255,.2)', padding: '1px 6px', borderRadius: '100px', fontSize: '11px' }}>{afiliadosPendientes}</span>}
+          </button>
+          <button onClick={() => { setVista('independientes'); cargarIndependientes() }} style={s.tabBtn(vista === 'independientes')}>
+            🚚 Independientes {independientesPendientes > 0 && <span style={{ marginLeft: '6px', background: 'rgba(255,255,255,.2)', padding: '1px 6px', borderRadius: '100px', fontSize: '11px' }}>{independientesPendientes}</span>}
           </button>
         </div>
 
@@ -550,6 +578,76 @@ export default function Admin() {
                       {c.estado === 'aprobado' ? '✅ Acceso aprobado — puede iniciar sesion en /conductor' : `❌ Rechazado${c.motivoRechazo ? ` — ${c.motivoRechazo}` : ''}`}
                     </div>
                     <button onClick={() => cambiarEstadoAfiliado(c._id, c.estado === 'aprobado' ? 'rechazado' : 'aprobado')}
+                      style={{ fontSize: '11px', color: '#7A8FAD', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif' }}>
+                      Cambiar estado
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── INDEPENDIENTES ── */}
+        {vista === 'independientes' && (
+          <div>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '24px', fontWeight: '800', marginBottom: '4px' }}>Transportistas independientes 🚚</div>
+              <div style={{ fontSize: '14px', color: '#7A8FAD' }}>Personas naturales con camion propio que quieren generar ingresos en CargoShare.</div>
+            </div>
+            <div style={s.kpiGrid}>
+              {[['Total', independientes.length, '#60A5FA', '🚚'], ['Pendientes', independientesPendientes, '#F59E0B', '⏳'], ['Aprobados', independientes.filter(i => i.estado === 'aprobado').length, '#10B981', '✅'], ['Rechazados', independientes.filter(i => i.estado === 'rechazado').length, '#EF4444', '❌']].map(([label, val, color, ic]) => (
+                <div key={label} style={s.kpi}><div style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: '10px' }}>{ic} {label}</div><div style={{ fontFamily: 'Syne,sans-serif', fontSize: '30px', fontWeight: '800', color }}>{val}</div></div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'center' }}>
+              <input style={s.searchInp} placeholder="🔍 Buscar por nombre, cedula o placa..." value={buscarIndependiente} onChange={e => setBuscarIndependiente(e.target.value)} />
+              <button onClick={cargarIndependientes} style={s.filterBtn(false)}>🔄 Actualizar</button>
+            </div>
+            {independientes.filter(i => {
+              if (!buscarIndependiente) return true
+              const q = buscarIndependiente.toLowerCase()
+              return i.nombre?.toLowerCase().includes(q) || i.cedula?.includes(q) || i.vehiculo?.placa?.toLowerCase().includes(q)
+            }).map(ind => (
+              <div key={ind._id} style={s.solCard(ind.estado)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '10px', background: 'rgba(16,185,129,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>🚚</div>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '700' }}>{ind.nombre}</div>
+                      <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>CC {ind.cedula} · {ind.correo} · {ind.ciudadBase}</div>
+                      <div style={{ fontSize: '12px', color: '#10B981', marginTop: '2px', fontWeight: '600' }}>
+                        {ind.vehiculo?.tipo} · Placa {ind.vehiculo?.placa} · {ind.vehiculo?.capacidadKg?.toLocaleString('es-CO')} kg
+                      </div>
+                    </div>
+                  </div>
+                  <div style={s.badge(ind.estado)}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></div>{ind.estado === 'pendiente' ? 'Pendiente' : ind.estado === 'aprobado' ? 'Aprobado' : 'Rechazado'}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                  {ind.fotoCedula && <a href={ind.fotoCedula} target="_blank" rel="noreferrer" style={s.docBtn}>🪪 Cedula</a>}
+                  {ind.fotoLicencia && <a href={ind.fotoLicencia} target="_blank" rel="noreferrer" style={s.docBtn}>📄 Licencia</a>}
+                  {ind.tarjetaPropiedad && <a href={ind.tarjetaPropiedad} target="_blank" rel="noreferrer" style={s.docBtn}>📋 Tarjeta propiedad</a>}
+                  {ind.soat && <a href={ind.soat} target="_blank" rel="noreferrer" style={s.docBtn}>🛡️ SOAT</a>}
+                  {ind.tecnicoMecanica && <a href={ind.tecnicoMecanica} target="_blank" rel="noreferrer" style={s.docBtn}>🔧 Tec. Mecanica</a>}
+                  {ind.vehiculo?.fotoVehiculo && <a href={ind.vehiculo.fotoVehiculo} target="_blank" rel="noreferrer" style={s.docBtn}>📷 Foto vehiculo</a>}
+                  {!ind.fotoCedula && !ind.fotoLicencia && <span style={{ fontSize: '12px', color: '#F59E0B' }}>⚠️ Sin documentos</span>}
+                </div>
+                {ind.estado === 'pendiente' && (
+                  <div>
+                    <input style={{ ...s.inp, marginBottom: '10px' }} placeholder="Motivo de rechazo (si aplica)"
+                      value={motivoRechazoInd[ind._id] || ''} onChange={e => setMotivoRechazoInd(m => ({ ...m, [ind._id]: e.target.value }))} />
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={() => cambiarEstadoIndependiente(ind._id, 'aprobado')} style={s.btnAprobar}>✅ Aprobar</button>
+                      <button onClick={() => cambiarEstadoIndependiente(ind._id, 'rechazado')} style={s.btnRechazar}>❌ Rechazar</button>
+                    </div>
+                  </div>
+                )}
+                {ind.estado !== 'pendiente' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ fontSize: '13px', color: ind.estado === 'aprobado' ? '#10B981' : '#EF4444' }}>
+                      {ind.estado === 'aprobado' ? '✅ Aprobado — puede publicar rutas en /independiente' : `❌ Rechazado${ind.motivoRechazo ? ` — ${ind.motivoRechazo}` : ''}`}
+                    </div>
+                    <button onClick={() => cambiarEstadoIndependiente(ind._id, ind.estado === 'aprobado' ? 'rechazado' : 'aprobado')}
                       style={{ fontSize: '11px', color: '#7A8FAD', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif' }}>
                       Cambiar estado
                     </button>

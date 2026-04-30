@@ -448,7 +448,10 @@ export default function Shipper() {
                           <div>
                             <div style={{ fontSize: '15px', fontWeight: '700' }}>📍 {r.origen} → {r.destino}</div>
                             <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '3px' }}>{r.fechaSalida ? new Date(r.fechaSalida).toLocaleDateString('es-CO') : ''} · {r.horaSalida}</div>
-                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>🏢 {r.empresa?.nombre || 'Empresa verificada'} · ⭐ {r.empresa?.calificacion || '5.0'}</div>
+                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>
+                              {r.esIndependiente ? '🚚' : '🏢'} {r.empresa?.nombre || 'Empresa verificada'} · ⭐ {r.empresa?.calificacion || '5.0'}
+                              {r.esIndependiente && <span style={{ marginLeft: '6px', background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.3)', color: '#10B981', fontSize: '10px', fontWeight: '700', padding: '2px 7px', borderRadius: '100px' }}>Independiente</span>}
+                            </div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
                             <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '22px', fontWeight: '800', color: '#F97316' }}>${precio.total.toLocaleString('es-CO')}</div>
