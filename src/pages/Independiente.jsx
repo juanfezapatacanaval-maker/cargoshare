@@ -407,10 +407,14 @@ function PublicarRuta({ token, onPublicado }) {
   const [form, setForm] = useState({
     origen: '', destino: '', fechaSalida: '', horaSalida: '',
     direccionSalida: '', rangoRecogida: '10',
-    pesoMax: '', volumenMax: '', publicarRetorno: false,
+    pesoMax: '', volumenMax: '',
   })
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
+  const [modal, setModal] = useState(null) // null | 'pregunta' | 'form'
+  const [rutaData, setRutaData] = useState(null)
+  const [formRetorno, setFormRetorno] = useState({ fechaSalida: '', horaSalida: '', direccionSalida: '', rangoRecogida: 10 })
+  const [publicandoRetorno, setPublicandoRetorno] = useState(false)
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
@@ -427,61 +431,130 @@ function PublicarRuta({ token, onPublicado }) {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Error al publicar'); setCargando(false); return }
-      onPublicado()
+      setRutaData({ origen: form.origen, destino: form.destino })
+      setForm({ origen: '', destino: '', fechaSalida: '', horaSalida: '', direccionSalida: '', rangoRecogida: '10', pesoMax: '', volumenMax: '' })
+      setModal('pregunta')
     } catch { setError('Error de conexion') }
     setCargando(false)
   }
 
+  async function publicarRetorno() {
+    if (!formRetorno.fechaSalida || !formRetorno.horaSalida) { alert('Ingresa fecha y hora de regreso'); return }
+    setPublicandoRetorno(true)
+    try {
+      await fetch(`${API}/publicar-ruta`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          origen: rutaData.destino,
+          destino: rutaData.origen,
+          fechaSalida: formRetorno.fechaSalida,
+          horaSalida: formRetorno.horaSalida,
+          direccionSalida: formRetorno.direccionSalida || rutaData.destino,
+          rangoRecogida: String(formRetorno.rangoRecogida),
+          pesoMax: form.pesoMax || '10000',
+          volumenMax: form.volumenMax || '',
+        })
+      })
+    } catch (e) { console.log(e) }
+    setPublicandoRetorno(false)
+    setModal(null)
+    onPublicado()
+  }
+
+  const inp = { width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 13px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }
+  const lbl = { fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }
+
   return (
-    <div style={S.card}>
-      <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '20px' }}>📍 Publicar nueva ruta</div>
-      {[['origen','Origen *','Bogota'],['destino','Destino *','Medellin'],['direccionSalida','Direccion exacta de salida','Calle 13 #86-60']].map(([k,lbl,ph]) => (
-        <div key={k} style={{ marginBottom: '12px' }}>
-          <label style={S.lbl}>{lbl}</label>
-          <input style={S.inp} placeholder={ph} value={form[k]} onChange={e => set(k, e.target.value)} />
+    <>
+      <div style={S.card}>
+        <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '20px' }}>📍 Publicar nueva ruta</div>
+        {[['origen','Origen *','Bogota'],['destino','Destino *','Medellin'],['direccionSalida','Direccion exacta de salida','Calle 13 #86-60']].map(([k,lb,ph]) => (
+          <div key={k} style={{ marginBottom: '12px' }}>
+            <label style={S.lbl}>{lb}</label>
+            <input style={S.inp} placeholder={ph} value={form[k]} onChange={e => set(k, e.target.value)} />
+          </div>
+        ))}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div><label style={S.lbl}>Fecha *</label><input type="date" style={S.inp} value={form.fechaSalida} onChange={e => set('fechaSalida', e.target.value)} /></div>
+          <div><label style={S.lbl}>Hora *</label><input type="time" style={S.inp} value={form.horaSalida} onChange={e => set('horaSalida', e.target.value)} /></div>
         </div>
-      ))}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-        <div>
-          <label style={S.lbl}>Fecha *</label>
-          <input type="date" style={S.inp} value={form.fechaSalida} onChange={e => set('fechaSalida', e.target.value)} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+          <div><label style={S.lbl}>Rango (km)</label><input style={S.inp} type="number" placeholder="10" value={form.rangoRecogida} onChange={e => set('rangoRecogida', e.target.value)} /></div>
+          <div><label style={S.lbl}>Peso max (kg) *</label><input style={S.inp} type="number" placeholder="10000" value={form.pesoMax} onChange={e => set('pesoMax', e.target.value)} /></div>
+          <div><label style={S.lbl}>Volumen (m3)</label><input style={S.inp} type="number" placeholder="40" value={form.volumenMax} onChange={e => set('volumenMax', e.target.value)} /></div>
         </div>
-        <div>
-          <label style={S.lbl}>Hora *</label>
-          <input type="time" style={S.inp} value={form.horaSalida} onChange={e => set('horaSalida', e.target.value)} />
-        </div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-        <div>
-          <label style={S.lbl}>Rango recogida (km)</label>
-          <input style={S.inp} type="number" placeholder="10" value={form.rangoRecogida} onChange={e => set('rangoRecogida', e.target.value)} />
-        </div>
-        <div>
-          <label style={S.lbl}>Peso max (kg) *</label>
-          <input style={S.inp} type="number" placeholder="10000" value={form.pesoMax} onChange={e => set('pesoMax', e.target.value)} />
-        </div>
-        <div>
-          <label style={S.lbl}>Volumen max (m3)</label>
-          <input style={S.inp} type="number" placeholder="40" value={form.volumenMax} onChange={e => set('volumenMax', e.target.value)} />
-        </div>
+        {error && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '12px' }}>{error}</div>}
+        <button onClick={publicar} disabled={cargando} style={S.btn()}>{cargando ? 'Publicando...' : 'Publicar ruta →'}</button>
       </div>
 
-      {/* Opcion retorno */}
-      <div style={{ background: 'rgba(96,165,250,.08)', border: '1px solid rgba(96,165,250,.2)', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => set('publicarRetorno', !form.publicarRetorno)}>
-          <div style={{ width: '20px', height: '20px', borderRadius: '5px', border: `2px solid ${form.publicarRetorno ? '#60A5FA' : 'rgba(255,255,255,.2)'}`, background: form.publicarRetorno ? '#60A5FA' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {form.publicarRetorno && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
-          </div>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>🔄 Publicar ruta de retorno</div>
-            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Crea automaticamente la ruta en sentido contrario. Aprovecha el regreso.</div>
+      {/* MODAL RETORNO */}
+      {modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '22px', padding: '32px', width: '100%', maxWidth: '420px' }}>
+
+            {modal === 'pregunta' && (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '52px', marginBottom: '12px' }}>🔄</div>
+                  <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '20px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Ruta publicada!</div>
+                  <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: 1.6 }}>
+                    Tu ruta <strong style={{ color: 'white' }}>{rutaData?.origen} → {rutaData?.destino}</strong> ya esta disponible.
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '14px', padding: '18px', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981', marginBottom: '6px' }}>🚚 Aprovecha el regreso</div>
+                  <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.6 }}>
+                    Publica tambien <strong style={{ color: 'white' }}>{rutaData?.destino} → {rutaData?.origen}</strong> y llena tu camion de vuelta. La mayoria de camiones regresan vacios.
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <button onClick={() => { setModal(null); onPublicado() }} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                    No, gracias
+                  </button>
+                  <button onClick={() => setModal('form')} style={{ background: '#10B981', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+                    Si, publicar retorno →
+                  </button>
+                </div>
+              </>
+            )}
+
+            {modal === 'form' && (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'Syne,sans-serif', color: 'white', marginBottom: '4px' }}>Datos del retorno</div>
+                  <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Ruta: <strong style={{ color: '#10B981' }}>{rutaData?.destino} → {rutaData?.origen}</strong></div>
+                </div>
+                <div style={{ marginBottom: '13px' }}>
+                  <label style={lbl}>Fecha de regreso *</label>
+                  <input type="date" style={inp} value={formRetorno.fechaSalida} onChange={e => setFormRetorno(f => ({ ...f, fechaSalida: e.target.value }))} />
+                </div>
+                <div style={{ marginBottom: '13px' }}>
+                  <label style={lbl}>Hora de salida *</label>
+                  <input type="time" style={inp} value={formRetorno.horaSalida} onChange={e => setFormRetorno(f => ({ ...f, horaSalida: e.target.value }))} />
+                </div>
+                <div style={{ marginBottom: '13px' }}>
+                  <label style={lbl}>Direccion desde {rutaData?.destino}</label>
+                  <input style={inp} placeholder={'Ej: Calle 50 #30-10, ' + (rutaData?.destino || '')} value={formRetorno.direccionSalida} onChange={e => setFormRetorno(f => ({ ...f, direccionSalida: e.target.value }))} />
+                </div>
+                <div style={{ marginBottom: '22px' }}>
+                  <label style={lbl}>Rango de recogida: <strong style={{ color: 'white' }}>{formRetorno.rangoRecogida} km</strong></label>
+                  <input type="range" min="0" max="80" step="5" value={formRetorno.rangoRecogida} onChange={e => setFormRetorno(f => ({ ...f, rangoRecogida: Number(e.target.value) }))} style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer' }} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <button onClick={() => setModal('pregunta')} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                    ← Atras
+                  </button>
+                  <button onClick={publicarRetorno} disabled={publicandoRetorno} style={{ background: publicandoRetorno ? 'rgba(16,185,129,.5)' : '#10B981', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: publicandoRetorno ? 'not-allowed' : 'pointer' }}>
+                    {publicandoRetorno ? 'Publicando...' : 'Publicar retorno →'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
-      </div>
-
-      {error && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '12px' }}>{error}</div>}
-      <button onClick={publicar} disabled={cargando} style={S.btn()}>{cargando ? 'Publicando...' : 'Publicar ruta →'}</button>
-    </div>
+      )}
+    </>
   )
 }
 
