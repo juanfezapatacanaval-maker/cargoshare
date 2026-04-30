@@ -143,6 +143,10 @@ export default function Carrier() {
   const [publicando, setPublicando] = useState(false)
   const [publicado, setPublicado] = useState(false)
   const [errorRuta, setErrorRuta] = useState('')
+  const [modalRetorno, setModalRetorno] = useState(null)
+  const [formRetorno, setFormRetorno] = useState({ fechaSalida: '', horaSalida: '', direccionSalida: '', rangoRecogida: 10 })
+  const [rutaPublicadaData, setRutaPublicadaData] = useState(null)
+  const [publicandoRetorno, setPublicandoRetorno] = useState(false)
 
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
@@ -265,10 +269,23 @@ export default function Carrier() {
       const pesoDisponible = Number(ruta.pesoDisponible)
       const res = await fetch(RUTAS_API, { method: 'POST', headers, body: JSON.stringify({ direccionSalida: ruta.direccionSalida, origen: ruta.origen, destino: ruta.destino, fechaSalida: ruta.fechaSalida, horaSalida: ruta.horaSalida, rangoRecogida: Number(ruta.rangoRecogida), carroceria: veh.carroceria, tipoVehiculo: veh.tipo, vehiculoId: veh._id, conductorId: ruta.conductorId || null, espacio: { pesoMax, pesoDisponible, porcentajeDisponible: Math.round((pesoDisponible / pesoMax) * 100), volumenMax: veh.capacidad?.volumenMax, largo: veh.capacidad?.largo, ancho: veh.capacidad?.ancho, alto: veh.capacidad?.alto } }) })
       const data = await res.json()
-      if (res.ok) { setPublicado(true); setRuta({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' }); setTimeout(() => { setPublicado(false); setVista('mis-rutas') }, 2000) }
+      if (res.ok) { setRutaPublicadaData({ origen: ruta.origen, destino: ruta.destino, veh }); setRuta({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' }); setModalRetorno('pregunta') }
       else { setErrorRuta(data.error || 'Error al publicar') }
     } catch { setErrorRuta('Error de conexion') }
     setPublicando(false)
+  }
+
+  async function publicarRetorno() {
+    if (!formRetorno.fechaSalida || !formRetorno.horaSalida) { alert('Ingresa fecha y hora de regreso'); return }
+    setPublicandoRetorno(true)
+    try {
+      const veh = rutaPublicadaData?.veh
+      const pesoMax = veh?.capacidad?.pesoMax || 0
+      await fetch(RUTAS_API, { method: 'POST', headers, body: JSON.stringify({ direccionSalida: formRetorno.direccionSalida || rutaPublicadaData?.destino, origen: rutaPublicadaData?.destino, destino: rutaPublicadaData?.origen, fechaSalida: formRetorno.fechaSalida, horaSalida: formRetorno.horaSalida, rangoRecogida: formRetorno.rangoRecogida, carroceria: veh?.carroceria, tipoVehiculo: veh?.tipo, vehiculoId: veh?._id, espacio: { pesoMax, pesoDisponible: pesoMax, porcentajeDisponible: 100, volumenMax: veh?.capacidad?.volumenMax } }) })
+    } catch (e) { console.log(e) }
+    setPublicandoRetorno(false)
+    setModalRetorno(null)
+    setVista('mis-rutas')
   }
 
   function logout() { localStorage.clear(); navigate('/') }
@@ -850,6 +867,59 @@ export default function Carrier() {
           )}
 
         </div>
+      {/* MODAL RETORNO */}
+      {modalRetorno && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '22px', padding: '36px', width: '100%', maxWidth: '480px' }}>
+            {modalRetorno === 'pregunta' && (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '52px', marginBottom: '12px' }}>🔄</div>
+                  <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '22px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Ruta publicada!</div>
+                  <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: 1.6 }}>Tu ruta <strong style={{ color: 'white' }}>{rutaPublicadaData?.origen} → {rutaPublicadaData?.destino}</strong> ya esta disponible.</div>
+                </div>
+                <div style={{ background: 'rgba(96,165,250,.08)', border: '1px solid rgba(96,165,250,.2)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '8px' }}>🚛 Aprovecha el regreso</div>
+                  <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.6 }}>Publicas tambien <strong style={{ color: '#60A5FA' }}>{rutaPublicadaData?.destino} → {rutaPublicadaData?.origen}</strong>? La mayoria de camiones regresan vacios.</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <button onClick={() => { setModalRetorno(null); setVista('mis-rutas') }} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>No, gracias</button>
+                  <button onClick={() => setModalRetorno('form')} style={{ background: '#F97316', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Si, publicar retorno →</button>
+                </div>
+              </>
+            )}
+            {modalRetorno === 'form' && (
+              <>
+                <div style={{ marginBottom: '24px' }}>
+                  <div style={{ fontSize: '20px', fontWeight: '800', fontFamily: 'Syne,sans-serif', color: 'white', marginBottom: '6px' }}>Datos del retorno</div>
+                  <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Ruta: <strong style={{ color: '#60A5FA' }}>{rutaPublicadaData?.destino} → {rutaPublicadaData?.origen}</strong></div>
+                </div>
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }}>Fecha de regreso *</label>
+                  <input type="date" style={{ width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 14px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} value={formRetorno.fechaSalida} onChange={e => setFormRetorno(f => ({ ...f, fechaSalida: e.target.value }))} />
+                </div>
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }}>Hora de salida *</label>
+                  <input type="time" style={{ width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 14px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} value={formRetorno.horaSalida} onChange={e => setFormRetorno(f => ({ ...f, horaSalida: e.target.value }))} />
+                </div>
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }}>Direccion de salida desde {rutaPublicadaData?.destino}</label>
+                  <input style={{ width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 14px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder={'Ej: Calle 50 #30-10, ' + (rutaPublicadaData?.destino || '')} value={formRetorno.direccionSalida} onChange={e => setFormRetorno(f => ({ ...f, direccionSalida: e.target.value }))} />
+                </div>
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }}>Rango de recogida: <strong style={{ color: 'white' }}>{formRetorno.rangoRecogida} km</strong></label>
+                  <input type="range" min="0" max="80" step="5" value={formRetorno.rangoRecogida} onChange={e => setFormRetorno(f => ({ ...f, rangoRecogida: Number(e.target.value) }))} style={{ width: '100%', accentColor: '#F97316', cursor: 'pointer' }} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <button onClick={() => setModalRetorno('pregunta')} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>← Atras</button>
+                  <button onClick={publicarRetorno} disabled={publicandoRetorno} style={{ background: publicandoRetorno ? 'rgba(249,115,22,.5)' : '#F97316', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: publicandoRetorno ? 'not-allowed' : 'pointer' }}>{publicandoRetorno ? 'Publicando...' : 'Publicar retorno →'}</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   )
