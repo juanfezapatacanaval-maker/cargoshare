@@ -381,21 +381,13 @@ function PanelIndependiente({ independiente, rutasActivas, token, onRefresh, onL
         />
       )}
 
-      {/* VIAJE ACTIVO */}
-      {vista === 'viaje' && rutaSeleccionada && reservaActiva && (
+      {/* VIAJE ACTIVO — N empresas */}
+      {vista === 'viaje' && rutaSeleccionada && (
         <ViajeActivo
           solicitud={rutaSeleccionada}
-          reserva={reservaActiva}
-          fase={faseViaje}
-          codigoInput={codigoInput}
-          setCodigoInput={setCodigoInput}
-          onVerificar={verificarCodigo}
-          onCargueStop={(seg) => setFaseViaje('ruta')}
-          onDescargueStop={(seg) => { }}
-          pagoInfo={pagoInfo}
-          error={error}
-          cargando={cargando}
+          token={token}
           onVolver={() => { setVista('mis-rutas'); setReservaActiva(null); onRefresh() }}
+          apiBase={API}
         />
       )}
     </div>
@@ -642,88 +634,144 @@ function MisRutas({ rutasActivas, onAceptar, onRechazar, onIniciarViaje, cargand
 }
 
 // ── VIAJE ACTIVO ──────────────────────────────────────────────────
-function ViajeActivo({ solicitud, reserva, fase, codigoInput, setCodigoInput, onVerificar, onCargueStop, pagoInfo, error, cargando, onVolver }) {
+function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
+  const [fases, setFases] = useState({})
+  const [codigos, setCodigos] = useState({})
+  const [errores, setErrores] = useState({})
+  const [cargando, setCargando] = useState({})
+  const [pagos, setPagos] = useState({})
+  const [gpsActivo, setGpsActivo] = useState(false)
+
   const abrirMaps = (dir) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`, '_blank')
   const abrirWaze = (dir) => window.open(`https://waze.com/ul?q=${encodeURIComponent(dir)}`, '_blank')
 
+  const reservasAceptadas = solicitud.reservas?.filter(r => ['aceptado','recogido','entregado'].includes(r.estado)) || []
+  const todasEntregadas = reservasAceptadas.length > 0 && reservasAceptadas.every(r => fases[r._id] === 'cobrado' || r.estado === 'entregado')
+
+  function getFase(r) {
+    return fases[r._id] || (r.estado === 'recogido' ? 'en_ruta' : r.estado === 'entregado' ? 'cobrado' : 'recogida')
+  }
+
+  async function verificar(reservaId, tipo) {
+    const codigoKey = tipo === 'entrega' ? `${reservaId}_entrega` : reservaId
+    setCargando(c => ({ ...c, [reservaId]: true }))
+    setErrores(e => ({ ...e, [reservaId]: '' }))
+    try {
+      const res = await fetch(`${apiBase}/verificar-codigo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ solicitudId: solicitud._id, reservaId, codigo: (codigos[codigoKey] || '').toUpperCase(), tipo })
+      })
+      const data = await res.json()
+      if (!res.ok) { setErrores(e => ({ ...e, [reservaId]: data.error || 'Codigo incorrecto' })); setCargando(c => ({ ...c, [reservaId]: false })); return }
+      if (tipo === 'recogida') { setFases(f => ({ ...f, [reservaId]: 'en_cargue' })); setGpsActivo(true) }
+      if (tipo === 'entrega') { setFases(f => ({ ...f, [reservaId]: 'cobrado' })); if (data.pagoUrl) setPagos(p => ({ ...p, [reservaId]: data.pagoUrl })) }
+      setCodigos(c => ({ ...c, [codigoKey]: '' }))
+    } catch { setErrores(e => ({ ...e, [reservaId]: 'Error de conexion' })) }
+    setCargando(c => ({ ...c, [reservaId]: false }))
+  }
+
+  const inpCodigo = { ...S.inp, fontSize: '20px', fontFamily: 'monospace', letterSpacing: '4px', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }
+
   return (
     <div>
-      {fase === 'ruta' && <GPSTracker solicitudId={solicitud._id} />}
+      {gpsActivo && <GPSTracker solicitudId={solicitud._id} />}
 
-      {/* CODIGO RECOGIDA */}
-      {fase === 'codigos' && (
-        <>
-          <div style={{ ...S.card, textAlign: 'center', background: 'rgba(37,99,235,.1)', border: '1px solid rgba(96,165,250,.25)' }}>
-            <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔑</div>
-            <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '6px' }}>Codigo de recogida</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '16px' }}>Pideselo a la empresa cuando llegues</div>
-            <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '12px' }}>📍 {reserva.direccionRecogida}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-              <button onClick={() => abrirMaps(reserva.direccionRecogida)} style={{ ...S.btn('#2563EB', false), width: '100%', marginTop: 0, fontSize: '12px' }}>🗺 Maps</button>
-              <button onClick={() => abrirWaze(reserva.direccionRecogida)} style={{ ...S.btn('#00CAFF', false), width: '100%', marginTop: 0, fontSize: '12px', color: '#060E1C' }}>🚗 Waze</button>
-            </div>
-            <input
-              style={{ ...S.inp, fontSize: '20px', fontFamily: 'monospace', letterSpacing: '4px', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }}
-              placeholder="XXXXXX" maxLength={8}
-              value={codigoInput} onChange={e => setCodigoInput(e.target.value.toUpperCase())}
-            />
-            {error && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '8px' }}>{error}</div>}
-            <button onClick={() => onVerificar(solicitud._id, reserva._id, 'recogida')} disabled={cargando} style={S.btn()}>
-              {cargando ? 'Verificando...' : 'Confirmar codigo →'}
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* CARGUE */}
-      {fase === 'cargue' && (
-        <div style={S.card}>
-          <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '16px', textAlign: 'center', color: '#10B981' }}>✅ Codigo verificado — Cronometro de cargue</div>
-          <Cronometro label="Tiempo de cargue" onStop={onCargueStop} />
+      <div style={{ ...S.card, background: 'linear-gradient(135deg,rgba(37,99,235,.15),rgba(6,14,28,.9))', border: '1px solid rgba(96,165,250,.25)', marginBottom: '16px' }}>
+        <div style={{ fontSize: '24px', marginBottom: '6px' }}>🚛</div>
+        <div style={{ fontWeight: '800', fontSize: '17px' }}>{solicitud.ruta?.origen} → {solicitud.ruta?.destino}</div>
+        <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>
+          {reservasAceptadas.length} empresa{reservasAceptadas.length !== 1 ? 's' : ''} en este viaje
         </div>
-      )}
+      </div>
 
-      {/* EN RUTA */}
-      {fase === 'ruta' && (
-        <>
-          <div style={{ ...S.card, background: 'linear-gradient(135deg,rgba(37,99,235,.15),rgba(6,14,28,.9))', border: '1px solid rgba(96,165,250,.25)' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>🚛</div>
-            <div style={{ fontWeight: '800', fontSize: '18px', marginBottom: '4px' }}>En ruta</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD' }}>{solicitud.ruta?.origen} → {solicitud.ruta?.destino}</div>
-          </div>
-          <div style={S.card}>
-            <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '10px' }}>🏁 Punto de entrega</div>
-            <div style={{ fontSize: '14px', color: '#C8D4E3', marginBottom: '12px' }}>{reserva.direccionEntrega}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button onClick={() => abrirMaps(reserva.direccionEntrega)} style={{ ...S.btn('#2563EB', false), width: '100%', marginTop: 0, fontSize: '13px' }}>🗺 Google Maps</button>
-              <button onClick={() => abrirWaze(reserva.direccionEntrega)} style={{ ...S.btn('#00CAFF', false), width: '100%', marginTop: 0, fontSize: '13px', color: '#060E1C' }}>🚗 Waze</button>
+      {reservasAceptadas.map((r, idx) => {
+        const fase = getFase(r)
+        const pagoUrl = pagos[r._id]
+        return (
+          <div key={r._id} style={{ ...S.card, marginBottom: '14px', border: `1px solid ${fase === 'cobrado' ? 'rgba(16,185,129,.3)' : fase === 'en_ruta' ? 'rgba(96,165,250,.3)' : 'rgba(255,255,255,.08)'}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ fontWeight: '700', fontSize: '14px' }}>Empresa {idx + 1}</div>
+              <span style={S.tag(fase === 'cobrado' ? '#10B981' : fase === 'en_ruta' ? '#60A5FA' : fase === 'en_cargue' ? '#FBBF24' : '#7A8FAD')}>
+                {fase === 'cobrado' ? '✅ Entregado' : fase === 'en_ruta' ? '🚛 En ruta' : fase === 'en_cargue' ? '📦 Cargando' : '🔑 Pendiente'}
+              </span>
             </div>
+            <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '12px', lineHeight: 1.6 }}>
+              📍 Recogida: {r.direccionRecogida}<br />
+              🏁 Entrega: {r.direccionEntrega}
+            </div>
+
+            {fase === 'recogida' && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <button onClick={() => abrirMaps(r.direccionRecogida)} style={{ ...S.btn('#2563EB', false), width: '100%', marginTop: 0, fontSize: '12px' }}>🗺 Maps</button>
+                  <button onClick={() => abrirWaze(r.direccionRecogida)} style={{ ...S.btn('#00CAFF', false), width: '100%', marginTop: 0, fontSize: '12px', color: '#060E1C' }}>🚗 Waze</button>
+                </div>
+                <label style={S.lbl}>Codigo de recogida</label>
+                <input style={inpCodigo} placeholder="XXXXXX" maxLength={8} value={codigos[r._id] || ''} onChange={e => setCodigos(c => ({ ...c, [r._id]: e.target.value.toUpperCase() }))} />
+                {errores[r._id] && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '6px' }}>{errores[r._id]}</div>}
+                <button onClick={() => verificar(r._id, 'recogida')} disabled={cargando[r._id]} style={S.btn('#F97316')}>
+                  {cargando[r._id] ? 'Verificando...' : '✅ Confirmar recogida →'}
+                </button>
+              </>
+            )}
+
+            {fase === 'en_cargue' && (
+              <>
+                <div style={{ background: 'rgba(251,191,36,.08)', border: '1px solid rgba(251,191,36,.2)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#FBBF24' }}>
+                  📦 Cargue en progreso — cuando termines presiona "Listo"
+                </div>
+                <button onClick={() => setFases(f => ({ ...f, [r._id]: 'en_ruta' }))} style={S.btn('#10B981')}>✅ Cargue listo — En ruta →</button>
+              </>
+            )}
+
+            {fase === 'en_ruta' && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <button onClick={() => abrirMaps(r.direccionEntrega)} style={{ ...S.btn('#2563EB', false), width: '100%', marginTop: 0, fontSize: '12px' }}>🗺 Ir al destino</button>
+                  <button onClick={() => abrirWaze(r.direccionEntrega)} style={{ ...S.btn('#00CAFF', false), width: '100%', marginTop: 0, fontSize: '12px', color: '#060E1C' }}>🚗 Waze</button>
+                </div>
+                <label style={S.lbl}>Codigo de entrega</label>
+                <input style={inpCodigo} placeholder="XXXXXX" maxLength={8} value={codigos[`${r._id}_entrega`] || ''} onChange={e => setCodigos(c => ({ ...c, [`${r._id}_entrega`]: e.target.value.toUpperCase() }))} />
+                {errores[`${r._id}_entrega`] && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '6px' }}>{errores[`${r._id}_entrega`]}</div>}
+                <button onClick={() => verificar(r._id, 'entrega')} disabled={cargando[r._id]} style={S.btn('#10B981')}>
+                  {cargando[r._id] ? 'Verificando...' : '🏁 Confirmar entrega →'}
+                </button>
+              </>
+            )}
+
+            {fase === 'cobrado' && (
+              <>
+                <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#10B981' }}>
+                  ✅ Entrega confirmada
+                </div>
+                {pagoUrl ? (
+                  <a href={pagoUrl} target="_blank" rel="noreferrer"
+                    style={{ display: 'block', background: '#10B981', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '800', textDecoration: 'none', textAlign: 'center' }}>
+                    💳 Pagar con Wompi →
+                  </a>
+                ) : (
+                  <div style={{ fontSize: '12px', color: '#7A8FAD' }}>Pago procesado automaticamente.</div>
+                )}
+              </>
+            )}
           </div>
-          <button onClick={() => { /* cambiar fase a entrega */ onVerificar && setCodigoInput && null }} style={S.btn('#10B981')}>Llegue al destino →</button>
-        </>
-      )}
+        )
+      })}
 
-      {/* COBRO */}
-      {fase === 'cobro' && (
-        <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-          <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '22px', fontWeight: '800', marginBottom: '8px' }}>Entrega completada!</div>
-          <div style={{ fontSize: '14px', color: '#7A8FAD', marginBottom: '24px' }}>Muestra el link de pago a la empresa</div>
-          {pagoInfo && (
-            <a href={pagoInfo} target="_blank" rel="noreferrer"
-              style={{ display: 'block', background: '#10B981', color: 'white', padding: '16px', borderRadius: '12px', fontFamily: 'DM Sans,sans-serif', fontSize: '16px', fontWeight: '800', textDecoration: 'none', textAlign: 'center', marginBottom: '12px' }}>
-              💳 Pagar con Wompi →
-            </a>
-          )}
-          <button onClick={onVolver} style={S.btn()}>Volver a mis rutas →</button>
+      {todasEntregadas ? (
+        <div style={{ ...S.card, background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', textAlign: 'center', padding: '32px' }}>
+          <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎉</div>
+          <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>Viaje completado!</div>
+          <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Todas las empresas fueron entregadas.</div>
+          <button onClick={onVolver} style={S.btn('#10B981')}>Volver a mis rutas →</button>
         </div>
+      ) : (
+        <button onClick={onVolver} style={{ ...S.btnOutline, marginTop: '8px' }}>← Volver a mis rutas</button>
       )}
-
-      <button onClick={onVolver} style={{ ...S.btnOutline, marginTop: '12px' }}>← Volver</button>
     </div>
   )
 }
-
 // ── COMPONENTE PRINCIPAL ──────────────────────────────────────────
 export default function Independiente() {
   const [estado, setEstado] = useState('loading')
