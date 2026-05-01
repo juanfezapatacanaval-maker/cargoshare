@@ -7,8 +7,8 @@ const RUTAS_API = 'https://cargoshare-api-production.up.railway.app/api/rutas'
 const TARIFAS = {
   camioneta:  { furgon_seco: 85, estacas: 75, refrigerado: 135, congelado: 170 },
   furgon:     { furgon_seco: 110, refrigerado: 175, congelado: 210 },
-  camion:     { furgon_seco: 135, estacas: 90, refrigerado: 210, congelado: 255, cisterna: 225, cama_baja: 245 },
-  tractomula: { furgon_seco: 160, estacas: 110, refrigerado: 255, congelado: 305, cisterna: 265, cama_baja: 290 },
+  camion:     { furgon_seco: 135, estacas: 90, refrigerado: 210, congelado: 255, cama_baja: 245 },
+  tractomula: { furgon_seco: 160, estacas: 110, refrigerado: 255, congelado: 305, cama_baja: 290 },
 }
 const KM_EXTRA = { camioneta: 850, furgon: 3300, camion: 9450, tractomula: 24000 }
 
@@ -37,7 +37,7 @@ function calcularPrecio(pesoReal, largo, ancho, alto, tipoVehiculo, carroceria, 
 const CARROCERIAS = [
   ['furgon_seco','📦','Furgon Seco'],['estacas','🪵','Estacas'],
   ['refrigerado','❄️','Refrigerado'],['congelado','🧊','Congelado'],
-  ['cisterna','🛢️','Cisterna'],['cama_baja','🔩','Cama Baja'],
+  ['cama_baja','🔩','Cama Baja'],
 ]
 const TIPOS_CARGA = [
   ['general','📦','General'],['fragil','🔮','Fragil'],
@@ -519,17 +519,15 @@ export default function Shipper() {
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>💰 Desglose de precio</div>
                 <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Peso cobrable</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{precioDesglose.pesoCobrable.toLocaleString('es-CO')} kg</span></div>
                 <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Flete base</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.precioBase.toLocaleString('es-CO')} COP</span></div>
-                {precioDesglose.recargoPorKmExtra > 0 && <div style={s.desglose}><span style={{ fontSize: '13px', color: '#F59E0B' }}>Recargo km extra</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>+${precioDesglose.recargoPorKmExtra.toLocaleString('es-CO')} COP</span></div>}
-                <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Comision CargoShare (35%)</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.comision.toLocaleString('es-CO')} COP</span></div>
-                <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>IVA sobre comision (19%)</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.iva.toLocaleString('es-CO')} COP</span></div>
+                {precioDesglose.recargoPorKmExtra > 0 && <div style={s.desglose}><span style={{ fontSize: '13px', color: '#F59E0B' }}>Recargo km extra recogida</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>+${precioDesglose.recargoPorKmExtra.toLocaleString('es-CO')} COP</span></div>}
                 <div style={{ height: '1px', background: 'rgba(255,255,255,.08)', margin: '10px 0' }}></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ fontSize: '15px', fontWeight: '700' }}>Total a pagar</span>
                   <span style={{ fontFamily: 'Syne,sans-serif', fontSize: '24px', fontWeight: '800', color: '#F97316' }}>${precioDesglose.total.toLocaleString('es-CO')} COP</span>
                 </div>
                 <div style={{ fontSize: '11px', color: '#7A8FAD', lineHeight: '1.7' }}>
-                  * El pago se procesa solo cuando la empresa acepte.<br />
-                  * La empresa transportadora recibe ${precioDesglose.precioCarrier.toLocaleString('es-CO')} COP.
+                  El pago se procesa cuando la empresa acepte y entregue el paquete.<br />
+                  El precio incluye todos los cargos e impuestos aplicables.
                 </div>
               </div>
               {errorReserva && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorReserva}</div>}

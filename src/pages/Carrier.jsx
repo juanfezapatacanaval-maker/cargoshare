@@ -10,8 +10,8 @@ const CONDUCTOR_AFILIADO_API = 'https://cargoshare-api-production.up.railway.app
 const CARROCERIAS_POR_TIPO = {
   camioneta:  [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
   furgon:     [['furgon_seco','📦 Furgon Seco'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado']],
-  camion:     [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
-  tractomula: [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cisterna','🛢️ Cisterna'], ['cama_baja','🔩 Cama Baja']],
+  camion:     [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cama_baja','🔩 Cama Baja']],
+  tractomula: [['furgon_seco','📦 Furgon Seco'], ['estacas','🪵 Estacas'], ['refrigerado','❄️ Refrigerado'], ['congelado','🧊 Congelado'], ['cama_baja','🔩 Cama Baja']],
 }
 
 // ─── MAPA GPS LEAFLET ─────────────────────────────────────────────
@@ -204,9 +204,18 @@ export default function Carrier() {
   }
   async function cargarConductoresAfiliados() {
     try {
-      const res = await fetch(`${CONDUCTOR_AFILIADO_API}/todos`, { headers })
+      // Filtrar solo conductores afiliados de ESTA empresa
+      const token = localStorage.getItem('token')
+      const userId = JSON.parse(atob(token.split('.')[1])).id
+      const res = await fetch(`${CONDUCTOR_AFILIADO_API}/por-empresa/${userId}`, { headers })
       const data = await res.json()
-      if (res.ok) setConductoresAfiliados(data.filter(c => c.estado === 'aprobado'))
+      if (res.ok) setConductoresAfiliados(data)
+      else {
+        // fallback: todos aprobados si el endpoint nuevo no existe aun
+        const res2 = await fetch(`${CONDUCTOR_AFILIADO_API}/todos`, { headers })
+        const data2 = await res2.json()
+        if (res2.ok) setConductoresAfiliados(data2.filter(c => c.estado === 'aprobado'))
+      }
     } catch { }
   }
 
@@ -222,6 +231,13 @@ export default function Carrier() {
 
   async function registrarConductor() {
     if (!cForm.nombre || !cForm.cedula || !cForm.categoriaLicencia || !cForm.vencimientoLicencia) { setErrorC('Nombre, cedula, categoria y vencimiento de licencia son obligatorios'); return }
+    // Validar que la licencia no este vencida
+    const vencLic = new Date(cForm.vencimientoLicencia)
+    const hoyLic  = new Date(); hoyLic.setHours(0,0,0,0)
+    if (vencLic < hoyLic) {
+      setErrorC(`La licencia ya vencio el ${vencLic.toLocaleDateString('es-CO')}. No puedes registrar un conductor con licencia vencida.`)
+      return
+    }
     if (!archivosC.fotoConductor || !archivosC.fotoCedula || !archivosC.fotoLicencia) { setErrorC('Debes subir la foto del conductor, la cedula y la licencia'); return }
     setGuardandoC(true); setErrorC('')
     try {
@@ -514,7 +530,15 @@ export default function Carrier() {
                             <div>
                               <div style={{ fontSize: '15px', fontWeight: '700' }}>{c.nombre}</div>
                               <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>CC {c.cedula} · {c.telefono || 'Sin telefono'} · Lic. {c.categoriaLicencia}</div>
-                              {vencimiento && <div style={{ fontSize: '11px', color: proximoVencer ? '#F59E0B' : '#10B981', marginTop: '2px' }}>{proximoVencer ? `⚠️ Licencia vence en ${diasParaVencer} dias` : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}</div>}
+                              {vencimiento && (
+                                <div style={{ fontSize: '11px', marginTop: '2px', color: licenciaVencida ? '#EF4444' : proximoVencer ? '#F59E0B' : '#10B981' }}>
+                                  {licenciaVencida
+                                    ? `❌ Licencia VENCIDA el ${vencimiento.toLocaleDateString('es-CO')} — actualizar antes de asignar`
+                                    : proximoVencer
+                                      ? `⚠️ Licencia vence en ${diasParaVencer} dias`
+                                      : `✅ Licencia vigente hasta ${vencimiento.toLocaleDateString('es-CO')}`}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '8px' }}>
@@ -603,7 +627,7 @@ export default function Carrier() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {conductores.filter(c => c.estado === 'aprobado').map(c => (
                         <div key={c._id} onClick={() => setRuta({ ...ruta, conductorId: c._id })}
-                          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', border: `2px solid ${ruta.conductorId === c._id ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.conductorId === c._id ? 'rgba(249,115,22,.06)' : 'rgba(255,255,255,.02)', cursor: 'pointer', transition: '.2s' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', border: `2px solid ${ruta.conductorId === c._id ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.conductorId === c._id ? 'rgba(249,115,22,.06)' : 'rgba(255,255,255,.02)', cursor: 'pointer', transition: '.2s', opacity: (c.vencimientoLicencia && new Date(c.vencimientoLicencia) < new Date()) ? 0.4 : 1, pointerEvents: (c.vencimientoLicencia && new Date(c.vencimientoLicencia) < new Date()) ? 'none' : 'auto' }}>
                           {c.fotoConductor ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }} /> : <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>👤</div>}
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '14px', fontWeight: '700' }}>{c.nombre}</div>
