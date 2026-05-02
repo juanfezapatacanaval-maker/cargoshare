@@ -550,9 +550,10 @@ export default function Carrier() {
                   {conductores.map(c => {
                     const vencimiento = c.vencimientoLicencia ? new Date(c.vencimientoLicencia) : null
                     const diasParaVencer = vencimiento ? Math.floor((vencimiento - new Date()) / (1000 * 60 * 60 * 24)) : null
-                    const proximoVencer = diasParaVencer !== null && diasParaVencer <= 60
+                    const licenciaVencida = diasParaVencer !== null && diasParaVencer < 0
+                    const proximoVencer = diasParaVencer !== null && diasParaVencer >= 0 && diasParaVencer <= 30
                     return (
-                      <div key={c._id} style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${proximoVencer ? 'rgba(245,158,11,.3)' : 'rgba(255,255,255,.07)'}`, borderRadius: '12px', padding: '16px', marginBottom: '10px' }}>
+                      <div key={c._id} style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${licenciaVencida ? 'rgba(239,68,68,.3)' : proximoVencer ? 'rgba(245,158,11,.3)' : 'rgba(255,255,255,.07)'}`, borderRadius: '12px', padding: '16px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                             {c.fotoConductor ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} /> : <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👤</div>}
@@ -742,9 +743,8 @@ export default function Carrier() {
                   <div style={{ background: 'rgba(37,99,235,.06)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '8px', padding: '10px 12px', fontSize: '11px', color: '#60A5FA', marginBottom: '16px' }}>
                     💡 Si no especificas dimensiones se usaran las del vehiculo. Si ya llevas algo, pon el espacio restante.
                   </div>
-                  <div style={s.fg}>
                   {ruta.pesoDisponible > 0 && (
-                    <div>
+                    <div style={{ marginTop: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <span style={{ fontSize: '12px', color: '#7A8FAD' }}>Capacidad disponible</span>
                         <span style={{ fontSize: '15px', fontWeight: '800', color: porcentajeDisp >= 70 ? '#10B981' : porcentajeDisp >= 40 ? '#F59E0B' : '#F97316' }}>{porcentajeDisp}%</span>
