@@ -39,6 +39,21 @@ const CARROCERIAS = [
   ['refrigerado','❄️','Refrigerado'],['congelado','🧊','Congelado'],
   ['cama_baja','🔩','Cama Baja'],
 ]
+
+const CATEGORIAS_PRODUCTOS = [
+  'Alimentos frescos', 'Carnes y embutidos', 'Lacteos', 'Huevos y aves',
+  'Frutos secos', 'Granos y cereales', 'Frutas y verduras',
+  'Bebidas alcoholicas', 'Bebidas no alcoholicas',
+  'Productos con olor fuerte', 'Quimicos industriales', 'Fertilizantes',
+  'Materiales de construccion', 'Metales y ferreterias',
+  'Textiles y ropa', 'Calzado', 'Muebles', 'Electrodomesticos',
+  'Electronica y tecnologia', 'Maquinaria pesada', 'Repuestos automotriz',
+  'Medicamentos', 'Cosmeticos y cuidado personal',
+  'Productos fragiles', 'Arte y antigüedades',
+  'Papel y carton', 'Plasticos', 'Madera',
+  'Mascotas y animales vivos', 'Productos congelados', 'Refrigerados',
+]
+
 const TIPOS_CARGA = [
   ['general','📦','General'],['fragil','🔮','Fragil'],
   ['maquinaria','🏗️','Maquinaria'],['refrigerado','❄️','Refrigerado'],['congelado','🧊','Congelado'],
@@ -158,10 +173,14 @@ export default function Shipper() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const [busqueda, setBusqueda] = useState({
-    direccionRecogida: '', origen: '', destino: '',
+    direccionRecogida: '', direccionEntrega: '',
+    origen: '', destino: '',
     fechaNecesaria: '', horaNecesaria: '',
     tipoCarga: 'general', carroceriaNecesaria: 'furgon_seco',
     pesoReal: '', largo: '', ancho: '', alto: '',
+    esUrgente: false,
+    productosCompatibles: [],
+    tipoCargaEspecifico: '',
   })
 
   const [rutasMatch, setRutasMatch] = useState([])
@@ -216,7 +235,22 @@ export default function Shipper() {
     }
     setBuscando(true); setErrorBusqueda(''); setRutasMatch([]); setBuscado(false)
     try {
-      const params = new URLSearchParams({ origen: busqueda.origen, destino: busqueda.destino, carroceria: busqueda.carroceriaNecesaria, peso: busqueda.pesoReal, fecha: busqueda.fechaNecesaria || '', direccionRecogida: busqueda.direccionRecogida || '' })
+      const params = new URLSearchParams({
+        origen: busqueda.origen,
+        destino: busqueda.destino,
+        carroceria: busqueda.carroceriaNecesaria,
+        peso: busqueda.pesoReal,
+        fecha: busqueda.fechaNecesaria || '',
+        direccionRecogida: busqueda.direccionRecogida || '',
+        direccionEntrega: busqueda.direccionEntrega || '',
+        urgente: busqueda.esUrgente ? 'true' : 'false',
+        largo: busqueda.largo || '',
+        ancho: busqueda.ancho || '',
+        alto: busqueda.alto || '',
+        ...(busqueda.productosCompatibles.length > 0
+          ? { productosCompatibles: JSON.stringify(busqueda.productosCompatibles) }
+          : {}),
+      })
       const res = await fetch(`${RUTAS_API}/buscar?${params}`, { headers })
       const data = await res.json()
       if (res.ok) { setRutasMatch(data); setBuscado(true) }
@@ -239,7 +273,29 @@ export default function Shipper() {
     if (!rutaSeleccionada) return
     setReservando(true); setErrorReserva('')
     try {
-      const res = await fetch(`${RUTAS_API}/reservar`, { method: 'POST', headers, body: JSON.stringify({ rutaId: rutaSeleccionada._id, direccionRecogida: busqueda.direccionRecogida, carga: { tipo: busqueda.tipoCarga, carroceriaNecesaria: busqueda.carroceriaNecesaria, pesoReal: Number(busqueda.pesoReal), largo: Number(busqueda.largo), ancho: Number(busqueda.ancho), alto: Number(busqueda.alto) }, fechaNecesaria: busqueda.fechaNecesaria, horaNecesaria: busqueda.horaNecesaria, precioTotal: precioDesglose.total, precioCarrier: precioDesglose.precioCarrier, comisionPlataforma: precioDesglose.comision, kmExtra: rutaSeleccionada.kmExtraRecogida || 0 }) })
+      const res = await fetch(`${RUTAS_API}/reservar`, { method: 'POST', headers, body: JSON.stringify({
+          rutaId: rutaSeleccionada._id,
+          direccionRecogida: busqueda.direccionRecogida,
+          direccionEntrega: busqueda.direccionEntrega,
+          carga: {
+            tipo: busqueda.tipoCarga,
+            tipoCargaEspecifico: busqueda.tipoCargaEspecifico,
+            carroceriaNecesaria: busqueda.carroceriaNecesaria,
+            pesoReal: Number(busqueda.pesoReal),
+            largo: Number(busqueda.largo),
+            ancho: Number(busqueda.ancho),
+            alto: Number(busqueda.alto),
+            productosCompatibles: busqueda.productosCompatibles,
+          },
+          fechaNecesaria: busqueda.fechaNecesaria,
+          horaNecesaria: busqueda.horaNecesaria,
+          esUrgente: busqueda.esUrgente,
+          precioTotal: precioDesglose.total,
+          precioCarrier: precioDesglose.precioCarrier,
+          comisionPlataforma: precioDesglose.comision,
+          kmExtra: rutaSeleccionada.kmExtraRecogida || 0,
+          kmExtraEntrega: rutaSeleccionada.kmExtraEntrega || 0,
+        }) })
       const data = await res.json()
       if (res.ok) { setReservado(true); setTimeout(() => { setReservado(false); setVista('envios'); setBuscado(false); setRutaSeleccionada(null) }, 2500) }
       else { setErrorReserva(data.error || 'Error al reservar') }
@@ -379,9 +435,30 @@ export default function Shipper() {
               <div style={s.p}>Ingresa los datos de tu carga y te mostramos las rutas disponibles con precio automatico.</div>
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 De donde a donde?</div>
+                {/* TIPO DE ENVIO */}
+                <div style={s.fg}>
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                    <div onClick={() => setBusqueda({ ...busqueda, esUrgente: false })}
+                      style={{ flex: 1, padding: '12px', borderRadius: '10px', border: `2px solid ${!busqueda.esUrgente ? '#F97316' : 'rgba(255,255,255,.1)'}`, background: !busqueda.esUrgente ? 'rgba(249,115,22,.08)' : 'transparent', cursor: 'pointer', textAlign: 'center' }}>
+                      <div style={{ fontSize: '20px', marginBottom: '4px' }}>📅</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Envio normal</div>
+                      <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Rutas que salen en +10h</div>
+                    </div>
+                    <div onClick={() => setBusqueda({ ...busqueda, esUrgente: true })}
+                      style={{ flex: 1, padding: '12px', borderRadius: '10px', border: `2px solid ${busqueda.esUrgente ? '#EF4444' : 'rgba(255,255,255,.1)'}`, background: busqueda.esUrgente ? 'rgba(239,68,68,.08)' : 'transparent', cursor: 'pointer', textAlign: 'center' }}>
+                      <div style={{ fontSize: '20px', marginBottom: '4px' }}>⚡</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Urgente</div>
+                      <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Rutas que salen en 3-10h</div>
+                    </div>
+                  </div>
+                </div>
                 <div style={s.fg}>
                   <label style={s.lbl}>Direccion exacta de recogida *</label>
                   <input style={s.inp} placeholder="Ej: Cra 30 #10-45, Bogota" value={busqueda.direccionRecogida} onChange={e => setBusqueda({ ...busqueda, direccionRecogida: e.target.value })} />
+                </div>
+                <div style={s.fg}>
+                  <label style={s.lbl}>Direccion exacta de entrega *</label>
+                  <input style={s.inp} placeholder="Ej: Calle 50 #30-10, Medellin" value={busqueda.direccionEntrega} onChange={e => setBusqueda({ ...busqueda, direccionEntrega: e.target.value })} />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={busqueda.origen} onChange={e => setBusqueda({ ...busqueda, origen: e.target.value })} /></div>
@@ -425,6 +502,42 @@ export default function Shipper() {
                   </div>
                 )}
               </div>
+              {/* COMPATIBILIDAD DE PRODUCTOS */}
+              <div style={s.panel}>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>🧺 Compatibilidad de productos <span style={{ fontSize: '12px', color: '#7A8FAD', fontWeight: '400' }}>(opcional)</span></div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>Si tu carga requiere condiciones especificas, indica con que otros productos es compatible. Solo apareceran rutas que ya llevan categorias compatibles o que van vacias.</div>
+                <div style={s.fg}>
+                  <label style={s.lbl}>Que producto especifico llevas?</label>
+                  <input style={s.inp} placeholder="Ej: Pollo fresco, Ropa deportiva, Tornillos..." value={busqueda.tipoCargaEspecifico} onChange={e => setBusqueda({ ...busqueda, tipoCargaEspecifico: e.target.value })} />
+                </div>
+                <div style={s.fg}>
+                  <label style={s.lbl}>Tu producto es compatible con...</label>
+                  <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '10px', padding: '12px', maxHeight: '200px', overflowY: 'auto' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {CATEGORIAS_PRODUCTOS.map(cat => {
+                        const sel = busqueda.productosCompatibles.includes(cat)
+                        return (
+                          <div key={cat} onClick={() => setBusqueda(b => ({
+                            ...b,
+                            productosCompatibles: sel
+                              ? b.productosCompatibles.filter(c => c !== cat)
+                              : [...b.productosCompatibles, cat]
+                          }))}
+                            style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', border: `1px solid ${sel ? '#10B981' : 'rgba(255,255,255,.12)'}`, background: sel ? 'rgba(16,185,129,.12)' : 'transparent', color: sel ? '#10B981' : '#7A8FAD', transition: '.15s' }}>
+                            {sel ? '✓ ' : ''}{cat}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  {busqueda.productosCompatibles.length > 0 && (
+                    <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px' }}>
+                      ✅ {busqueda.productosCompatibles.length} categoria{busqueda.productosCompatibles.length !== 1 ? 's' : ''} seleccionada{busqueda.productosCompatibles.length !== 1 ? 's' : ''} — solo aparecen rutas compatibles
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {errorBusqueda && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorBusqueda}</div>}
               <button onClick={buscarRutas} disabled={buscando} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: buscando ? 0.7 : 1, marginBottom: '32px' }}>
                 {buscando ? 'Buscando...' : '🔍 Buscar rutas disponibles →'}
@@ -448,9 +561,13 @@ export default function Shipper() {
                           <div>
                             <div style={{ fontSize: '15px', fontWeight: '700' }}>📍 {r.origen} → {r.destino}</div>
                             <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '3px' }}>{r.fechaSalida ? new Date(r.fechaSalida).toLocaleDateString('es-CO') : ''} · {r.horaSalida}</div>
-                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>
-                              {r.esIndependiente ? '🚚' : '🏢'} {r.empresa?.nombre || 'Empresa verificada'} · ⭐ {r.empresa?.calificacion || '5.0'}
-                              {r.esIndependiente && <span style={{ marginLeft: '6px', background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.3)', color: '#10B981', fontSize: '10px', fontWeight: '700', padding: '2px 7px', borderRadius: '100px' }}>Independiente</span>}
+                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
+                              <span>{r.esIndependiente ? '🚚' : '🏢'} {r.empresa?.nombre || 'Empresa verificada'} · ⭐ {r.empresa?.calificacion || '5.0'}</span>
+                              {r.esIndependiente && <span style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.3)', color: '#10B981', fontSize: '10px', fontWeight: '700', padding: '2px 7px', borderRadius: '100px' }}>Independiente</span>}
+                              {r.compatibilidad === 'sin_carga' && <span style={{ background: 'rgba(96,165,250,.12)', border: '1px solid rgba(96,165,250,.3)', color: '#60A5FA', fontSize: '10px', fontWeight: '700', padding: '2px 7px', borderRadius: '100px' }}>Sin carga aun</span>}
+                              {r.compatibilidad === 'compatible' && <span style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.3)', color: '#10B981', fontSize: '10px', fontWeight: '700', padding: '2px 7px', borderRadius: '100px' }}>Compatible</span>}
+                              {r.tipoAceptacion === 'urgente' && <span style={{ background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)', color: '#EF4444', fontSize: '10px', fontWeight: '700', padding: '2px 7px', borderRadius: '100px' }}>⚡ Urgente</span>}
+                              {r.productosActuales?.length > 0 && <span style={{ fontSize: '10px', color: '#7A8FAD' }}>Lleva: {r.productosActuales.join(', ')}</span>}
                             </div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
@@ -520,6 +637,7 @@ export default function Shipper() {
                 <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Peso cobrable</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{precioDesglose.pesoCobrable.toLocaleString('es-CO')} kg</span></div>
                 <div style={s.desglose}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Flete base</span><span style={{ fontSize: '13px', fontWeight: '600' }}>${precioDesglose.precioBase.toLocaleString('es-CO')} COP</span></div>
                 {precioDesglose.recargoPorKmExtra > 0 && <div style={s.desglose}><span style={{ fontSize: '13px', color: '#F59E0B' }}>Recargo km extra recogida</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>+${precioDesglose.recargoPorKmExtra.toLocaleString('es-CO')} COP</span></div>}
+                {(rutaSeleccionada?.kmExtraEntrega || 0) > 0 && (() => { const kmEntPrecio = Math.round((rutaSeleccionada.kmExtraEntrega || 0) * (KM_EXTRA[rutaSeleccionada?.tipoVehiculo] || 3300)); return <div style={s.desglose}><span style={{ fontSize: '13px', color: '#F59E0B' }}>Recargo km extra entrega</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F59E0B' }}>+${kmEntPrecio.toLocaleString('es-CO')} COP</span></div>; })()}
                 <div style={{ height: '1px', background: 'rgba(255,255,255,.08)', margin: '10px 0' }}></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ fontSize: '15px', fontWeight: '700' }}>Total a pagar</span>

@@ -139,7 +139,15 @@ export default function Carrier() {
   const [guardadoV, setGuardadoV] = useState(false)
   const [errorV, setErrorV] = useState('')
 
-  const [ruta, setRuta] = useState({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' })
+  const [ruta, setRuta] = useState({
+    direccionSalida: '', direccionDestino: '',
+    origen: '', destino: '',
+    fechaSalida: '', horaSalida: '',
+    rangoRecogida: 10, rangoEntrega: 10,
+    tipoAceptacion: 'normal',
+    pesoDisponible: '', largoDisponible: '', anchoDisponible: '', altoDisponible: '',
+    vehiculoId: '', conductorId: ''
+  })
   const [publicando, setPublicando] = useState(false)
   const [publicado, setPublicado] = useState(false)
   const [errorRuta, setErrorRuta] = useState('')
@@ -283,9 +291,30 @@ export default function Carrier() {
     try {
       const pesoMax = veh.capacidad?.pesoMax || 0
       const pesoDisponible = Number(ruta.pesoDisponible)
-      const res = await fetch(RUTAS_API, { method: 'POST', headers, body: JSON.stringify({ direccionSalida: ruta.direccionSalida, origen: ruta.origen, destino: ruta.destino, fechaSalida: ruta.fechaSalida, horaSalida: ruta.horaSalida, rangoRecogida: Number(ruta.rangoRecogida), carroceria: veh.carroceria, tipoVehiculo: veh.tipo, vehiculoId: veh._id, conductorId: ruta.conductorId || null, espacio: { pesoMax, pesoDisponible, porcentajeDisponible: Math.round((pesoDisponible / pesoMax) * 100), volumenMax: veh.capacidad?.volumenMax, largo: veh.capacidad?.largo, ancho: veh.capacidad?.ancho, alto: veh.capacidad?.alto } }) })
+      const res = await fetch(RUTAS_API, { method: 'POST', headers, body: JSON.stringify({
+        direccionSalida: ruta.direccionSalida,
+        direccionDestino: ruta.direccionDestino,
+        origen: ruta.origen, destino: ruta.destino,
+        fechaSalida: ruta.fechaSalida, horaSalida: ruta.horaSalida,
+        rangoRecogida: Number(ruta.rangoRecogida),
+        rangoEntrega: Number(ruta.rangoEntrega) || 10,
+        tipoAceptacion: ruta.tipoAceptacion || 'normal',
+        carroceria: veh.carroceria, tipoVehiculo: veh.tipo,
+        vehiculoId: veh._id, conductorId: ruta.conductorId || null,
+        espacio: {
+          pesoMax, pesoDisponible,
+          porcentajeDisponible: Math.round((pesoDisponible / pesoMax) * 100),
+          volumenMax: veh.capacidad?.volumenMax,
+          largo: ruta.largoDisponible ? Number(ruta.largoDisponible) : veh.capacidad?.largo,
+          ancho: ruta.anchoDisponible ? Number(ruta.anchoDisponible) : veh.capacidad?.ancho,
+          alto:  ruta.altoDisponible  ? Number(ruta.altoDisponible)  : veh.capacidad?.alto,
+          largoDisponible: ruta.largoDisponible ? Number(ruta.largoDisponible) : veh.capacidad?.largo,
+          anchoDisponible: ruta.anchoDisponible ? Number(ruta.anchoDisponible) : veh.capacidad?.ancho,
+          altoDisponible:  ruta.altoDisponible  ? Number(ruta.altoDisponible)  : veh.capacidad?.alto,
+        }
+      }) })
       const data = await res.json()
-      if (res.ok) { setRutaPublicadaData({ origen: ruta.origen, destino: ruta.destino, veh }); setRuta({ direccionSalida: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, pesoDisponible: '', vehiculoId: '', conductorId: '' }); setModalRetorno('pregunta') }
+      if (res.ok) { setRutaPublicadaData({ origen: ruta.origen, destino: ruta.destino, veh }); setRuta({ direccionSalida: '', direccionDestino: '', origen: '', destino: '', fechaSalida: '', horaSalida: '', rangoRecogida: 10, rangoEntrega: 10, tipoAceptacion: 'normal', pesoDisponible: '', largoDisponible: '', anchoDisponible: '', altoDisponible: '', vehiculoId: '', conductorId: '' }); setModalRetorno('pregunta') }
       else { setErrorRuta(data.error || 'Error al publicar') }
     } catch { setErrorRuta('Error de conexion') }
     setPublicando(false)
@@ -641,7 +670,8 @@ export default function Carrier() {
                 </div>
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 Punto de salida y ruta</div>
-                  <div style={s.fg}><label style={s.lbl}>Direccion exacta de salida de tu flota *</label><input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogota" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Direccion exacta de salida *</label><input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogota" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Direccion exacta de llegada en destino *</label><input style={s.inp} placeholder="Ej: Carrera 50 #20-30, Medellin" value={ruta.direccionDestino} onChange={e => setRuta({ ...ruta, direccionDestino: e.target.value })} /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={ruta.origen} onChange={e => setRuta({ ...ruta, origen: e.target.value })} /></div>
                     <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellin" value={ruta.destino} onChange={e => setRuta({ ...ruta, destino: e.target.value })} /></div>
@@ -650,19 +680,69 @@ export default function Carrier() {
                     <div style={s.fg}><label style={s.lbl}>Fecha de salida *</label><input type="date" style={s.inp} value={ruta.fechaSalida} onChange={e => setRuta({ ...ruta, fechaSalida: e.target.value })} /></div>
                     <div style={s.fg}><label style={s.lbl}>Hora de salida *</label><input type="time" style={s.inp} value={ruta.horaSalida} onChange={e => setRuta({ ...ruta, horaSalida: e.target.value })} /></div>
                   </div>
+
+                  {/* TIPO DE ACEPTACION */}
                   <div style={s.fg}>
-                    <label style={s.lbl}>Rango maximo de recogida: <strong style={{ color: 'white' }}>{ruta.rangoRecogida} km</strong></label>
-                    <input type="range" min="0" max="80" step="5" value={ruta.rangoRecogida} onChange={e => setRuta({ ...ruta, rangoRecogida: Number(e.target.value) })} style={{ width: '100%', accentColor: '#F97316', cursor: 'pointer', marginBottom: '4px' }} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#7A8FAD' }}><span>Solo en la direccion</span><span>80 km</span></div>
+                    <label style={s.lbl}>Tipo de aceptacion de reservas *</label>
+                    <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '10px' }}>Define con cuanta anticipacion pueden reservarte espacio las empresas</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        ['normal',  '📅 Normal',  'Reservas con minimo 24h de anticipacion. Tienes 6 horas para aceptar o rechazar.'],
+                        ['urgente', '⚡ Urgente', 'Reservas entre 3-10h antes de salida. Tienes 3 horas para responder.'],
+                        ['ambas',   '🔄 Ambas',   'Aceptas reservas normales (24h+) y urgentes (3-10h). El tiempo de respuesta se ajusta segun el tipo.'],
+                      ].map(([val, label, desc]) => (
+                        <div key={val} onClick={() => setRuta({ ...ruta, tipoAceptacion: val })}
+                          style={{ display: 'flex', gap: '12px', padding: '12px 14px', borderRadius: '10px', border: `2px solid ${ruta.tipoAceptacion === val ? '#F97316' : 'rgba(255,255,255,.08)'}`, background: ruta.tipoAceptacion === val ? 'rgba(249,115,22,.06)' : 'transparent', cursor: 'pointer', transition: '.2s' }}>
+                          <div style={{ marginTop: '1px', width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${ruta.tipoAceptacion === val ? '#F97316' : 'rgba(255,255,255,.25)'}`, background: ruta.tipoAceptacion === val ? '#F97316' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {ruta.tipoAceptacion === val && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }} />}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>{label}</div>
+                            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px', lineHeight: 1.5 }}>{desc}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* RANGOS CON INPUT + SLIDER */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={s.fg}>
+                      <label style={s.lbl}>Rango de recogida (km): <strong style={{ color: 'white' }}>{ruta.rangoRecogida}</strong></label>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                        <input type="number" min="0" max="100" style={{ ...s.inp, width: '80px' }} value={ruta.rangoRecogida} onChange={e => setRuta({ ...ruta, rangoRecogida: Math.min(100, Math.max(0, Number(e.target.value))) })} />
+                        <span style={{ fontSize: '12px', color: '#7A8FAD' }}>km maximos de desvio para recoger</span>
+                      </div>
+                      <input type="range" min="0" max="100" step="1" value={ruta.rangoRecogida} onChange={e => setRuta({ ...ruta, rangoRecogida: Number(e.target.value) })} style={{ width: '100%', accentColor: '#F97316', cursor: 'pointer' }} />
+                    </div>
+                    <div style={s.fg}>
+                      <label style={s.lbl}>Rango de entrega (km): <strong style={{ color: 'white' }}>{ruta.rangoEntrega}</strong></label>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                        <input type="number" min="0" max="100" style={{ ...s.inp, width: '80px' }} value={ruta.rangoEntrega} onChange={e => setRuta({ ...ruta, rangoEntrega: Math.min(100, Math.max(0, Number(e.target.value))) })} />
+                        <span style={{ fontSize: '12px', color: '#7A8FAD' }}>km maximos de desvio para entregar</span>
+                      </div>
+                      <input type="range" min="0" max="100" step="1" value={ruta.rangoEntrega} onChange={e => setRuta({ ...ruta, rangoEntrega: Number(e.target.value) })} style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer' }} />
+                    </div>
                   </div>
                 </div>
                 <div style={s.panel}>
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>⚖️ Espacio disponible en este viaje *</div>
-                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Cuantos kg te sobran? El precio se calculara automaticamente.</div>
-                  <div style={s.fg}>
-                    <label style={s.lbl}>Peso disponible (kg) *</label>
-                    <input type="number" style={s.inp} placeholder={pesoMax ? `Max ${pesoMax.toLocaleString('es-CO')} kg` : 'Selecciona un vehiculo primero'} value={ruta.pesoDisponible} disabled={!ruta.vehiculoId} onChange={e => setRuta({ ...ruta, pesoDisponible: Math.min(Number(e.target.value), pesoMax) || '' })} />
+                  <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '16px' }}>Especifica cuanto espacio tienes disponible. Esto permite el matching exacto con la carga del shipper.</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={s.fg}>
+                      <label style={s.lbl}>Peso disponible (kg) *</label>
+                      <input type="number" style={s.inp} placeholder={pesoMax ? `Max ${pesoMax.toLocaleString('es-CO')} kg` : 'Selecciona un vehiculo primero'} value={ruta.pesoDisponible} disabled={!ruta.vehiculoId} onChange={e => setRuta({ ...ruta, pesoDisponible: Math.min(Number(e.target.value), pesoMax) || '' })} />
+                    </div>
                   </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '8px' }}>
+                    <div style={s.fg}><label style={s.lbl}>Largo disponible (m)</label><input type="number" step="0.1" style={s.inp} placeholder={vehActual?.capacidad?.largo ? `Max ${vehActual.capacidad.largo}m` : 'Largo'} value={ruta.largoDisponible} onChange={e => setRuta({ ...ruta, largoDisponible: e.target.value })} /></div>
+                    <div style={s.fg}><label style={s.lbl}>Ancho disponible (m)</label><input type="number" step="0.1" style={s.inp} placeholder={vehActual?.capacidad?.ancho ? `Max ${vehActual.capacidad.ancho}m` : 'Ancho'} value={ruta.anchoDisponible} onChange={e => setRuta({ ...ruta, anchoDisponible: e.target.value })} /></div>
+                    <div style={s.fg}><label style={s.lbl}>Alto disponible (m)</label><input type="number" step="0.1" style={s.inp} placeholder={vehActual?.capacidad?.alto ? `Max ${vehActual.capacidad.alto}m` : 'Alto'} value={ruta.altoDisponible} onChange={e => setRuta({ ...ruta, altoDisponible: e.target.value })} /></div>
+                  </div>
+                  <div style={{ background: 'rgba(37,99,235,.06)', border: '1px solid rgba(37,99,235,.15)', borderRadius: '8px', padding: '10px 12px', fontSize: '11px', color: '#60A5FA', marginBottom: '16px' }}>
+                    💡 Si no especificas dimensiones se usaran las del vehiculo. Si ya llevas algo, pon el espacio restante.
+                  </div>
+                  <div style={s.fg}>
                   {ruta.pesoDisponible > 0 && (
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -745,7 +825,7 @@ export default function Carrier() {
                       </span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                      {[['Tipo de carga', `${sol.carga?.tipo || '-'}`], ['Peso real', `${sol.carga?.pesoReal?.toLocaleString('es-CO') || '-'} kg`], ['Direccion recogida', sol.direccionRecogida || '-'], ['Km extra', sol.kmExtra > 0 ? `${sol.kmExtra} km fuera del rango` : '✅ Dentro del rango'], ['Recibes tu', `$${sol.precioCarrier?.toLocaleString('es-CO') || '-'} COP`], ['Total al cliente', `$${sol.precioTotal?.toLocaleString('es-CO') || '-'} COP`]].map(([k, v]) => (
+                      {[['Tipo de carga', `${sol.carga?.tipo || '-'}`], ['Peso real', `${sol.carga?.pesoReal?.toLocaleString('es-CO') || '-'} kg`], ['Direccion recogida', sol.direccionRecogida || '-'], ['Km extra recogida', sol.kmExtra > 0 ? `+${sol.kmExtra} km` : '✅ En rango'], ['Recibes tu', `$${sol.precioCarrier?.toLocaleString('es-CO') || '-'} COP`]].map(([k, v]) => (
                         <div key={k} style={{ background: 'rgba(255,255,255,.03)', borderRadius: '8px', padding: '10px 12px' }}>
                           <div style={{ fontSize: '10px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '3px' }}>{k}</div>
                           <div style={{ fontSize: '13px', fontWeight: '600' }}>{v}</div>
