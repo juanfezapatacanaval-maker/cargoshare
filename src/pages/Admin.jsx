@@ -421,6 +421,16 @@ export default function Admin() {
                     <div key={k} style={s.datoBox}><div style={{ fontSize: '10px', color: '#7A8FAD', marginBottom: '3px', fontWeight: '700', textTransform: 'uppercase' }}>{k}</div><div style={{ fontSize: '12px', fontWeight: '600' }}>{val}</div></div>
                   ))}
                 </div>
+                {/* Fotos del vehiculo */}
+                {v.fotos?.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                    {v.fotos.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" style={s.docBtn}>
+                        📷 Foto {i + 1}
+                      </a>
+                    ))}
+                  </div>
+                )}
                 {v.estado === 'pendiente' ? (
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button onClick={() => cambiarEstadoVehiculo(v._id, 'aprobado')} style={s.btnAprobar}>✅ Aprobar vehiculo</button>

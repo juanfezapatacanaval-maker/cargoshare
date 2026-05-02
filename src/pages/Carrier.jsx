@@ -135,9 +135,21 @@ export default function Carrier() {
   const [errorC, setErrorC] = useState('')
 
   const [vForm, setVForm] = useState({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' })
+  const [fotosVehiculo, setFotosVehiculo] = useState({ foto1: null, foto2: null, foto3: null })
   const [guardandoV, setGuardandoV] = useState(false)
   const [guardadoV, setGuardadoV] = useState(false)
   const [errorV, setErrorV] = useState('')
+  // Chat
+  const [chatSolicitudId, setChatSolicitudId] = useState(null)
+  const [mensajes, setMensajes] = useState([])
+  const [mensajeInput, setMensajeInput] = useState('')
+  const [chatCerrado, setChatCerrado] = useState(false)
+  const [enviandoMensaje, setEnviandoMensaje] = useState(false)
+  // Calificaciones
+  const [calificandoId, setCalificandoId] = useState(null)
+  const [estrellas, setEstrellas] = useState(0)
+  const [comentarioCal, setComentarioCal] = useState('')
+  const [enviandoCal, setEnviandoCal] = useState(false)
 
   const [ruta, setRuta] = useState({
     direccionSalida: '', direccionDestino: '',
@@ -275,7 +287,18 @@ export default function Carrier() {
     if (!vForm.carroceria) { setErrorV('Selecciona el tipo de carroceria'); return }
     setGuardandoV(true); setErrorV('')
     try {
-      const res = await fetch(VEHICULO_API, { method: 'POST', headers, body: JSON.stringify({ placa: vForm.placa, tipo: vForm.tipo, carroceria: vForm.carroceria, marca: vForm.marca, modelo: vForm.modelo, año: Number(vForm.año), capacidad: { pesoMax: Number(vForm.pesoMax), volumenMax: Number(vForm.volumenMax), largo: Number(vForm.largo), ancho: Number(vForm.ancho), alto: Number(vForm.alto) } }) })
+      const formData = new FormData()
+      formData.append('placa', vForm.placa)
+      formData.append('tipo', vForm.tipo)
+      formData.append('carroceria', vForm.carroceria)
+      formData.append('marca', vForm.marca)
+      formData.append('modelo', vForm.modelo)
+      formData.append('año', vForm.año)
+      formData.append('capacidad', JSON.stringify({ pesoMax: Number(vForm.pesoMax), volumenMax: Number(vForm.volumenMax), largo: Number(vForm.largo), ancho: Number(vForm.ancho), alto: Number(vForm.alto) }))
+      if (fotosVehiculo.foto1) formData.append('foto1', fotosVehiculo.foto1)
+      if (fotosVehiculo.foto2) formData.append('foto2', fotosVehiculo.foto2)
+      if (fotosVehiculo.foto3) formData.append('foto3', fotosVehiculo.foto3)
+      const res = await fetch(VEHICULO_API, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
       const data = await res.json()
       if (res.ok) { setGuardadoV(true); cargarVehiculos(); setVForm({ placa: '', tipo: 'camion', carroceria: '', marca: '', modelo: '', año: '', pesoMax: '', volumenMax: '', largo: '', ancho: '', alto: '' }); setTimeout(() => setGuardadoV(false), 3000) } else { setErrorV(data.error || 'Error al registrar') }
     } catch { setErrorV('Error de conexion') }
@@ -334,6 +357,43 @@ export default function Carrier() {
   }
 
   function logout() { localStorage.clear(); navigate('/') }
+
+  async function abrirChat(solicitudId) {
+    setChatSolicitudId(solicitudId)
+    try {
+      const res = await fetch(`https://cargoshare-api-production.up.railway.app/api/chat/${solicitudId}`, { headers })
+      const data = await res.json()
+      if (res.ok) { setMensajes(data.mensajes || []); setChatCerrado(data.cerrado || false) }
+    } catch (e) { }
+  }
+
+  async function enviarMensaje() {
+    if (!mensajeInput.trim() || !chatSolicitudId) return
+    setEnviandoMensaje(true)
+    try {
+      const res = await fetch(`https://cargoshare-api-production.up.railway.app/api/chat/${chatSolicitudId}`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ texto: mensajeInput.trim() })
+      })
+      const data = await res.json()
+      if (res.ok) { setMensajes(m => [...m, data]); setMensajeInput('') }
+    } catch (e) { }
+    setEnviandoMensaje(false)
+  }
+
+  async function enviarCalificacion(solicitudId) {
+    if (!estrellas) return
+    setEnviandoCal(true)
+    try {
+      await fetch('https://cargoshare-api-production.up.railway.app/api/calificaciones', {
+        method: 'POST', headers,
+        body: JSON.stringify({ solicitudId, estrellas, comentario: comentarioCal })
+      })
+      setCalificandoId(null); setEstrellas(0); setComentarioCal('')
+      cargarViajes()
+    } catch (e) { }
+    setEnviandoCal(false)
+  }
 
   const vehActual = vehiculos.find(v => v._id === ruta.vehiculoId)
   const pesoMax = vehActual?.capacidad?.pesoMax || 0
@@ -531,6 +591,21 @@ export default function Carrier() {
                   <div style={s.fg}><label style={s.lbl}>Largo (m)</label><input type="number" style={s.inp} placeholder="12" value={vForm.largo} onChange={e => setVForm({ ...vForm, largo: e.target.value })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Ancho (m)</label><input type="number" style={s.inp} placeholder="2.4" value={vForm.ancho} onChange={e => setVForm({ ...vForm, ancho: e.target.value })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Alto (m)</label><input type="number" style={s.inp} placeholder="2.6" value={vForm.alto} onChange={e => setVForm({ ...vForm, alto: e.target.value })} /></div>
+                </div>
+              </div>
+              <div style={s.panel}>
+                <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px' }}>📷 Fotos del vehiculo</div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '14px' }}>Solo las ve el admin para verificar el estado del vehiculo. Sube hasta 3 fotos.</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  {[['foto1','Foto frontal'],['foto2','Foto lateral'],['foto3','Interior/carroceria']].map(([key, lbl]) => (
+                    <div key={key}>
+                      <label style={s.lbl}>{lbl}</label>
+                      <label style={{ display: 'block', background: fotosVehiculo[key] ? 'rgba(16,185,129,.06)' : 'rgba(255,255,255,.03)', border: `2px dashed ${fotosVehiculo[key] ? '#10B981' : 'rgba(255,255,255,.15)'}`, borderRadius: '10px', padding: '14px', textAlign: 'center', cursor: 'pointer' }}>
+                        <input type="file" accept=".jpg,.jpeg,.png" style={{ display: 'none' }} onChange={e => { const f = e.target.files[0]; if (f) setFotosVehiculo(fv => ({ ...fv, [key]: f })) }} />
+                        {fotosVehiculo[key] ? <div><div style={{ fontSize: '18px' }}>✅</div><div style={{ fontSize: '10px', color: '#10B981', marginTop: '3px' }}>{fotosVehiculo[key].name}</div></div> : <div><div style={{ fontSize: '22px' }}>📷</div><div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '3px' }}>Subir foto</div></div>}
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
               {errorV && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorV}</div>}
@@ -839,7 +914,14 @@ export default function Carrier() {
                       </div>
                     )}
                     {sol.estado === 'aceptado' && (
-                      <div style={{ marginTop: '12px', background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '10px', padding: '16px' }}>
+                      <div style={{ marginTop: '12px' }}>
+                        <button onClick={() => abrirChat(sol._id)} style={{ width: '100%', background: 'rgba(96,165,250,.1)', border: '1px solid rgba(96,165,250,.25)', color: '#60A5FA', padding: '10px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer', marginBottom: '10px' }}>
+                          💬 Chat con el remitente
+                        </button>
+                      </div>
+                    )}
+                    {sol.estado === 'aceptado' && (
+                      <div style={{ marginTop: '4px', background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '10px', padding: '16px' }}>
                         <div style={{ fontSize: '12px', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>👤 Asignar conductor afiliado a este viaje</div>
                         <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '12px' }}>El conductor asignado vera este viaje en su panel y podra ingresar el codigo de recogida.</div>
                         {sol.conductorAfiliadoId && (
@@ -924,10 +1006,31 @@ export default function Carrier() {
                 {viajes.filter(v => v.estado === 'completado').length === 0 ? (
                   <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin historial aun</div></div>
                 ) : viajes.filter(v => v.estado === 'completado').map(v => (
-                  <div key={v._id} style={{ ...s.rutaCard, display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ fontSize: '24px' }}>✅</div>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: '14px', fontWeight: '700' }}>{v.origen} → {v.destino}</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(v.fecha).toLocaleDateString('es-CO')}</div></div>
-                    <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981' }}>${v.precio?.toLocaleString('es-CO')}</div>
+                  <div key={v._id} style={{ ...s.rutaCard, marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ fontSize: '24px' }}>✅</div>
+                      <div style={{ flex: 1 }}><div style={{ fontSize: '14px', fontWeight: '700' }}>{v.origen} → {v.destino}</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(v.fecha).toLocaleDateString('es-CO')}</div></div>
+                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981' }}>${v.precio?.toLocaleString('es-CO')}</div>
+                    </div>
+                    {calificandoId === v._id ? (
+                      <div style={{ marginTop: '10px', background: 'rgba(255,255,255,.04)', borderRadius: '10px', padding: '12px' }}>
+                        <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '8px' }}>Califica al remitente</div>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                          {[1,2,3,4,5].map(n => (
+                            <span key={n} onClick={() => setEstrellas(n)} style={{ fontSize: '24px', cursor: 'pointer', opacity: n <= estrellas ? 1 : 0.3 }}>⭐</span>
+                          ))}
+                        </div>
+                        <input style={{ ...s.inp, marginBottom: '8px', fontSize: '13px' }} placeholder="Comentario opcional..." value={comentarioCal} onChange={e => setComentarioCal(e.target.value)} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => setCalificandoId(null)} style={{ flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '8px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', cursor: 'pointer' }}>Cancelar</button>
+                          <button onClick={() => enviarCalificacion(v._id)} disabled={!estrellas || enviandoCal} style={{ flex: 2, background: '#F97316', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', fontWeight: '700', cursor: 'pointer', opacity: estrellas ? 1 : 0.5 }}>{enviandoCal ? 'Enviando...' : 'Enviar calificacion'}</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setCalificandoId(v._id); setEstrellas(0); setComentarioCal('') }} style={{ marginTop: '8px', width: '100%', background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.2)', color: '#F97316', padding: '8px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                        ⭐ Calificar remitente
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -971,6 +1074,40 @@ export default function Carrier() {
           )}
 
         </div>
+      {/* MODAL CHAT */}
+      {chatSolicitudId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '22px 22px 0 0', width: '100%', maxWidth: '560px', maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid rgba(255,255,255,.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '15px', fontWeight: '700' }}>💬 Chat del viaje</div>
+              <button onClick={() => { setChatSolicitudId(null); setMensajes([]) }} style={{ background: 'rgba(255,255,255,.08)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {mensajes.length === 0 && <div style={{ textAlign: 'center', color: '#7A8FAD', fontSize: '13px', padding: '20px' }}>No hay mensajes aun. Empieza la conversacion.</div>}
+              {mensajes.map((m, i) => {
+                const esMio = m.emisorTipo === 'carrier'
+                return (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: esMio ? 'flex-end' : 'flex-start' }}>
+                    <div style={{ fontSize: '10px', color: '#7A8FAD', marginBottom: '3px' }}>{m.emisorNombre} · {new Date(m.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style={{ background: esMio ? '#F97316' : 'rgba(255,255,255,.08)', color: 'white', padding: '9px 13px', borderRadius: esMio ? '14px 14px 4px 14px' : '14px 14px 14px 4px', maxWidth: '80%', fontSize: '13px', lineHeight: 1.5 }}>{m.texto}</div>
+                  </div>
+                )
+              })}
+              {chatCerrado && <div style={{ textAlign: 'center', color: '#7A8FAD', fontSize: '12px', padding: '8px', background: 'rgba(255,255,255,.04)', borderRadius: '8px' }}>Este chat fue cerrado al completarse el viaje.</div>}
+            </div>
+            {!chatCerrado && (
+              <div style={{ padding: '14px 16px', borderTop: '1px solid rgba(255,255,255,.08)', display: 'flex', gap: '10px' }}>
+                <input style={{ flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '10px 13px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', outline: 'none' }}
+                  placeholder="Escribe un mensaje..." value={mensajeInput}
+                  onChange={e => setMensajeInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && enviarMensaje()} />
+                <button onClick={enviarMensaje} disabled={enviandoMensaje || !mensajeInput.trim()} style={{ background: '#F97316', border: 'none', color: 'white', padding: '10px 18px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer', opacity: mensajeInput.trim() ? 1 : 0.5 }}>Enviar</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* MODAL RETORNO */}
       {modalRetorno && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>

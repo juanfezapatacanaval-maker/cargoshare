@@ -193,6 +193,17 @@ export default function Shipper() {
   const [reservando, setReservando] = useState(false)
   const [reservado, setReservado] = useState(false)
   const [errorReserva, setErrorReserva] = useState('')
+  // Chat
+  const [chatSolicitudId, setChatSolicitudId] = useState(null)
+  const [mensajes, setMensajes] = useState([])
+  const [mensajeInput, setMensajeInput] = useState('')
+  const [chatCerrado, setChatCerrado] = useState(false)
+  const [enviandoMensaje, setEnviandoMensaje] = useState(false)
+  // Calificaciones
+  const [calificandoId, setCalificandoId] = useState(null)
+  const [estrellas, setEstrellas] = useState(0)
+  const [comentarioCal, setComentarioCal] = useState('')
+  const [enviandoCal, setEnviandoCal] = useState(false)
 
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
@@ -304,6 +315,43 @@ export default function Shipper() {
   }
 
   function logout() { localStorage.clear(); navigate('/') }
+
+  async function abrirChat(solicitudId) {
+    setChatSolicitudId(solicitudId)
+    try {
+      const res = await fetch(`https://cargoshare-api-production.up.railway.app/api/chat/${solicitudId}`, { headers })
+      const data = await res.json()
+      if (res.ok) { setMensajes(data.mensajes || []); setChatCerrado(data.cerrado || false) }
+    } catch (e) { }
+  }
+
+  async function enviarMensaje() {
+    if (!mensajeInput.trim() || !chatSolicitudId) return
+    setEnviandoMensaje(true)
+    try {
+      const res = await fetch(`https://cargoshare-api-production.up.railway.app/api/chat/${chatSolicitudId}`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ texto: mensajeInput.trim() })
+      })
+      const data = await res.json()
+      if (res.ok) { setMensajes(m => [...m, data]); setMensajeInput('') }
+    } catch (e) { }
+    setEnviandoMensaje(false)
+  }
+
+  async function enviarCalificacion(solicitudId) {
+    if (!estrellas) return
+    setEnviandoCal(true)
+    try {
+      await fetch('https://cargoshare-api-production.up.railway.app/api/calificaciones', {
+        method: 'POST', headers,
+        body: JSON.stringify({ solicitudId, estrellas, comentario: comentarioCal })
+      })
+      setCalificandoId(null); setEstrellas(0); setComentarioCal('')
+      cargarEnvios()
+    } catch (e) { }
+    setEnviandoCal(false)
+  }
 
   const initials = nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   const pesoVol = Number(busqueda.largo) * Number(busqueda.ancho) * Number(busqueda.alto) * 400
@@ -726,6 +774,9 @@ export default function Shipper() {
                       </div>
                     </div>
 
+                    <button onClick={() => abrirChat(v._id)} style={{ marginTop: '10px', width: '100%', background: 'rgba(96,165,250,.08)', border: '1px solid rgba(96,165,250,.2)', color: '#60A5FA', padding: '9px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
+                      💬 Chat con el transportista
+                    </button>
                     {/* MAPA GPS — solo cuando el conductor esta en ruta */}
                     {(v.estado === 'en_transito' || v.estado === 'en_ruta') && v._id && (
                       <MapaGPS
@@ -749,10 +800,31 @@ export default function Shipper() {
                 {envios.filter(v => v.estado === 'completado').length === 0 ? (
                   <div style={s.emptyState}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📋</div><div style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>Sin historial aun</div></div>
                 ) : envios.filter(v => v.estado === 'completado').map(v => (
-                  <div key={v._id} style={{ ...s.envioCard, display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ fontSize: '24px' }}>✅</div>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: '14px', fontWeight: '700' }}>{v.origen} → {v.destino}</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(v.fecha).toLocaleDateString('es-CO')}</div></div>
-                    <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981' }}>${v.precioTotal?.toLocaleString('es-CO')} COP</div>
+                  <div key={v._id} style={{ ...s.envioCard, marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ fontSize: '24px' }}>✅</div>
+                      <div style={{ flex: 1 }}><div style={{ fontSize: '14px', fontWeight: '700' }}>{v.origen} → {v.destino}</div><div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{new Date(v.fecha).toLocaleDateString('es-CO')}</div></div>
+                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981' }}>${v.precioTotal?.toLocaleString('es-CO')} COP</div>
+                    </div>
+                    {calificandoId === v._id ? (
+                      <div style={{ marginTop: '10px', background: 'rgba(255,255,255,.04)', borderRadius: '10px', padding: '12px' }}>
+                        <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '8px' }}>Califica al transportista</div>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                          {[1,2,3,4,5].map(n => (
+                            <span key={n} onClick={() => setEstrellas(n)} style={{ fontSize: '24px', cursor: 'pointer', opacity: n <= estrellas ? 1 : 0.3 }}>⭐</span>
+                          ))}
+                        </div>
+                        <input style={{ ...s.inp, marginBottom: '8px', fontSize: '13px' }} placeholder="Comentario opcional..." value={comentarioCal} onChange={e => setComentarioCal(e.target.value)} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => setCalificandoId(null)} style={{ flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '8px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', cursor: 'pointer' }}>Cancelar</button>
+                          <button onClick={() => enviarCalificacion(v._id)} disabled={!estrellas || enviandoCal} style={{ flex: 2, background: '#F97316', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', fontWeight: '700', cursor: 'pointer', opacity: estrellas ? 1 : 0.5 }}>{enviandoCal ? 'Enviando...' : 'Enviar calificacion'}</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setCalificandoId(v._id); setEstrellas(0); setComentarioCal('') }} style={{ marginTop: '8px', width: '100%', background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.2)', color: '#F97316', padding: '8px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                        ⭐ Calificar transportista
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -779,6 +851,40 @@ export default function Shipper() {
 
         </div>
       </div>
+
+      {/* MODAL CHAT */}
+      {chatSolicitudId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '22px 22px 0 0', width: '100%', maxWidth: '560px', maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid rgba(255,255,255,.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '15px', fontWeight: '700' }}>💬 Chat del viaje</div>
+              <button onClick={() => { setChatSolicitudId(null); setMensajes([]) }} style={{ background: 'rgba(255,255,255,.08)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {mensajes.length === 0 && <div style={{ textAlign: 'center', color: '#7A8FAD', fontSize: '13px', padding: '20px' }}>No hay mensajes aun.</div>}
+              {mensajes.map((m, i) => {
+                const esMio = m.emisorTipo === 'shipper'
+                return (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: esMio ? 'flex-end' : 'flex-start' }}>
+                    <div style={{ fontSize: '10px', color: '#7A8FAD', marginBottom: '3px' }}>{m.emisorNombre} · {new Date(m.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style={{ background: esMio ? '#F97316' : 'rgba(255,255,255,.08)', color: 'white', padding: '9px 13px', borderRadius: esMio ? '14px 14px 4px 14px' : '14px 14px 14px 4px', maxWidth: '80%', fontSize: '13px', lineHeight: 1.5 }}>{m.texto}</div>
+                  </div>
+                )
+              })}
+              {chatCerrado && <div style={{ textAlign: 'center', color: '#7A8FAD', fontSize: '12px', padding: '8px', background: 'rgba(255,255,255,.04)', borderRadius: '8px' }}>Chat cerrado al completarse el viaje.</div>}
+            </div>
+            {!chatCerrado && (
+              <div style={{ padding: '14px 16px', borderTop: '1px solid rgba(255,255,255,.08)', display: 'flex', gap: '10px' }}>
+                <input style={{ flex: 1, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '10px 13px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', outline: 'none' }}
+                  placeholder="Escribe un mensaje..." value={mensajeInput}
+                  onChange={e => setMensajeInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && enviarMensaje()} />
+                <button onClick={enviarMensaje} disabled={enviandoMensaje || !mensajeInput.trim()} style={{ background: '#F97316', border: 'none', color: 'white', padding: '10px 18px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer', opacity: mensajeInput.trim() ? 1 : 0.5 }}>Enviar</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
