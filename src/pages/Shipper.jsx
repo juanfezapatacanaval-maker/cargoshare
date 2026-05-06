@@ -171,6 +171,7 @@ export default function Shipper() {
   const [solicitudes, setSolicitudes] = useState([])
   const [cargando, setCargando] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   const [busqueda, setBusqueda] = useState({
     direccionRecogida: '', direccionEntrega: '',
@@ -381,11 +382,11 @@ export default function Shipper() {
     userMenu: (open) => ({ position: 'absolute', bottom: '72px', left: '14px', right: '14px', background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '8px', display: open ? 'block' : 'none', zIndex: 10 }),
     umItem: (red) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: red ? '#EF4444' : '#B8C8DC' }),
     main: { flex: 1, display: 'flex', flexDirection: 'column' },
-    topbar: { padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(6,14,28,.8)', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0 },
-    content: { padding: '28px 32px', flex: 1, overflowY: 'auto' },
+    topbar: { padding: window.innerWidth < 768 ? '0 16px' : '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0B1628', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0, zIndex: 50 },
+    content: { padding: window.innerWidth < 768 ? '16px 16px 80px' : '28px 32px', flex: 1, overflowY: 'auto' },
     h2: { fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', letterSpacing: '-.8px', marginBottom: '4px' },
     p: { fontSize: '14px', color: '#7A8FAD', marginBottom: '28px' },
-    kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '28px' },
+    kpiGrid: { display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' },
     kpi: { background: '#0E1E38', border: '1px solid rgba(255,255,255,.07)', borderRadius: '16px', padding: '20px' },
     kpiLabel: { fontSize: '11px', color: '#7A8FAD', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: '10px' },
     kpiVal: (color) => ({ fontFamily: 'Syne,sans-serif', fontSize: '30px', fontWeight: '800', color }),
@@ -406,7 +407,8 @@ export default function Shipper() {
 
   return (
     <div style={s.wrap}>
-      <aside style={s.sidebar}>
+      {/* SIDEBAR DESKTOP */}
+      <aside style={{ ...s.sidebar, display: window.innerWidth < 768 ? 'none' : 'flex' }}>
         <div style={s.sbLogo}>
           <div style={s.logo}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
           <div style={s.roleBadge}>📦 Empresa remitente</div>
@@ -435,11 +437,19 @@ export default function Shipper() {
 
       <div style={s.main}>
         <div style={s.topbar}>
-          <div>
-            <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '18px', fontWeight: '800' }}>{titles[vista] || 'CargoShare'}</div>
-            <div style={{ fontSize: '12px', color: '#7A8FAD' }}>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {window.innerWidth < 768 ? (
+              <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '16px', fontWeight: '800' }}>
+                Cargo<span style={{ color: '#F97316' }}>Share</span>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '18px', fontWeight: '800' }}>{titles[vista] || 'CargoShare'}</div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD' }}>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              </div>
+            )}
           </div>
-          <button onClick={() => setVista('nuevo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>🔍 Buscar rutas</button>
+          <button onClick={() => setVista('nuevo')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>🔍 Buscar</button>
         </div>
 
         <div style={s.content}>
@@ -528,7 +538,7 @@ export default function Shipper() {
               </div>
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📦 Datos de tu carga *</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginBottom: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? 'repeat(3,1fr)' : 'repeat(5,1fr)', gap: '8px', marginBottom: '16px' }}>
                   {TIPOS_CARGA.map(([val, ic, label]) => (
                     <div key={val} style={s.tipoOpt(busqueda.tipoCarga === val)} onClick={() => setBusqueda({ ...busqueda, tipoCarga: val })}>
                       <div style={{ fontSize: '22px', marginBottom: '4px' }}>{ic}</div>
@@ -536,7 +546,7 @@ export default function Shipper() {
                     </div>
                   ))}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: '12px' }}>
                   <div style={s.fg}><label style={s.lbl}>Peso real (kg) *</label><input type="number" style={s.inp} placeholder="500" value={busqueda.pesoReal} onChange={e => setBusqueda({ ...busqueda, pesoReal: e.target.value })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Largo (m)</label><input type="number" style={s.inp} placeholder="2.0" value={busqueda.largo} onChange={e => setBusqueda({ ...busqueda, largo: e.target.value })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Ancho (m)</label><input type="number" style={s.inp} placeholder="1.5" value={busqueda.ancho} onChange={e => setBusqueda({ ...busqueda, ancho: e.target.value })} /></div>
@@ -851,6 +861,25 @@ export default function Shipper() {
 
         </div>
       </div>
+
+      {/* NAV MOBILE */}
+      {window.innerWidth < 768 && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0B1628', borderTop: '1px solid rgba(255,255,255,.07)', display: 'flex', zIndex: 100, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          {[
+            { id: 'dashboard', ic: '📊', label: 'Inicio' },
+            { id: 'nuevo', ic: '🔍', label: 'Buscar' },
+            { id: 'codigos', ic: '🔑', label: 'Codigos' },
+            { id: 'envios', ic: '📍', label: 'Envios' },
+            { id: 'config', ic: '⚙️', label: 'Config' },
+          ].map(item => (
+            <div key={item.id} onClick={() => setVista(item.id)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0 8px', cursor: 'pointer', borderTop: (vista === item.id || (item.id === 'nuevo' && vista === 'confirmar-reserva')) ? '2px solid #F97316' : '2px solid transparent' }}>
+              <span style={{ fontSize: '20px', marginBottom: '2px' }}>{item.ic}</span>
+              <span style={{ fontSize: '9px', fontWeight: '600', color: (vista === item.id || (item.id === 'nuevo' && vista === 'confirmar-reserva')) ? '#F97316' : '#7A8FAD' }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* MODAL CHAT */}
       {chatSolicitudId && (

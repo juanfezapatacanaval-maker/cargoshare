@@ -124,6 +124,8 @@ export default function Carrier() {
   const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [menuMobileOpen, setMenuMobileOpen] = useState(false)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const [solicitudes, setSolicitudes] = useState([])
   const [conductores, setConductores] = useState([])
   const [conductoresAfiliados, setConductoresAfiliados] = useState([])
@@ -421,7 +423,7 @@ export default function Carrier() {
 
   const s = {
     wrap: { display: 'flex', minHeight: '100vh', background: '#060E1C', fontFamily: 'DM Sans,sans-serif', color: 'white' },
-    sidebar: { width: '240px', flexShrink: 0, background: '#0B1628', borderRight: '1px solid rgba(255,255,255,.07)', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh' },
+    sidebar: { width: '240px', flexShrink: 0, background: '#0B1628', borderRight: '1px solid rgba(255,255,255,.07)', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', '@media(max-width:768px)': { display: 'none' } },
     sbLogo: { padding: '24px 24px 20px', borderBottom: '1px solid rgba(255,255,255,.07)' },
     logo: { fontFamily: 'Syne,sans-serif', fontSize: '18px', fontWeight: '800' },
     roleBadge: { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(37,99,235,.12)', border: '1px solid rgba(37,99,235,.2)', padding: '3px 10px', borderRadius: '100px', fontSize: '11px', color: '#60A5FA', fontWeight: '600', marginTop: '8px' },
@@ -433,11 +435,11 @@ export default function Carrier() {
     userMenu: (open) => ({ position: 'absolute', bottom: '72px', left: '14px', right: '14px', background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '8px', display: open ? 'block' : 'none', zIndex: 10 }),
     umItem: (red) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: red ? '#EF4444' : '#B8C8DC' }),
     main: { flex: 1, display: 'flex', flexDirection: 'column' },
-    topbar: { padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(6,14,28,.8)', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0 },
-    content: { padding: '28px 32px', flex: 1, overflowY: 'auto' },
+    topbar: { padding: window.innerWidth < 768 ? '0 16px' : '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0B1628', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0, zIndex: 50 },
+    content: { padding: window.innerWidth < 768 ? '16px 16px 80px' : '28px 32px', flex: 1, overflowY: 'auto' },
     h2: { fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', letterSpacing: '-.8px', marginBottom: '4px' },
     p: { fontSize: '14px', color: '#7A8FAD', marginBottom: '28px' },
-    kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', marginBottom: '28px' },
+    kpiGrid: { display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' },
     kpi: { background: '#0E1E38', border: '1px solid rgba(255,255,255,.07)', borderRadius: '16px', padding: '20px' },
     kpiLabel: { fontSize: '11px', color: '#7A8FAD', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: '10px' },
     kpiVal: (color) => ({ fontFamily: 'Syne,sans-serif', fontSize: '30px', fontWeight: '800', color }),
@@ -455,7 +457,8 @@ export default function Carrier() {
 
   return (
     <div style={s.wrap}>
-      <aside style={s.sidebar}>
+      {/* SIDEBAR DESKTOP */}
+      <aside style={{ ...s.sidebar, display: window.innerWidth < 768 ? 'none' : 'flex' }}>
         <div style={s.sbLogo}>
           <div style={s.logo}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
           <div style={s.roleBadge}>🚛 Empresa transportadora</div>
@@ -488,11 +491,22 @@ export default function Carrier() {
 
       <div style={s.main}>
         <div style={s.topbar}>
-          <div>
-            <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '18px', fontWeight: '800' }}>{titles[vista]}</div>
-            <div style={{ fontSize: '12px', color: '#7A8FAD' }}>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {window.innerWidth < 768 && (
+              <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '16px', fontWeight: '800' }}>
+                Cargo<span style={{ color: '#F97316' }}>Share</span>
+              </div>
+            )}
+            {window.innerWidth >= 768 && (
+              <div>
+                <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '18px', fontWeight: '800' }}>{titles[vista]}</div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD' }}>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              </div>
+            )}
           </div>
-          <button onClick={() => setVista('publicar-ruta')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>+ Publicar ruta</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button onClick={() => setVista('publicar-ruta')} style={{ background: '#F97316', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>+ Publicar</button>
+          </div>
         </div>
 
         <div style={s.content}>
@@ -1074,6 +1088,26 @@ export default function Carrier() {
           )}
 
         </div>
+      {/* NAV MOBILE — barra inferior */}
+      {window.innerWidth < 768 && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0B1628', borderTop: '1px solid rgba(255,255,255,.07)', display: 'flex', zIndex: 100, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          {[
+            { id: 'dashboard', ic: '📊', label: 'Inicio' },
+            { id: 'mis-rutas', ic: '🗺️', label: 'Rutas' },
+            { id: 'publicar-ruta', ic: '➕', label: 'Publicar' },
+            { id: 'solicitudes', ic: '📬', label: 'Solicitudes', badge: pendientes },
+            { id: 'config', ic: '⚙️', label: 'Config' },
+          ].map(item => (
+            <div key={item.id} onClick={() => setVista(item.id)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0 8px', cursor: 'pointer', position: 'relative', borderTop: vista === item.id ? '2px solid #F97316' : '2px solid transparent' }}>
+              {item.badge > 0 && <div style={{ position: 'absolute', top: '6px', right: '50%', marginRight: '-18px', background: '#F97316', color: 'white', borderRadius: '100px', fontSize: '9px', fontWeight: '800', padding: '1px 5px' }}>{item.badge}</div>}
+              <span style={{ fontSize: '20px', marginBottom: '2px' }}>{item.ic}</span>
+              <span style={{ fontSize: '9px', fontWeight: '600', color: vista === item.id ? '#F97316' : '#7A8FAD' }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* MODAL CHAT */}
       {chatSolicitudId && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
