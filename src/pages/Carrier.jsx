@@ -436,7 +436,7 @@ export default function Carrier() {
     umItem: (red) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: red ? '#EF4444' : '#B8C8DC' }),
     main: { flex: 1, display: 'flex', flexDirection: 'column' },
     topbar: { padding: window.innerWidth < 768 ? '0 16px' : '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0B1628', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0, zIndex: 50 },
-    content: { padding: window.innerWidth < 768 ? '16px 16px 80px' : '28px 32px', flex: 1, overflowY: 'auto' },
+    content: { padding: window.innerWidth < 768 ? '16px 16px calc(70px + env(safe-area-inset-bottom, 0px))' : '28px 32px', flex: 1, overflowY: 'auto' },
     h2: { fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', letterSpacing: '-.8px', marginBottom: '4px' },
     p: { fontSize: '14px', color: '#7A8FAD', marginBottom: '28px' },
     kpiGrid: { display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' },
@@ -1090,7 +1090,7 @@ export default function Carrier() {
         </div>
       {/* NAV MOBILE — barra inferior */}
       {window.innerWidth < 768 && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0B1628', borderTop: '1px solid rgba(255,255,255,.07)', display: 'flex', zIndex: 100, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0B1628', borderTop: '1px solid rgba(255,255,255,.07)', display: 'flex', zIndex: 100, paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}>
           {[
             { id: 'dashboard', ic: '📊', label: 'Inicio' },
             { id: 'mis-rutas', ic: '🗺️', label: 'Rutas' },

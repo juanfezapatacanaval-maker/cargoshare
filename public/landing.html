@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CargoShare — Logística Compartida Colombia</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -393,6 +393,23 @@ footer p{font-size:13px;color:var(--gray);}
   .cta-sec { padding: 0 32px 64px; }
   .cta-in { padding: 52px 40px; }
   footer { padding: 28px 32px; }
+}
+/* SAFE AREA — iPhone notch */
+nav {
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(64px + env(safe-area-inset-top, 0px));
+}
+.hero {
+  padding-top: calc(100px + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 768px) {
+  nav {
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .hero {
+    padding-top: calc(80px + env(safe-area-inset-top, 0px));
+  }
 }
 </style>
 </head>
