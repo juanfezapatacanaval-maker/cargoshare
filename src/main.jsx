@@ -46,14 +46,75 @@ splash.innerHTML = `
       animation: splashIn 0.6s ease 0.1s forwards;
       opacity: 0;
     }
-    .splash-spinner {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 3px solid rgba(249,115,22,0.15);
-      border-top-color: #F97316;
-      animation: splashIn 0.6s ease 0.2s forwards, spin 0.8s linear infinite;
+    .splash-spinner-wrap {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      animation: splashIn 0.6s ease 0.2s forwards;
       opacity: 0;
+    }
+    /* aro exterior girando */
+    .splash-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid rgba(249,115,22,0.12);
+      border-top-color: #F97316;
+      border-right-color: rgba(249,115,22,0.4);
+      animation: spin 0.9s linear infinite;
+    }
+    /* llanta — circulo central */
+    .splash-wheel {
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: #0E1E38;
+      border: 2px solid rgba(249,115,22,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s ease;
+    }
+    /* rayos de la llanta */
+    .splash-wheel::before {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 70%;
+      background: rgba(249,115,22,0.4);
+      border-radius: 1px;
+      box-shadow: 10px 0 0 rgba(249,115,22,0.4), -10px 0 0 rgba(249,115,22,0.4);
+    }
+    .splash-wheel::after {
+      content: '';
+      position: absolute;
+      width: 70%;
+      height: 2px;
+      background: rgba(249,115,22,0.4);
+      border-radius: 1px;
+      box-shadow: 0 8px 0 rgba(249,115,22,0.3), 0 -8px 0 rgba(249,115,22,0.3);
+    }
+    /* hub central */
+    .splash-hub {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #F97316;
+      border-radius: 50%;
+      z-index: 1;
+    }
+    /* estado ready — llanta completa */
+    .splash-spinner-wrap.ready .splash-ring {
+      border-color: #F97316;
+      border-top-color: #F97316;
+      animation: spin 0.4s linear infinite;
+    }
+    .splash-spinner-wrap.ready .splash-wheel {
+      border-color: #F97316;
+      background: rgba(249,115,22,0.08);
+    }
+    .splash-spinner-wrap.ready .splash-hub {
+      box-shadow: 0 0 8px rgba(249,115,22,0.6);
     }
     @keyframes splashIn {
       to { opacity: 1; transform: translateY(0); }
@@ -63,15 +124,29 @@ splash.innerHTML = `
   </style>
   <div class="splash-logo">cargo<span>share</span></div>
   <div class="splash-line"></div>
-  <div class="splash-spinner"></div>
+  <div class="splash-spinner-wrap" id="splashWheel">
+        <div class="splash-ring"></div>
+        <div class="splash-wheel"></div>
+        <div class="splash-hub"></div>
+      </div>
 `
 document.body.appendChild(splash)
 }
 
 function removeSplash() {
   if (!splash) return
-  splash.classList.add('fade')
-  setTimeout(() => splash.remove(), 520)
+  // Animar llanta antes de desaparecer
+  const wheel = splash.querySelector('#splashWheel')
+  if (wheel) {
+    wheel.classList.add('ready')
+    setTimeout(() => {
+      splash.classList.add('fade')
+      setTimeout(() => splash.remove(), 520)
+    }, 400)
+  } else {
+    splash.classList.add('fade')
+    setTimeout(() => splash.remove(), 520)
+  }
 }
 
 // Solo esperar si hay splash
