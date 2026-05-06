@@ -29,15 +29,9 @@ function ProtectedRoute({ children }) {
   return children
 }
 
-// Detectar si es mobile
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-  window.matchMedia('(max-width: 768px)').matches
-
-// Detectar si está instalada como PWA
+// Solo mostrar app-landing cuando está instalada como PWA
 const isPWA = window.matchMedia('(display-mode: standalone)').matches
-
-// Landing correcto según contexto
-const LandingSrc = (isMobile || isPWA) ? '/app-landing.html' : '/landing.html'
+const LandingSrc = isPWA ? '/app-landing.html' : '/landing.html'
 
 export default function App({ onReady }) {
   useEffect(() => { onReady?.() }, [])
