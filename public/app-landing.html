@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CargoShare</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  height:100%;
+  background:#060E1C;
+  font-family:'DM Sans',sans-serif;
+  color:white;
+  overflow-x:hidden;
+}
+
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top,0px) + 48px) 28px calc(env(safe-area-inset-bottom,0px) + 32px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* fondo */
+.bg-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 20%, rgba(249,115,22,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(37,99,235,.1) 0%, transparent 55%);
+}
+
+/* logo */
+.logo-wrap {
+  margin-top: 24px;
+  text-align: center;
+  animation: fadeUp .6s ease forwards;
+  opacity: 0;
+}
+
+.logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -.5px;
+}
+.logo-text em { color: #F97316; font-style: normal; }
+.logo-tag {
+  font-size: 13px;
+  color: #7A8FAD;
+  margin-top: 4px;
+}
+
+/* hero copy */
+.hero-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 340px;
+  animation: fadeUp .6s ease .15s forwards;
+  opacity: 0;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.25);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  color: #10B981;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.pill-dot {
+  width: 5px; height: 5px;
+  background: #10B981;
+  border-radius: 50%;
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 14px;
+}
+h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, #F97316, #FBBF24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sub {
+  font-size: 15px;
+  color: #7A8FAD;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* bullets */
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+.bullet {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+}
+.bullet-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.bullet-text strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1px;
+}
+.bullet-text span {
+  font-size: 11px;
+  color: #7A8FAD;
+  line-height: 1.4;
+}
+
+/* botones */
+.btns {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeUp .6s ease .3s forwards;
+  opacity: 0;
+}
+.btn-main {
+  width: 100%;
+  background: #F97316;
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+.btn-main:active { transform: scale(.98); background: #EA6C0A; }
+.btn-ghost {
+  width: 100%;
+  background: rgba(255,255,255,.05);
+  color: white;
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 15px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+.btn-ghost:active { transform: scale(.98); }
+
+/* link saber mas */
+.saber-mas {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #7A8FAD;
+  text-align: center;
+  animation: fadeUp .6s ease .4s forwards;
+  opacity: 0;
+}
+.saber-mas a {
+  color: #60A5FA;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* MODAL DESCARGA APP */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 500;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  padding: 0 0 env(safe-area-inset-bottom,0px);
+}
+.overlay.open { display: flex; }
+.modal {
+  background: #0C1B35;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp .35s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.modal-handle {
+  width: 40px; height: 4px;
+  background: rgba(255,255,255,.15);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.modal-sub {
+  font-size: 13px;
+  color: #7A8FAD;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255,255,255,.04);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.step-num {
+  width: 24px; height: 24px;
+  background: #F97316;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-text strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.step-text span { font-size: 12px; color: #7A8FAD; line-height: 1.4; }
+.step-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.btn-continuar {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  color: #7A8FAD;
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 13px;
+  border-radius: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* MODAL ELECCION (carrier/shipper browser vs app) */
+.choice-modal {
+  background: #0C1B35;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp .35s ease;
+}
+.choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+.choice-opt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: .2s;
+}
+.choice-opt:active { transform: scale(.98); border-color: #F97316; }
+.choice-opt-ic {
+  font-size: 28px;
+  width: 44px;
+  text-align: center;
+}
+.choice-opt strong { display: block; font-size: 14px; font-weight: 700; }
+.choice-opt span { font-size: 12px; color: #7A8FAD; margin-top: 2px; display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="bg-glow"></div>
+
+  <!-- LOGO -->
+  <div class="logo-wrap">
+    <div class="logo-text">Cargo<em>Share</em></div>
+    <div class="logo-tag">CONECTANDO A COLOMBIA CON ENVÍOS</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero-copy">
+    <div class="pill"><span class="pill-dot"></span>Operando en Colombia</div>
+    <h1>Tu carga llega.<br><em>Tu camión gana.</em></h1>
+    <p class="sub">Conectamos empresas que necesitan enviar carga con transportistas que tienen espacio disponible.</p>
+
+    <div class="bullets">
+      <div class="bullet">
+        <div class="bullet-ic" style="background:rgba(249,115,22,.1)">💰</div>
+        <div class="bullet-text">
+          <strong>Paga solo lo que usas</strong>
+          <span>Sin pagar camión completo. Precio justo por tu espacio.</span>
+        </div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-ic" style="background:rgba(16,185,129,.1)">⚡</div>
+        <div class="bullet-text">
+          <strong>Match en minutos</strong>
+          <span>Sin llamadas ni intermediarios. El sistema conecta todo.</span>
+        </div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-ic" style="background:rgba(96,165,250,.1)">📍</div>
+        <div class="bullet-text">
+          <strong>GPS en tiempo real</strong>
+          <span>Sigue tu carga desde recogida hasta entrega.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTONES -->
+  <div class="btns">
+    <button class="btn-main" onclick="handleAccion('registro')">Crear cuenta gratis →</button>
+    <button class="btn-ghost" onclick="handleAccion('login')">Ya tengo cuenta</button>
+  </div>
+
+  <div class="saber-mas">
+    ¿Quieres saber más? <a href="/landing.html" target="_top">Ver página completa</a>
+  </div>
+</div>
+
+<!-- MODAL DESCARGA APP (conductor e independiente) -->
+<div class="overlay" id="overlayDescarga" onclick="cerrarOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📱 Instala la app</div>
+    <div class="modal-sub">Esta sección funciona mejor como app instalada. Es gratis y tarda menos de 1 minuto.</div>
+    <div class="install-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">🌐</div>
+        <div class="step-text">
+          <strong>Abre en Safari (iPhone) o Chrome (Android)</strong>
+          <span>cargoshare.vercel.app</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon" id="stepIcon2">⬆️</div>
+        <div class="step-text" id="stepText2">
+          <strong id="stepTitle2">Toca el botón compartir</strong>
+          <span id="stepDesc2">El ícono de cuadrado con flecha hacia arriba</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">✅</div>
+        <div class="step-text">
+          <strong>Toca "Añadir a pantalla de inicio"</strong>
+          <span>En Android: "Instalar aplicación" o "Añadir a inicio"</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-continuar" onclick="cerrarTodo()">Entendido, voy a instalarlo</button>
+  </div>
+</div>
+
+<!-- MODAL ELECCION (carrier y shipper) -->
+<div class="overlay" id="overlayEleccion" onclick="cerrarOverlay(event)">
+  <div class="choice-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="choiceTitle">¿Cómo quieres continuar?</div>
+    <div class="modal-sub">Puedes usar CargoShare desde el navegador o instalarlo como app para una mejor experiencia.</div>
+    <div class="choice-options">
+      <div class="choice-opt" onclick="irABrowser()">
+        <div class="choice-opt-ic">🌐</div>
+        <div>
+          <strong>Continuar en el navegador</strong>
+          <span>Accede directamente sin instalar nada</span>
+        </div>
+      </div>
+      <div class="choice-opt" onclick="mostrarDescarga()">
+        <div class="choice-opt-ic">📱</div>
+        <div>
+          <strong>Instalar la app</strong>
+          <span>Mejor experiencia · Funciona sin barra del navegador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Detectar OS
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+const isAndroid = /Android/.test(navigator.userAgent)
+
+// Actualizar instrucciones según OS
+if (isAndroid) {
+  document.getElementById('stepIcon2').textContent = '⋮'
+  document.getElementById('stepTitle2').textContent = 'Toca los 3 puntos arriba a la derecha'
+  document.getElementById('stepDesc2').textContent = 'Menú del navegador Chrome'
+}
+
+let accionPendiente = null
+
+function handleAccion(tipo) {
+  // Si ya está instalada como PWA, ir directo
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches
+  if (isPWA) {
+    window.location.href = tipo === 'registro' ? '/register' : '/login'
+    return
+  }
+
+  accionPendiente = tipo
+  // Carrier y shipper: dar opción
+  // Conductor e independiente: forzar descarga
+  // Como este es el landing general mostramos elección siempre
+  // El tipo de usuario lo elige después del login/registro
+  mostrarEleccion(tipo)
+}
+
+function mostrarEleccion(tipo) {
+  const titles = {
+    registro: '¿Cómo quieres registrarte?',
+    login: '¿Cómo quieres entrar?'
+  }
+  document.getElementById('choiceTitle').textContent = titles[tipo] || '¿Cómo quieres continuar?'
+  document.getElementById('overlayEleccion').classList.add('open')
+}
+
+function irABrowser() {
+  cerrarTodo()
+  const url = accionPendiente === 'registro' ? '/register' : '/login'
+  window.location.href = url
+}
+
+function mostrarDescarga() {
+  document.getElementById('overlayEleccion').classList.remove('open')
+  document.getElementById('overlayDescarga').classList.add('open')
+}
+
+function cerrarOverlay(e) {
+  if (e.target.classList.contains('overlay')) cerrarTodo()
+}
+
+function cerrarTodo() {
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('open'))
+}
+</script>
+</body>
+</html>
