@@ -2,8 +2,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 
-// ── SPLASH SCREEN ─────────────────────────────────────────────────
-const splash = document.createElement('div')
+// ── SPLASH SCREEN — solo una vez por sesion ───────────────────────
+const yaVioSplash = sessionStorage.getItem('cs-splash-done')
+if (!yaVioSplash) sessionStorage.setItem('cs-splash-done', '1')
+
+const splash = yaVioSplash ? null : document.createElement('div')
+if (splash) {
 splash.id = 'cs-splash'
 splash.innerHTML = `
   <style>
@@ -62,15 +66,17 @@ splash.innerHTML = `
   <div class="splash-spinner"></div>
 `
 document.body.appendChild(splash)
+}
 
 function removeSplash() {
+  if (!splash) return
   splash.classList.add('fade')
   setTimeout(() => splash.remove(), 520)
 }
 
-// Mínimo 1.2s de splash para que se vea bien
+// Solo esperar si hay splash
 const splashStart = Date.now()
-const MIN_SPLASH = 1200
+const MIN_SPLASH = splash ? 1200 : 0
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
