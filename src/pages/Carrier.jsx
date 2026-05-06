@@ -762,13 +762,19 @@ export default function Carrier() {
                   <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📍 Punto de salida y ruta</div>
                   <div style={s.fg}><label style={s.lbl}>Direccion exacta de salida *</label><input style={s.inp} placeholder="Ej: Calle 13 #86-60, Zona Industrial, Bogota" value={ruta.direccionSalida} onChange={e => setRuta({ ...ruta, direccionSalida: e.target.value })} /></div>
                   <div style={s.fg}><label style={s.lbl}>Direccion exacta de llegada en destino *</label><input style={s.inp} placeholder="Ej: Carrera 50 #20-30, Medellin" value={ruta.direccionDestino} onChange={e => setRuta({ ...ruta, direccionDestino: e.target.value })} /></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 480 ? '1fr' : '1fr 1fr', gap: '12px' }}>
                     <div style={s.fg}><label style={s.lbl}>Ciudad de origen *</label><input style={s.inp} placeholder="Bogota" value={ruta.origen} onChange={e => setRuta({ ...ruta, origen: e.target.value })} /></div>
                     <div style={s.fg}><label style={s.lbl}>Ciudad de destino *</label><input style={s.inp} placeholder="Medellin" value={ruta.destino} onChange={e => setRuta({ ...ruta, destino: e.target.value })} /></div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={s.fg}><label style={s.lbl}>Fecha de salida *</label><input type="date" style={s.inp} value={ruta.fechaSalida} onChange={e => setRuta({ ...ruta, fechaSalida: e.target.value })} /></div>
-                    <div style={s.fg}><label style={s.lbl}>Hora de salida *</label><input type="time" style={s.inp} value={ruta.horaSalida} onChange={e => setRuta({ ...ruta, horaSalida: e.target.value })} /></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 480 ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                    <div style={s.fg}>
+                      <label style={s.lbl}>Fecha de salida *</label>
+                      <input type="date" style={{ ...s.inp, minWidth: 0 }} value={ruta.fechaSalida} onChange={e => setRuta({ ...ruta, fechaSalida: e.target.value })} />
+                    </div>
+                    <div style={s.fg}>
+                      <label style={s.lbl}>Hora de salida *</label>
+                      <input type="time" style={{ ...s.inp, minWidth: 0 }} value={ruta.horaSalida} onChange={e => setRuta({ ...ruta, horaSalida: e.target.value })} />
+                    </div>
                   </div>
 
                   {/* TIPO DE ACEPTACION */}
@@ -796,7 +802,7 @@ export default function Carrier() {
                   </div>
 
                   {/* RANGOS CON INPUT + SLIDER */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 480 ? '1fr' : '1fr 1fr', gap: '12px' }}>
                     <div style={s.fg}>
                       <label style={s.lbl}>Rango de recogida (km): <strong style={{ color: 'white' }}>{ruta.rangoRecogida}</strong></label>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
