@@ -382,7 +382,7 @@ export default function Shipper() {
     userMenu: (open) => ({ position: 'absolute', bottom: '72px', left: '14px', right: '14px', background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '8px', display: open ? 'block' : 'none', zIndex: 10 }),
     umItem: (red) => ({ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: red ? '#EF4444' : '#B8C8DC' }),
     main: { flex: 1, display: 'flex', flexDirection: 'column' },
-    topbar: { padding: window.innerWidth < 768 ? '0 16px' : '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0B1628', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0, zIndex: 50 },
+    topbar: { padding: window.innerWidth < 768 ? `env(safe-area-inset-top, 0px) 16px 0` : '0 32px', height: window.innerWidth < 768 ? `calc(56px + env(safe-area-inset-top, 0px))` : '64px', display: 'flex', alignItems: 'flex-end', paddingBottom: window.innerWidth < 768 ? '10px' : '0', justifyContent: 'space-between', background: '#0B1628', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0, zIndex: 50 },
     content: { padding: window.innerWidth < 768 ? '16px 16px calc(70px + env(safe-area-inset-bottom, 0px))' : '28px 32px', flex: 1, overflowY: 'auto' },
     h2: { fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', letterSpacing: '-.8px', marginBottom: '4px' },
     p: { fontSize: '14px', color: '#7A8FAD', marginBottom: '28px' },

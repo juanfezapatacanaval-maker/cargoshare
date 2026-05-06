@@ -8,19 +8,16 @@ import Shipper from './pages/Shipper'
 import Conductor from './pages/conductor'
 import Independiente from './pages/Independiente'
 
-// ── GUARD — evita que el refresh cierre sesion ─────────────────────
+// ── PROTECTED ROUTE ───────────────────────────────────────────────
 function ProtectedRoute({ children }) {
-  const [estado, setEstado] = useState('cargando') // cargando | ok | sin-token
+  const [estado, setEstado] = useState('cargando')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) { setEstado('sin-token'); return }
-
-    // Verificar que el token no esté expirado localmente
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
-      const expirado = payload.exp * 1000 < Date.now()
-      if (expirado) {
+      if (payload.exp * 1000 < Date.now()) {
         localStorage.clear()
         setEstado('sin-token')
       } else {
@@ -32,39 +29,42 @@ function ProtectedRoute({ children }) {
     }
   }, [])
 
-  if (estado === 'cargando') {
-    return (
+  if (estado === 'cargando') return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100dvh', background: '#060E1C'
+    }}>
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100dvh', background: '#060E1C', flexDirection: 'column', gap: '16px'
-      }}>
-        <div style={{
-          width: '40px', height: '40px', borderRadius: '50%',
-          border: '3px solid rgba(249,115,22,.2)',
-          borderTop: '3px solid #F97316',
-          animation: 'spin 0.8s linear infinite'
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-        <div style={{ fontFamily: 'sans-serif', fontSize: '13px', color: '#7A8FAD' }}>
-          Cargo<span style={{ color: '#F97316' }}>Share</span>
-        </div>
-      </div>
-    )
-  }
+        width: '36px', height: '36px', borderRadius: '50%',
+        border: '3px solid rgba(249,115,22,.15)',
+        borderTop: '3px solid #F97316',
+        animation: 'spin 0.8s linear infinite'
+      }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  )
 
-  if (estado === 'sin-token') {
-    return <Navigate to="/login" replace />
-  }
-
+  if (estado === 'sin-token') return <Navigate to="/login" replace />
   return children
 }
 
-function App() {
+// ── APP ───────────────────────────────────────────────────────────
+export default function App({ onReady }) {
+  useEffect(() => {
+    // Avisar al splash que la app está lista
+    onReady?.()
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={
-          <iframe src="/landing.html" style={{ width: '100%', height: '100dvh', border: 'none' }} title="CargoShare" />
+          <iframe
+            src="/landing.html"
+            style={{ width: '100%', height: '100dvh', border: 'none' }}
+            title="CargoShare"
+            onLoad={() => onReady?.()}
+          />
         } />
         <Route path="/login"    element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -78,5 +78,3 @@ function App() {
     </BrowserRouter>
   )
 }
-
-export default App
