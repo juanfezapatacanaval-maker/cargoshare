@@ -1,20 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 const API = 'https://cargoshare-api-production.up.railway.app/api/independiente'
 
-function formatCOP(n) {
-  return '$' + Math.round(n).toLocaleString('es-CO')
-}
-
+function formatCOP(n) { return '$' + Math.round(n).toLocaleString('es-CO') }
 function formatTime(seg) {
-  const h = Math.floor(seg / 3600)
-  const m = Math.floor((seg % 3600) / 60)
-  const s = seg % 60
+  const h = Math.floor(seg / 3600), m = Math.floor((seg % 3600) / 60), s = seg % 60
   return [h, m, s].map(v => String(v).padStart(2, '0')).join(':')
 }
 
-const COMISION = 0.20 // 20% CargoShare
+const COMISION = 0.20
 
 const S = {
   page: { minHeight: '100vh', background: '#060E1C', fontFamily: 'DM Sans,sans-serif', color: 'white', maxWidth: '520px', margin: '0 auto' },
@@ -28,7 +23,6 @@ const S = {
   tag: (c) => ({ display: 'inline-block', background: `${c}18`, border: `1px solid ${c}40`, color: c, fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '100px' }),
 }
 
-// ── REGISTRO ──────────────────────────────────────────────────────
 function RegistroIndependiente({ onVolver }) {
   const [paso, setPaso] = useState(1)
   const [form, setForm] = useState({
@@ -48,6 +42,10 @@ function RegistroIndependiente({ onVolver }) {
   async function enviar() {
     if (!form.nombre || !form.cedula || !form.correo || !form.password) { setError('Completa los campos obligatorios'); return }
     if (form.password !== form.confirmar) { setError('Las contrasenas no coinciden'); return }
+    if (!form.placa || !form.capacidadKg) { setError('Completa los datos del vehiculo'); return }
+    const docsRequeridos = ['fotoCedula', 'fotoLicencia', 'tarjetaPropiedad', 'soat']
+    const faltantes = docsRequeridos.filter(d => !docs[d])
+    if (faltantes.length > 0) { setError('Debes subir cedula, licencia, tarjeta de propiedad y SOAT'); return }
     setCargando(true); setError('')
     try {
       const fd = new FormData()
@@ -89,18 +87,12 @@ function RegistroIndependiente({ onVolver }) {
           <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '24px', fontWeight: '800', color: 'white' }}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
           <div style={{ fontSize: '13px', color: '#7A8FAD', marginTop: '4px' }}>Registro transportista independiente</div>
         </div>
-
-        {/* Barra de pasos */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
           {[1,2,3].map(n => <div key={n} style={{ flex: 1, height: '4px', borderRadius: '100px', background: paso >= n ? '#10B981' : 'rgba(255,255,255,.1)' }} />)}
         </div>
-        <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '20px' }}>
-          Paso {paso} de 3 — {['','Datos personales','Tu vehiculo','Documentos'][paso]}
-        </div>
-
+        <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '20px' }}>Paso {paso} de 3 — {['','Datos personales','Tu vehiculo','Documentos'][paso]}</div>
         <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.1)', borderRadius: '22px', padding: '28px' }}>
 
-          {/* PASO 1 — Datos personales */}
           {paso === 1 && (
             <>
               <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Datos personales</div>
@@ -117,36 +109,46 @@ function RegistroIndependiente({ onVolver }) {
                   <input style={S.inp} type="password" placeholder={ph} value={form[k]} onChange={e => set(k, e.target.value)} />
                 </div>
               ))}
-              <button onClick={() => { if (!form.nombre || !form.cedula || !form.correo || !form.password) { setError('Completa los campos'); return } if (form.password !== form.confirmar) { setError('Las contrasenas no coinciden'); return } setError(''); setPaso(2) }} style={S.btn('#10B981')}>Continuar →</button>
+              {error && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '8px' }}>{error}</div>}
+              <button onClick={() => {
+                if (!form.nombre || !form.cedula || !form.correo || !form.password) { setError('Completa los campos'); return }
+                if (form.password !== form.confirmar) { setError('Las contrasenas no coinciden'); return }
+                setError(''); setPaso(2)
+              }} style={S.btn('#10B981')}>Continuar →</button>
             </>
           )}
 
-          {/* PASO 2 — Vehiculo */}
           {paso === 2 && (
             <>
               <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Tu vehiculo</div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={S.lbl}>Tipo de vehiculo</label>
-                <select style={{ ...S.inp }} value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)}>
-                  <option value="camioneta">Camioneta</option>
-                  <option value="furgon">Furgon</option>
-                  <option value="camion_rigido">Camion rigido</option>
-                  <option value="tractomula">Tractomula</option>
+                <label style={S.lbl}>Tipo de vehiculo *</label>
+                <select style={S.inp} value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)}>
+                  {[['camioneta','Camioneta'],['furgon','Furgon'],['camion_rigido','Camion rigido'],['tractomula','Tractomula']].map(([v,l]) => <option key={v} value={v} style={{ background: '#0C1B35' }}>{l}</option>)}
                 </select>
               </div>
-              {[['placa','Placa','ABC123'],['marca','Marca','Kenworth'],['modelo','Modelo','T800'],['anio','Ano','2018'],['capacidadKg','Capacidad en kg','10000'],['capacidadM3','Capacidad en m3','40']].map(([k,lbl,ph]) => (
+              {[['placa','Placa *','ABC123'],['marca','Marca','Kenworth'],['modelo','Modelo','T800'],['anio','Año del vehiculo','2018'],['capacidadKg','Capacidad en kg *','10000'],['capacidadM3','Capacidad en m3','40']].map(([k,lbl,ph]) => (
                 <div key={k} style={{ marginBottom: '12px' }}>
                   <label style={S.lbl}>{lbl}</label>
                   <input style={S.inp} placeholder={ph} value={form[k]} onChange={e => set(k, e.target.value)} />
                 </div>
               ))}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={S.lbl}>Foto del camion *</label>
+                <div style={{ ...S.inp, padding: '10px', cursor: 'pointer', position: 'relative' }}>
+                  <input type="file" accept="image/*" style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={e => setDocs(d => ({ ...d, fotoVehiculo: e.target.files[0] }))} />
+                  <span style={{ color: docs.fotoVehiculo ? '#10B981' : '#7A8FAD', fontSize: '13px' }}>{docs.fotoVehiculo ? `✅ ${docs.fotoVehiculo.name}` : '📷 Foto del camion'}</span>
+                </div>
+              </div>
               <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Licencia de conduccion</div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={S.lbl}>Categoria</label>
-                <input style={S.inp} placeholder="C1, C2..." value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)} />
+                <label style={S.lbl}>Categoria *</label>
+                <select style={S.inp} value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)}>
+                  {['B1','B2','B3','C1','C2','C3','C4'].map(c => <option key={c} value={c} style={{ background: '#0C1B35' }}>{c}</option>)}
+                </select>
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={S.lbl}>Fecha de vencimiento</label>
+                <label style={S.lbl}>Fecha de vencimiento *</label>
                 <input type="date" style={S.inp} value={form.vencimientoLicencia} onChange={e => set('vencimientoLicencia', e.target.value)} />
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -156,16 +158,14 @@ function RegistroIndependiente({ onVolver }) {
             </>
           )}
 
-          {/* PASO 3 — Documentos */}
           {paso === 3 && (
             <>
-              <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Documentos</div>
+              <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Documentos requeridos *</div>
               {fileField('fotoCedula', 'Foto de la cedula *')}
-              {fileField('fotoLicencia', 'Foto de la licencia *')}
-              {fileField('fotoVehiculo', 'Foto del vehiculo *')}
-              {fileField('tarjetaPropiedad', 'Tarjeta de propiedad *')}
+              {fileField('fotoLicencia', 'Licencia de conduccion *')}
+              {fileField('tarjetaPropiedad', 'Tarjeta de propiedad del vehiculo *')}
               {fileField('soat', 'SOAT vigente *')}
-              {fileField('tecnicoMecanica', 'Revision tecnico-mecanica *')}
+              {fileField('tecnicoMecanica', 'Revision tecnico-mecanica')}
               {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '9px', padding: '11px', fontSize: '13px', color: '#EF4444', marginBottom: '12px' }}>{error}</div>}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setPaso(2)} style={{ ...S.btnOutline, marginTop: '8px' }}>Atras</button>
@@ -173,8 +173,6 @@ function RegistroIndependiente({ onVolver }) {
               </div>
             </>
           )}
-
-          {error && paso < 3 && <div style={{ color: '#EF4444', fontSize: '12px', marginTop: '8px' }}>{error}</div>}
         </div>
         <button onClick={onVolver} style={{ ...S.btnOutline, marginTop: '12px' }}>← Volver al login</button>
       </div>
@@ -182,7 +180,6 @@ function RegistroIndependiente({ onVolver }) {
   )
 }
 
-// ── CRONOMETRO ────────────────────────────────────────────────────
 function Cronometro({ label, onStop }) {
   const [seg, setSeg] = useState(0)
   const [corriendo, setCorriendo] = useState(false)
@@ -216,7 +213,6 @@ function Cronometro({ label, onStop }) {
   )
 }
 
-// ── GPS TRACKER ───────────────────────────────────────────────────
 function GPSTracker({ solicitudId }) {
   useEffect(() => {
     if (!navigator.geolocation) return
@@ -224,11 +220,10 @@ function GPSTracker({ solicitudId }) {
       async (pos) => {
         try {
           await fetch(`${API}/solicitudes/${solicitudId}/ubicacion`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude })
           })
-        } catch (e) { }
+        } catch (e) {}
       },
       (err) => console.log('GPS error:', err),
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
@@ -244,66 +239,32 @@ function GPSTracker({ solicitudId }) {
   )
 }
 
-// ── PANEL PRINCIPAL ───────────────────────────────────────────────
 function PanelIndependiente({ independiente, rutasActivas, token, onRefresh, onLogout }) {
-  const [vista, setVista] = useState('inicio') // inicio | publicar | mis-rutas | viaje
+  const [vista, setVista] = useState('inicio')
   const [rutaSeleccionada, setRutaSeleccionada] = useState(null)
-  const [reservaActiva, setReservaActiva] = useState(null)
-  const [faseViaje, setFaseViaje] = useState('codigos') // codigos | cargue | ruta | entrega | descargue | cobro
-  const [codigoInput, setCodigoInput] = useState('')
-  const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
-  const [pagoInfo, setPagoInfo] = useState(null)
 
-  // Calcular ingresos estimados de una ruta
   function calcularIngresos(ruta) {
     const reservasAceptadas = ruta.reservas?.filter(r => r.estado === 'aceptado' || r.estado === 'recogido') || []
-    const totalBruto = reservasAceptadas.reduce((s, r) => s + (r.precioTotal || 0), 0)
     const totalNeto = reservasAceptadas.reduce((s, r) => s + (r.precioIndependiente || r.precioTotal * (1 - COMISION) || 0), 0)
-    return { totalBruto, totalNeto, n: reservasAceptadas.length }
+    return { totalNeto, n: reservasAceptadas.length }
   }
 
   async function aceptarReserva(solicitudId, reservaId) {
     setCargando(true)
     try {
-      const res = await fetch(`${API}/reservas/${solicitudId}/${reservaId}/aceptar`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (res.ok) onRefresh()
-    } catch (e) { }
+      await fetch(`${API}/reservas/${solicitudId}/${reservaId}/aceptar`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } })
+      onRefresh()
+    } catch (e) {}
     setCargando(false)
   }
 
   async function rechazarReserva(solicitudId, reservaId) {
     setCargando(true)
     try {
-      await fetch(`${API}/reservas/${solicitudId}/${reservaId}/rechazar`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      await fetch(`${API}/reservas/${solicitudId}/${reservaId}/rechazar`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } })
       onRefresh()
-    } catch (e) { }
-    setCargando(false)
-  }
-
-  async function verificarCodigo(solicitudId, reservaId, tipo) {
-    setCargando(true); setError('')
-    try {
-      const res = await fetch(`${API}/verificar-codigo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ solicitudId, reservaId, codigo: codigoInput.toUpperCase(), tipo })
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error || 'Codigo incorrecto'); setCargando(false); return }
-      if (tipo === 'recogida') setFaseViaje('cargue')
-      if (tipo === 'entrega') {
-        setPagoInfo(data.pagoUrl)
-        setFaseViaje('cobro')
-      }
-      setCodigoInput('')
-    } catch { setError('Error de conexion') }
+    } catch (e) {}
     setCargando(false)
   }
 
@@ -311,8 +272,6 @@ function PanelIndependiente({ independiente, rutasActivas, token, onRefresh, onL
 
   return (
     <div style={{ padding: '16px 20px' }}>
-
-      {/* TABS */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '4px' }}>
         {[['inicio','🏠','Inicio'],['publicar','➕','Publicar'],['mis-rutas','📋','Mis rutas']].map(([id,ic,lbl]) => (
           <button key={id} onClick={() => setVista(id)} style={{ background: vista === id ? '#F97316' : 'rgba(255,255,255,.06)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '9px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -321,7 +280,6 @@ function PanelIndependiente({ independiente, rutasActivas, token, onRefresh, onL
         ))}
       </div>
 
-      {/* INICIO */}
       {vista === 'inicio' && (
         <>
           <div style={{ ...S.card, background: 'linear-gradient(135deg,#0E2B70,#0C1830)', border: '1px solid rgba(96,165,250,.2)', marginBottom: '16px' }}>
@@ -329,19 +287,12 @@ function PanelIndependiente({ independiente, rutasActivas, token, onRefresh, onL
             <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>Hola, {independiente.nombre}</div>
             <div style={{ fontSize: '13px', color: '#7A8FAD' }}>{veh?.tipo} · Placa {veh?.placa} · {independiente.ciudadBase}</div>
           </div>
-
-          {/* Resumen vehiculo */}
           <div style={S.card}>
             <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '12px', color: '#F97316' }}>🚛 Mi vehiculo</div>
             {[['Tipo', veh?.tipo],['Placa', veh?.placa],['Marca/Modelo', `${veh?.marca || ''} ${veh?.modelo || ''}`],['Capacidad', `${veh?.capacidadKg} kg · ${veh?.capacidadM3} m³`]].map(([k,v]) => (
-              <div key={k} style={S.row}>
-                <span style={{ fontSize: '13px', color: '#7A8FAD' }}>{k}</span>
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>{v}</span>
-              </div>
+              <div key={k} style={S.row}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>{k}</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{v}</span></div>
             ))}
           </div>
-
-          {/* Rutas activas resumen */}
           {rutasActivas.length > 0 && (
             <div style={S.card}>
               <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '12px', color: '#10B981' }}>📍 Rutas activas</div>
@@ -352,58 +303,37 @@ function PanelIndependiente({ independiente, rutasActivas, token, onRefresh, onL
                   <div key={i} style={{ background: 'rgba(255,255,255,.04)', borderRadius: '10px', padding: '12px', marginBottom: '10px', cursor: 'pointer' }}
                     onClick={() => { setRutaSeleccionada(sol); setVista('mis-rutas') }}>
                     <div style={{ fontWeight: '700', fontSize: '14px' }}>{sol.ruta?.origen} → {sol.ruta?.destino}</div>
-                    <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>{ing.n} empresa{ing.n !== 1 ? 's' : ''} aceptada{ing.n !== 1 ? 's' : ''} · {pendientes > 0 ? <span style={{ color: '#FBBF24' }}>{pendientes} pendiente{pendientes !== 1 ? 's' : ''}</span> : 'Sin pendientes'}</div>
+                    <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>{ing.n} empresa(s) · {pendientes > 0 ? <span style={{ color: '#FBBF24' }}>{pendientes} pendiente(s)</span> : 'Sin pendientes'}</div>
                     <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981', marginTop: '6px' }}>Ingresos estimados: {formatCOP(ing.totalNeto)}</div>
                   </div>
                 )
               })}
             </div>
           )}
-
           <button onClick={onLogout} style={{ ...S.btnOutline, marginTop: '8px' }}>Cerrar sesion</button>
         </>
       )}
 
-      {/* PUBLICAR RUTA */}
-      {vista === 'publicar' && (
-        <PublicarRuta token={token} onPublicado={() => { onRefresh(); setVista('mis-rutas') }} />
-      )}
+      {vista === 'publicar' && <PublicarRuta token={token} onPublicado={() => { onRefresh(); setVista('mis-rutas') }} />}
 
-      {/* MIS RUTAS */}
       {vista === 'mis-rutas' && (
-        <MisRutas
-          token={token}
-          rutasActivas={rutasActivas}
-          onAceptar={aceptarReserva}
-          onRechazar={rechazarReserva}
-          onIniciarViaje={(sol, res) => { setRutaSeleccionada(sol); setReservaActiva(res); setFaseViaje('codigos'); setVista('viaje') }}
-          cargando={cargando}
-        />
+        <MisRutas rutasActivas={rutasActivas} onAceptar={aceptarReserva} onRechazar={rechazarReserva}
+          onIniciarViaje={(sol) => { setRutaSeleccionada(sol); setVista('viaje') }} cargando={cargando} />
       )}
 
-      {/* VIAJE ACTIVO — N empresas */}
       {vista === 'viaje' && rutaSeleccionada && (
-        <ViajeActivo
-          solicitud={rutaSeleccionada}
-          token={token}
-          onVolver={() => { setVista('mis-rutas'); setReservaActiva(null); onRefresh() }}
-          apiBase={API}
-        />
+        <ViajeActivo solicitud={rutaSeleccionada} token={token}
+          onVolver={() => { setVista('mis-rutas'); setRutaSeleccionada(null); onRefresh() }} apiBase={API} />
       )}
     </div>
   )
 }
 
-// ── PUBLICAR RUTA ─────────────────────────────────────────────────
 function PublicarRuta({ token, onPublicado }) {
-  const [form, setForm] = useState({
-    origen: '', destino: '', fechaSalida: '', horaSalida: '',
-    direccionSalida: '', rangoRecogida: '10',
-    pesoMax: '', volumenMax: '',
-  })
+  const [form, setForm] = useState({ origen: '', destino: '', fechaSalida: '', horaSalida: '', direccionSalida: '', rangoRecogida: '10', pesoMax: '', volumenMax: '' })
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
-  const [modal, setModal] = useState(null) // null | 'pregunta' | 'form'
+  const [modal, setModal] = useState(null)
   const [rutaData, setRutaData] = useState(null)
   const [formRetorno, setFormRetorno] = useState({ fechaSalida: '', horaSalida: '', direccionSalida: '', rangoRecogida: 10 })
   const [publicandoRetorno, setPublicandoRetorno] = useState(false)
@@ -411,16 +341,10 @@ function PublicarRuta({ token, onPublicado }) {
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
   async function publicar() {
-    if (!form.origen || !form.destino || !form.fechaSalida || !form.horaSalida || !form.pesoMax) {
-      setError('Completa los campos obligatorios'); return
-    }
+    if (!form.origen || !form.destino || !form.fechaSalida || !form.horaSalida || !form.pesoMax) { setError('Completa los campos obligatorios'); return }
     setCargando(true); setError('')
     try {
-      const res = await fetch(`${API}/publicar-ruta`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(form)
-      })
+      const res = await fetch(`${API}/publicar-ruta`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(form) })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Error al publicar'); setCargando(false); return }
       setRutaData({ origen: form.origen, destino: form.destino })
@@ -431,41 +355,20 @@ function PublicarRuta({ token, onPublicado }) {
   }
 
   async function publicarRetorno() {
-    if (!formRetorno.fechaSalida || !formRetorno.horaSalida) { alert('Ingresa fecha y hora de regreso'); return }
+    if (!formRetorno.fechaSalida || !formRetorno.horaSalida) { alert('Ingresa fecha y hora'); return }
     setPublicandoRetorno(true)
     try {
-      await fetch(`${API}/publicar-ruta`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          origen: rutaData.destino,
-          destino: rutaData.origen,
-          fechaSalida: formRetorno.fechaSalida,
-          horaSalida: formRetorno.horaSalida,
-          direccionSalida: formRetorno.direccionSalida || rutaData.destino,
-          rangoRecogida: String(formRetorno.rangoRecogida),
-          pesoMax: form.pesoMax || '10000',
-          volumenMax: form.volumenMax || '',
-        })
-      })
+      await fetch(`${API}/publicar-ruta`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ origen: rutaData.destino, destino: rutaData.origen, fechaSalida: formRetorno.fechaSalida, horaSalida: formRetorno.horaSalida, direccionSalida: formRetorno.direccionSalida || rutaData.destino, rangoRecogida: String(formRetorno.rangoRecogida), pesoMax: '10000' }) })
     } catch (e) { console.log(e) }
-    setPublicandoRetorno(false)
-    setModal(null)
-    onPublicado()
+    setPublicandoRetorno(false); setModal(null); onPublicado()
   }
-
-  const inp = { width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 13px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }
-  const lbl = { fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }
 
   return (
     <>
       <div style={S.card}>
         <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '20px' }}>📍 Publicar nueva ruta</div>
         {[['origen','Origen *','Bogota'],['destino','Destino *','Medellin'],['direccionSalida','Direccion exacta de salida','Calle 13 #86-60']].map(([k,lb,ph]) => (
-          <div key={k} style={{ marginBottom: '12px' }}>
-            <label style={S.lbl}>{lb}</label>
-            <input style={S.inp} placeholder={ph} value={form[k]} onChange={e => set(k, e.target.value)} />
-          </div>
+          <div key={k} style={{ marginBottom: '12px' }}><label style={S.lbl}>{lb}</label><input style={S.inp} placeholder={ph} value={form[k]} onChange={e => set(k, e.target.value)} /></div>
         ))}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div><label style={S.lbl}>Fecha *</label><input type="date" style={S.inp} value={form.fechaSalida} onChange={e => set('fechaSalida', e.target.value)} /></div>
@@ -479,67 +382,42 @@ function PublicarRuta({ token, onPublicado }) {
         {error && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '12px' }}>{error}</div>}
         <button onClick={publicar} disabled={cargando} style={S.btn()}>{cargando ? 'Publicando...' : 'Publicar ruta →'}</button>
       </div>
-
-      {/* MODAL RETORNO */}
       {modal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
           <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.12)', borderRadius: '22px', padding: '32px', width: '100%', maxWidth: '420px' }}>
-
             {modal === 'pregunta' && (
               <>
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                   <div style={{ fontSize: '52px', marginBottom: '12px' }}>🔄</div>
                   <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '20px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Ruta publicada!</div>
-                  <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: 1.6 }}>
-                    Tu ruta <strong style={{ color: 'white' }}>{rutaData?.origen} → {rutaData?.destino}</strong> ya esta disponible.
-                  </div>
+                  <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: 1.6 }}>Tu ruta <strong style={{ color: 'white' }}>{rutaData?.origen} → {rutaData?.destino}</strong> ya esta disponible.</div>
                 </div>
                 <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '14px', padding: '18px', marginBottom: '24px' }}>
                   <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981', marginBottom: '6px' }}>🚚 Aprovecha el regreso</div>
-                  <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.6 }}>
-                    Publica tambien <strong style={{ color: 'white' }}>{rutaData?.destino} → {rutaData?.origen}</strong> y llena tu camion de vuelta. La mayoria de camiones regresan vacios.
-                  </div>
+                  <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.6 }}>Publica tambien <strong style={{ color: 'white' }}>{rutaData?.destino} → {rutaData?.origen}</strong> y llena tu camion de vuelta.</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <button onClick={() => { setModal(null); onPublicado() }} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-                    No, gracias
-                  </button>
-                  <button onClick={() => setModal('form')} style={{ background: '#10B981', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
-                    Si, publicar retorno →
-                  </button>
+                  <button onClick={() => { setModal(null); onPublicado() }} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', cursor: 'pointer' }}>No, gracias</button>
+                  <button onClick={() => setModal('form')} style={{ background: '#10B981', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Si, publicar retorno →</button>
                 </div>
               </>
             )}
-
             {modal === 'form' && (
               <>
                 <div style={{ marginBottom: '20px' }}>
                   <div style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'Syne,sans-serif', color: 'white', marginBottom: '4px' }}>Datos del retorno</div>
                   <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Ruta: <strong style={{ color: '#10B981' }}>{rutaData?.destino} → {rutaData?.origen}</strong></div>
                 </div>
-                <div style={{ marginBottom: '13px' }}>
-                  <label style={lbl}>Fecha de regreso *</label>
-                  <input type="date" style={inp} value={formRetorno.fechaSalida} onChange={e => setFormRetorno(f => ({ ...f, fechaSalida: e.target.value }))} />
-                </div>
-                <div style={{ marginBottom: '13px' }}>
-                  <label style={lbl}>Hora de salida *</label>
-                  <input type="time" style={inp} value={formRetorno.horaSalida} onChange={e => setFormRetorno(f => ({ ...f, horaSalida: e.target.value }))} />
-                </div>
-                <div style={{ marginBottom: '13px' }}>
-                  <label style={lbl}>Direccion desde {rutaData?.destino}</label>
-                  <input style={inp} placeholder={'Ej: Calle 50 #30-10, ' + (rutaData?.destino || '')} value={formRetorno.direccionSalida} onChange={e => setFormRetorno(f => ({ ...f, direccionSalida: e.target.value }))} />
-                </div>
+                <div style={{ marginBottom: '13px' }}><label style={S.lbl}>Fecha de regreso *</label><input type="date" style={S.inp} value={formRetorno.fechaSalida} onChange={e => setFormRetorno(f => ({ ...f, fechaSalida: e.target.value }))} /></div>
+                <div style={{ marginBottom: '13px' }}><label style={S.lbl}>Hora de salida *</label><input type="time" style={S.inp} value={formRetorno.horaSalida} onChange={e => setFormRetorno(f => ({ ...f, horaSalida: e.target.value }))} /></div>
+                <div style={{ marginBottom: '13px' }}><label style={S.lbl}>Direccion desde {rutaData?.destino}</label><input style={S.inp} placeholder="Ej: Calle 50 #30-10" value={formRetorno.direccionSalida} onChange={e => setFormRetorno(f => ({ ...f, direccionSalida: e.target.value }))} /></div>
                 <div style={{ marginBottom: '22px' }}>
-                  <label style={lbl}>Rango de recogida: <strong style={{ color: 'white' }}>{formRetorno.rangoRecogida} km</strong></label>
+                  <label style={S.lbl}>Rango: <strong style={{ color: 'white' }}>{formRetorno.rangoRecogida} km</strong></label>
                   <input type="range" min="0" max="80" step="5" value={formRetorno.rangoRecogida} onChange={e => setFormRetorno(f => ({ ...f, rangoRecogida: Number(e.target.value) }))} style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer' }} />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <button onClick={() => setModal('pregunta')} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-                    ← Atras
-                  </button>
-                  <button onClick={publicarRetorno} disabled={publicandoRetorno} style={{ background: publicandoRetorno ? 'rgba(16,185,129,.5)' : '#10B981', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: publicandoRetorno ? 'not-allowed' : 'pointer' }}>
-                    {publicandoRetorno ? 'Publicando...' : 'Publicar retorno →'}
-                  </button>
+                  <button onClick={() => setModal('pregunta')} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#7A8FAD', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', cursor: 'pointer' }}>← Atras</button>
+                  <button onClick={publicarRetorno} disabled={publicandoRetorno} style={{ background: '#10B981', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>{publicandoRetorno ? 'Publicando...' : 'Publicar →'}</button>
                 </div>
               </>
             )}
@@ -550,17 +428,13 @@ function PublicarRuta({ token, onPublicado }) {
   )
 }
 
-// ── MIS RUTAS ─────────────────────────────────────────────────────
 function MisRutas({ rutasActivas, onAceptar, onRechazar, onIniciarViaje, cargando }) {
-  if (rutasActivas.length === 0) {
-    return (
-      <div style={{ ...S.card, textAlign: 'center', color: '#7A8FAD', padding: '40px' }}>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
-        <div style={{ fontSize: '14px' }}>No tienes rutas activas aun</div>
-        <div style={{ fontSize: '12px', marginTop: '6px' }}>Publica tu primera ruta para empezar a recibir solicitudes</div>
-      </div>
-    )
-  }
+  if (rutasActivas.length === 0) return (
+    <div style={{ ...S.card, textAlign: 'center', color: '#7A8FAD', padding: '40px' }}>
+      <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
+      <div style={{ fontSize: '14px' }}>No tienes rutas activas aun</div>
+    </div>
+  )
 
   return (
     <>
@@ -568,36 +442,27 @@ function MisRutas({ rutasActivas, onAceptar, onRechazar, onIniciarViaje, cargand
         const reservasPendientes = sol.reservas?.filter(r => r.estado === 'pendiente') || []
         const reservasAceptadas = sol.reservas?.filter(r => ['aceptado','recogido'].includes(r.estado)) || []
         const totalNeto = reservasAceptadas.reduce((s, r) => s + (r.precioIndependiente || (r.precioTotal * (1 - COMISION)) || 0), 0)
-
         return (
           <div key={i} style={S.card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
                 <div style={{ fontWeight: '800', fontSize: '16px' }}>{sol.ruta?.origen} → {sol.ruta?.destino}</div>
-                <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '3px' }}>
-                  {sol.ruta?.fechaSalida ? new Date(sol.ruta.fechaSalida).toLocaleDateString('es-CO') : ''} · {sol.ruta?.horaSalida}
-                </div>
+                <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '3px' }}>{sol.ruta?.fechaSalida ? new Date(sol.ruta.fechaSalida).toLocaleDateString('es-CO') : ''} · {sol.ruta?.horaSalida}</div>
               </div>
               <span style={S.tag('#10B981')}>Activa</span>
             </div>
-
-            {/* Ingresos estimados */}
             {reservasAceptadas.length > 0 && (
               <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '10px', padding: '12px', marginBottom: '14px' }}>
-                <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '4px' }}>💰 Tus ingresos estimados ({reservasAceptadas.length} empresa{reservasAceptadas.length !== 1 ? 's' : ''})</div>
+                <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '4px' }}>💰 Tus ingresos ({reservasAceptadas.length} empresa(s))</div>
                 <div style={{ fontSize: '22px', fontWeight: '800', color: '#10B981' }}>{formatCOP(totalNeto)}</div>
-                <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>CargoShare ya descontio su comision</div>
               </div>
             )}
-
-            {/* Solicitudes pendientes */}
             {reservasPendientes.length > 0 && (
               <div style={{ marginBottom: '14px' }}>
-                <div style={{ fontSize: '12px', color: '#FBBF24', fontWeight: '700', marginBottom: '8px' }}>⏳ {reservasPendientes.length} solicitud{reservasPendientes.length !== 1 ? 'es' : ''} pendiente{reservasPendientes.length !== 1 ? 's' : ''}</div>
+                <div style={{ fontSize: '12px', color: '#FBBF24', fontWeight: '700', marginBottom: '8px' }}>⏳ {reservasPendientes.length} solicitud(es) pendiente(s)</div>
                 {reservasPendientes.map((r, j) => (
                   <div key={j} style={{ background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.2)', borderRadius: '10px', padding: '12px', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '4px' }}>Empresa solicitante</div>
-                    <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '2px' }}>Recogida: {r.direccionRecogida}</div>
+                    <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '4px' }}>Recogida: {r.direccionRecogida}</div>
                     <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '10px' }}>Recibirias: <strong style={{ color: '#10B981' }}>{formatCOP((r.precioTotal || 0) * (1 - COMISION))}</strong></div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                       <button onClick={() => onAceptar(sol._id, r._id)} disabled={cargando} style={{ ...S.btn('#10B981', false), width: '100%', marginTop: 0, fontSize: '12px', padding: '8px' }}>✅ Aceptar</button>
@@ -607,24 +472,8 @@ function MisRutas({ rutasActivas, onAceptar, onRechazar, onIniciarViaje, cargand
                 ))}
               </div>
             )}
-
-            {/* Empresas aceptadas — ir a viaje */}
             {reservasAceptadas.length > 0 && (
-              <div>
-                <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '700', marginBottom: '8px' }}>✅ {reservasAceptadas.length} empresa{reservasAceptadas.length !== 1 ? 's' : ''} aceptada{reservasAceptadas.length !== 1 ? 's' : ''}</div>
-                {reservasAceptadas.map((r, j) => (
-                  <div key={j} style={{ background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.15)', borderRadius: '10px', padding: '12px', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '4px' }}>Empresa {j + 1}</div>
-                    <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '8px' }}>Recogida: {r.direccionRecogida}</div>
-                    {r.estado === 'aceptado' && (
-                      <button onClick={() => onIniciarViaje(sol, r)} style={{ ...S.btn('#F97316'), marginTop: 0, fontSize: '12px', padding: '9px' }}>
-                        🔑 Iniciar recogida empresa {j + 1}
-                      </button>
-                    )}
-                    {r.estado === 'recogido' && <span style={S.tag('#60A5FA')}>En ruta ✓</span>}
-                  </div>
-                ))}
-              </div>
+              <button onClick={() => onIniciarViaje(sol)} style={{ ...S.btn('#F97316'), marginTop: 0, fontSize: '13px', padding: '10px' }}>🔑 Gestionar viaje →</button>
             )}
           </div>
         )
@@ -633,7 +482,6 @@ function MisRutas({ rutasActivas, onAceptar, onRechazar, onIniciarViaje, cargand
   )
 }
 
-// ── VIAJE ACTIVO ──────────────────────────────────────────────────
 function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
   const [fases, setFases] = useState({})
   const [codigos, setCodigos] = useState({})
@@ -644,13 +492,10 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
 
   const abrirMaps = (dir) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`, '_blank')
   const abrirWaze = (dir) => window.open(`https://waze.com/ul?q=${encodeURIComponent(dir)}`, '_blank')
-
   const reservasAceptadas = solicitud.reservas?.filter(r => ['aceptado','recogido','entregado'].includes(r.estado)) || []
   const todasEntregadas = reservasAceptadas.length > 0 && reservasAceptadas.every(r => fases[r._id] === 'cobrado' || r.estado === 'entregado')
 
-  function getFase(r) {
-    return fases[r._id] || (r.estado === 'recogido' ? 'en_ruta' : r.estado === 'entregado' ? 'cobrado' : 'recogida')
-  }
+  function getFase(r) { return fases[r._id] || (r.estado === 'recogido' ? 'en_ruta' : r.estado === 'entregado' ? 'cobrado' : 'recogida') }
 
   async function verificar(reservaId, tipo) {
     const codigoKey = tipo === 'entrega' ? `${reservaId}_entrega` : reservaId
@@ -658,8 +503,7 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
     setErrores(e => ({ ...e, [reservaId]: '' }))
     try {
       const res = await fetch(`${apiBase}/verificar-codigo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ solicitudId: solicitud._id, reservaId, codigo: (codigos[codigoKey] || '').toUpperCase(), tipo })
       })
       const data = await res.json()
@@ -676,15 +520,11 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
   return (
     <div>
       {gpsActivo && <GPSTracker solicitudId={solicitud._id} />}
-
       <div style={{ ...S.card, background: 'linear-gradient(135deg,rgba(37,99,235,.15),rgba(6,14,28,.9))', border: '1px solid rgba(96,165,250,.25)', marginBottom: '16px' }}>
         <div style={{ fontSize: '24px', marginBottom: '6px' }}>🚛</div>
         <div style={{ fontWeight: '800', fontSize: '17px' }}>{solicitud.ruta?.origen} → {solicitud.ruta?.destino}</div>
-        <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>
-          {reservasAceptadas.length} empresa{reservasAceptadas.length !== 1 ? 's' : ''} en este viaje
-        </div>
+        <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '4px' }}>{reservasAceptadas.length} empresa(s) en este viaje</div>
       </div>
-
       {reservasAceptadas.map((r, idx) => {
         const fase = getFase(r)
         const pagoUrl = pagos[r._id]
@@ -696,11 +536,7 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
                 {fase === 'cobrado' ? '✅ Entregado' : fase === 'en_ruta' ? '🚛 En ruta' : fase === 'en_cargue' ? '📦 Cargando' : '🔑 Pendiente'}
               </span>
             </div>
-            <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '12px', lineHeight: 1.6 }}>
-              📍 Recogida: {r.direccionRecogida}<br />
-              🏁 Entrega: {r.direccionEntrega}
-            </div>
-
+            <div style={{ fontSize: '12px', color: '#7A8FAD', marginBottom: '12px', lineHeight: 1.6 }}>📍 Recogida: {r.direccionRecogida}<br />🏁 Entrega: {r.direccionEntrega}</div>
             {fase === 'recogida' && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
@@ -710,21 +546,15 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
                 <label style={S.lbl}>Codigo de recogida</label>
                 <input style={inpCodigo} placeholder="XXXXXX" maxLength={8} value={codigos[r._id] || ''} onChange={e => setCodigos(c => ({ ...c, [r._id]: e.target.value.toUpperCase() }))} />
                 {errores[r._id] && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '6px' }}>{errores[r._id]}</div>}
-                <button onClick={() => verificar(r._id, 'recogida')} disabled={cargando[r._id]} style={S.btn('#F97316')}>
-                  {cargando[r._id] ? 'Verificando...' : '✅ Confirmar recogida →'}
-                </button>
+                <button onClick={() => verificar(r._id, 'recogida')} disabled={cargando[r._id]} style={S.btn('#F97316')}>{cargando[r._id] ? 'Verificando...' : '✅ Confirmar recogida →'}</button>
               </>
             )}
-
             {fase === 'en_cargue' && (
               <>
-                <div style={{ background: 'rgba(251,191,36,.08)', border: '1px solid rgba(251,191,36,.2)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#FBBF24' }}>
-                  📦 Cargue en progreso — cuando termines presiona "Listo"
-                </div>
+                <div style={{ background: 'rgba(251,191,36,.08)', border: '1px solid rgba(251,191,36,.2)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#FBBF24' }}>📦 Cargue en progreso</div>
                 <button onClick={() => setFases(f => ({ ...f, [r._id]: 'en_ruta' }))} style={S.btn('#10B981')}>✅ Cargue listo — En ruta →</button>
               </>
             )}
-
             {fase === 'en_ruta' && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
@@ -734,36 +564,22 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
                 <label style={S.lbl}>Codigo de entrega</label>
                 <input style={inpCodigo} placeholder="XXXXXX" maxLength={8} value={codigos[`${r._id}_entrega`] || ''} onChange={e => setCodigos(c => ({ ...c, [`${r._id}_entrega`]: e.target.value.toUpperCase() }))} />
                 {errores[`${r._id}_entrega`] && <div style={{ color: '#EF4444', fontSize: '12px', marginBottom: '6px' }}>{errores[`${r._id}_entrega`]}</div>}
-                <button onClick={() => verificar(r._id, 'entrega')} disabled={cargando[r._id]} style={S.btn('#10B981')}>
-                  {cargando[r._id] ? 'Verificando...' : '🏁 Confirmar entrega →'}
-                </button>
+                <button onClick={() => verificar(r._id, 'entrega')} disabled={cargando[r._id]} style={S.btn('#10B981')}>{cargando[r._id] ? 'Verificando...' : '🏁 Confirmar entrega →'}</button>
               </>
             )}
-
             {fase === 'cobrado' && (
               <>
-                <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#10B981' }}>
-                  ✅ Entrega confirmada
-                </div>
-                {pagoUrl ? (
-                  <a href={pagoUrl} target="_blank" rel="noreferrer"
-                    style={{ display: 'block', background: '#10B981', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '800', textDecoration: 'none', textAlign: 'center' }}>
-                    💳 Pagar con Wompi →
-                  </a>
-                ) : (
-                  <div style={{ fontSize: '12px', color: '#7A8FAD' }}>Pago procesado automaticamente.</div>
-                )}
+                <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#10B981' }}>✅ Entrega confirmada</div>
+                {pagoUrl && <a href={pagoUrl} target="_blank" rel="noreferrer" style={{ display: 'block', background: '#10B981', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '800', textDecoration: 'none', textAlign: 'center' }}>💳 Pagar con Wompi →</a>}
               </>
             )}
           </div>
         )
       })}
-
       {todasEntregadas ? (
         <div style={{ ...S.card, background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', textAlign: 'center', padding: '32px' }}>
           <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎉</div>
           <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>Viaje completado!</div>
-          <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '20px' }}>Todas las empresas fueron entregadas.</div>
           <button onClick={onVolver} style={S.btn('#10B981')}>Volver a mis rutas →</button>
         </div>
       ) : (
@@ -772,7 +588,7 @@ function ViajeActivo({ solicitud, token, onVolver, apiBase }) {
     </div>
   )
 }
-// ── COMPONENTE PRINCIPAL ──────────────────────────────────────────
+
 export default function Independiente() {
   const [estado, setEstado] = useState('loading')
   const [independiente, setIndependiente] = useState(null)
@@ -783,14 +599,15 @@ export default function Independiente() {
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(location.search)
     if (params.get('registro') === 'true') { setEstado('registro'); return }
     const t = localStorage.getItem('independiente_token')
     if (t) { setToken(t); cargarPerfil(t) }
     else setEstado('login')
-  }, [])
+  }, [location.search])
 
   async function cargarPerfil(t) {
     try {
@@ -807,11 +624,7 @@ export default function Independiente() {
     if (!cedula || !password) { setError('Ingresa tu cedula y contrasena'); return }
     setCargando(true); setError('')
     try {
-      const res = await fetch(`${API}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cedula, password })
-      })
+      const res = await fetch(`${API}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cedula, password }) })
       const data = await res.json()
       if (!res.ok) {
         if (data.error === 'pendiente') setError('Tu solicitud esta pendiente de aprobacion.')
@@ -826,12 +639,13 @@ export default function Independiente() {
     } catch { setError('Error de conexion'); setCargando(false) }
   }
 
-  function handleLogout() {
-    localStorage.removeItem('independiente_token')
-    setEstado('login'); setIndependiente(null); setToken(null)
-  }
+  function handleLogout() { localStorage.removeItem('independiente_token'); setEstado('login'); setIndependiente(null); setToken(null) }
 
-  if (estado === 'registro') return <RegistroIndependiente onVolver={() => setEstado('login')} />
+  if (estado === 'registro') return <RegistroIndependiente onVolver={() => { setEstado('login'); navigate('/independiente') }} />
+
+  if (estado === 'loading') return (
+    <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A8FAD' }}>Cargando...</div>
+  )
 
   if (estado === 'login') return (
     <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'DM Sans,sans-serif' }}>
@@ -855,21 +669,15 @@ export default function Independiente() {
             <input style={S.inp} type="password" placeholder="Tu contrasena" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
           {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '9px', padding: '11px', fontSize: '13px', color: '#EF4444', marginBottom: '14px' }}>{error}</div>}
-          <button onClick={handleLogin} disabled={cargando} style={S.btn('#10B981')}>
-            {cargando ? 'Iniciando sesion...' : 'Entrar →'}
-          </button>
+          <button onClick={handleLogin} disabled={cargando} style={S.btn('#10B981')}>{cargando ? 'Iniciando sesion...' : 'Entrar →'}</button>
           <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#7A8FAD' }}>
             Primera vez?{' '}
-            <span style={{ color: '#10B981', cursor: 'pointer', fontWeight: '700' }} onClick={() => setEstado('registro')}>Solicitar acceso →</span>
+            <span style={{ color: '#10B981', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/independiente?registro=true')}>Solicitar acceso →</span>
           </div>
           <button onClick={() => navigate('/login')} style={{ ...S.btnOutline, marginTop: '12px', fontSize: '13px' }}>← Volver al login</button>
         </div>
       </div>
     </div>
-  )
-
-  if (estado === 'loading') return (
-    <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A8FAD' }}>Cargando...</div>
   )
 
   return (
@@ -886,13 +694,7 @@ export default function Independiente() {
         )}
       </div>
       {estado === 'panel' && independiente && (
-        <PanelIndependiente
-          independiente={independiente}
-          rutasActivas={rutasActivas}
-          token={token}
-          onRefresh={() => cargarPerfil(token)}
-          onLogout={handleLogout}
-        />
+        <PanelIndependiente independiente={independiente} rutasActivas={rutasActivas} token={token} onRefresh={() => cargarPerfil(token)} onLogout={handleLogout} />
       )}
     </div>
   )

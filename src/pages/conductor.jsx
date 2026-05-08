@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 const API = 'https://cargoshare-api-production.up.railway.app/api'
 
@@ -38,106 +38,19 @@ function formatCOP(n) {
 }
 
 const S = {
-  page: {
-    minHeight: '100vh',
-    background: '#060E1C',
-    fontFamily: 'DM Sans, sans-serif',
-    color: 'white',
-    maxWidth: '480px',
-    margin: '0 auto',
-    position: 'relative',
-  },
-  nav: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 20px',
-    background: 'rgba(6,14,28,.95)',
-    borderBottom: '1px solid rgba(255,255,255,.07)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  card: {
-    background: '#0E1E38',
-    border: '1px solid rgba(255,255,255,.08)',
-    borderRadius: '16px',
-    padding: '20px',
-    marginBottom: '14px',
-  },
-  btn: (color = '#F97316', full = true) => ({
-    width: full ? '100%' : 'auto',
-    background: color,
-    border: 'none',
-    color: 'white',
-    padding: '14px 20px',
-    borderRadius: '12px',
-    fontFamily: 'DM Sans, sans-serif',
-    fontSize: '15px',
-    fontWeight: '700',
-    cursor: 'pointer',
-    marginTop: '8px',
-  }),
-  btnOutline: {
-    width: '100%',
-    background: 'transparent',
-    border: '1px solid rgba(255,255,255,.18)',
-    color: 'white',
-    padding: '13px 20px',
-    borderRadius: '12px',
-    fontFamily: 'DM Sans, sans-serif',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginTop: '8px',
-  },
-  label: {
-    fontSize: '11px',
-    color: '#7A8FAD',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '.7px',
-    display: 'block',
-    marginBottom: '6px',
-  },
-  inp: {
-    width: '100%',
-    background: 'rgba(255,255,255,.06)',
-    border: '1px solid rgba(255,255,255,.1)',
-    borderRadius: '9px',
-    padding: '11px 14px',
-    color: 'white',
-    fontFamily: 'DM Sans, sans-serif',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box',
-  },
-  tag: (color) => ({
-    display: 'inline-block',
-    background: `${color}18`,
-    border: `1px solid ${color}40`,
-    color: color,
-    fontSize: '11px',
-    fontWeight: '700',
-    padding: '3px 10px',
-    borderRadius: '100px',
-  }),
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '10px 0',
-    borderBottom: '1px solid rgba(255,255,255,.05)',
-  },
+  page: { minHeight: '100vh', background: '#060E1C', fontFamily: 'DM Sans, sans-serif', color: 'white', maxWidth: '480px', margin: '0 auto', position: 'relative' },
+  nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'rgba(6,14,28,.95)', borderBottom: '1px solid rgba(255,255,255,.07)', position: 'sticky', top: 0, zIndex: 100 },
+  card: { background: '#0E1E38', border: '1px solid rgba(255,255,255,.08)', borderRadius: '16px', padding: '20px', marginBottom: '14px' },
+  btn: (color = '#F97316', full = true) => ({ width: full ? '100%' : 'auto', background: color, border: 'none', color: 'white', padding: '14px 20px', borderRadius: '12px', fontFamily: 'DM Sans, sans-serif', fontSize: '15px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }),
+  btnOutline: { width: '100%', background: 'transparent', border: '1px solid rgba(255,255,255,.18)', color: 'white', padding: '13px 20px', borderRadius: '12px', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: '600', cursor: 'pointer', marginTop: '8px' },
+  label: { fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' },
+  inp: { width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 14px', color: 'white', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
+  tag: (color) => ({ display: 'inline-block', background: `${color}18`, border: `1px solid ${color}40`, color: color, fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '100px' }),
+  row: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,.05)' },
 }
 
-// ─── REGISTRO CONDUCTOR AFILIADO ─────────────────────────────────
 function RegistroConductor({ onVolver }) {
-  const [form, setForm] = useState({
-    nombre: '', cedula: '', correo: '', telefono: '',
-    password: '', confirmar: '', nombreEmpresa: '',
-    categoriaLicencia: 'C1', tipoVehiculo: 'camion_rigido'
-  })
+  const [form, setForm] = useState({ nombre: '', cedula: '', correo: '', telefono: '', password: '', confirmar: '', nombreEmpresa: '', categoriaLicencia: 'C1', tipoVehiculo: 'camion_rigido' })
   const [fotoCedula, setFotoCedula] = useState(null)
   const [fotoLicencia, setFotoLicencia] = useState(null)
   const [error, setError] = useState('')
@@ -147,15 +60,9 @@ function RegistroConductor({ onVolver }) {
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
   async function handleRegistro() {
-    if (!form.nombre || !form.cedula || !form.correo || !form.password || !form.nombreEmpresa) {
-      setError('Completa todos los campos obligatorios'); return
-    }
-    if (form.password !== form.confirmar) {
-      setError('Las contrasenas no coinciden'); return
-    }
-    if (!fotoCedula || !fotoLicencia) {
-      setError('Sube la foto de tu cedula y licencia'); return
-    }
+    if (!form.nombre || !form.cedula || !form.correo || !form.password || !form.nombreEmpresa) { setError('Completa todos los campos obligatorios'); return }
+    if (form.password !== form.confirmar) { setError('Las contrasenas no coinciden'); return }
+    if (!fotoCedula || !fotoLicencia) { setError('Sube la foto de tu cedula y licencia'); return }
     setCargando(true); setError('')
     try {
       const fd = new FormData()
@@ -175,9 +82,7 @@ function RegistroConductor({ onVolver }) {
       <div style={{ textAlign: 'center', maxWidth: '360px' }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
         <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '22px', fontWeight: '800', marginBottom: '8px', color: 'white' }}>Solicitud enviada!</div>
-        <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: 1.6, marginBottom: '24px' }}>
-          El administrador revisara tu informacion y verificara con tu empresa. Te notificaremos por correo cuando seas aprobado.
-        </div>
+        <div style={{ fontSize: '14px', color: '#7A8FAD', lineHeight: 1.6, marginBottom: '24px' }}>El administrador revisara tu informacion. Te notificaremos por correo cuando seas aprobado.</div>
         <button onClick={onVolver} style={S.btn()}>Volver al login</button>
       </div>
     </div>
@@ -187,9 +92,7 @@ function RegistroConductor({ onVolver }) {
     <div style={{ minHeight: '100vh', background: '#060E1C', fontFamily: 'DM Sans,sans-serif', padding: '20px' }}>
       <div style={{ maxWidth: '420px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px', paddingTop: '20px' }}>
-          <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '24px', fontWeight: '800', color: 'white' }}>
-            Cargo<span style={{ color: '#F97316' }}>Share</span>
-          </div>
+          <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '24px', fontWeight: '800', color: 'white' }}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
           <div style={{ fontSize: '13px', color: '#7A8FAD', marginTop: '4px' }}>Solicitud de acceso conductor</div>
         </div>
         <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.1)', borderRadius: '22px', padding: '28px' }}>
@@ -207,19 +110,23 @@ function RegistroConductor({ onVolver }) {
           </div>
           <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Licencia de conduccion</div>
           <div style={{ marginBottom: '12px' }}>
-            <label style={S.label}>Categoria</label>
-            <input style={S.inp} type="text" placeholder="Ej: C1, C2, B3..." value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)} />
+            <label style={S.label}>Categoria de licencia *</label>
+            <select style={{ ...S.inp, cursor: 'pointer' }} value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)}>
+              {['B1','B2','B3','C1','C2','C3','C4'].map(c => <option key={c} value={c} style={{ background: '#0C1B35' }}>{c}</option>)}
+            </select>
           </div>
           <div style={{ marginBottom: '12px' }}>
             <label style={S.label}>Tipo de vehiculo que maneja</label>
-            <input style={S.inp} type="text" placeholder="Ej: Camioneta, Furgon, Camion rigido, Tractomula..." value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)} />
+            <select style={{ ...S.inp, cursor: 'pointer' }} value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)}>
+              {[['camioneta','Camioneta'],['furgon','Furgon'],['camion_rigido','Camion rigido'],['tractomula','Tractomula']].map(([v,l]) => <option key={v} value={v} style={{ background: '#0C1B35' }}>{l}</option>)}
+            </select>
           </div>
-          <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Documentos</div>
-          {[['fotoCedula','Foto de la cedula',setFotoCedula,fotoCedula],['fotoLicencia','Foto de la licencia',setFotoLicencia,fotoLicencia]].map(([k,lbl,setter,val]) => (
+          <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Documentos *</div>
+          {[['fotoCedula','Foto de la cedula',setFotoCedula,fotoCedula],['fotoLicencia','Foto de la licencia de conduccion',setFotoLicencia,fotoLicencia]].map(([k,lbl,setter,val]) => (
             <div key={k} style={{ marginBottom: '12px' }}>
               <label style={S.label}>{lbl}</label>
               <div style={{ ...S.inp, padding: '10px', cursor: 'pointer', position: 'relative' }}>
-                <input type="file" accept="image/*" capture="environment" style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={e => setter(e.target.files[0])} />
+                <input type="file" accept="image/*,.pdf" capture="environment" style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={e => setter(e.target.files[0])} />
                 <span style={{ color: val ? '#10B981' : '#7A8FAD', fontSize: '13px' }}>{val ? `✅ ${val.name}` : '📷 Tomar foto o subir archivo'}</span>
               </div>
             </div>
@@ -240,7 +147,6 @@ function RegistroConductor({ onVolver }) {
   )
 }
 
-// ─── GPS TRACKER ─────────────────────────────────────────────────
 function GPSTracker({ viajeId }) {
   useEffect(() => {
     if (!navigator.geolocation) return
@@ -268,7 +174,6 @@ function GPSTracker({ viajeId }) {
   )
 }
 
-// ─── CRONOMETRO ──────────────────────────────────────────────────
 function Cronometro({ fase, tipoVehiculo, onStop }) {
   const [segundos, setSegundos] = useState(0)
   const [corriendo, setCorriendo] = useState(false)
@@ -276,11 +181,8 @@ function Cronometro({ fase, tipoVehiculo, onStop }) {
   const intervalo = useRef(null)
 
   useEffect(() => {
-    if (corriendo && !pausado) {
-      intervalo.current = setInterval(() => setSegundos(s => s + 1), 1000)
-    } else {
-      clearInterval(intervalo.current)
-    }
+    if (corriendo && !pausado) { intervalo.current = setInterval(() => setSegundos(s => s + 1), 1000) }
+    else { clearInterval(intervalo.current) }
     return () => clearInterval(intervalo.current)
   }, [corriendo, pausado])
 
@@ -296,9 +198,7 @@ function Cronometro({ fase, tipoVehiculo, onStop }) {
 
   return (
     <div style={{ textAlign: 'center', padding: '8px 0' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: '52px', fontWeight: '800', color: colorCrono, letterSpacing: '2px', marginBottom: '6px', transition: 'color .5s' }}>
-        {formatTime(segundos)}
-      </div>
+      <div style={{ fontFamily: 'monospace', fontSize: '52px', fontWeight: '800', color: colorCrono, letterSpacing: '2px', marginBottom: '6px', transition: 'color .5s' }}>{formatTime(segundos)}</div>
       <div style={{ marginBottom: '16px' }}>
         {!corriendo && !pausado && <span style={S.tag('#7A8FAD')}>Esperando inicio</span>}
         {corriendo && !pausado && enGratis && <span style={S.tag('#10B981')}>✅ Tiempo gratuito — {TIEMPO_GRATIS_MIN - minutos} min restantes</span>}
@@ -329,7 +229,6 @@ function Cronometro({ fase, tipoVehiculo, onStop }) {
   )
 }
 
-// ─── INPUT CODIGO PIN ────────────────────────────────────────────
 function InputCodigo({ titulo, descripcion, onConfirm, cargando }) {
   const [codigo, setCodigo] = useState('')
   const [error, setError] = useState('')
@@ -345,21 +244,16 @@ function InputCodigo({ titulo, descripcion, onConfirm, cargando }) {
       <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '6px' }}>{titulo}</div>
       <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '16px', lineHeight: 1.5 }}>{descripcion}</div>
       <label style={S.label}>Codigo</label>
-      <input
-        style={{ ...S.inp, fontSize: '20px', fontFamily: 'monospace', letterSpacing: '4px', textTransform: 'uppercase', textAlign: 'center' }}
-        placeholder="XXXX" maxLength={8}
-        value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())}
-        onKeyDown={e => e.key === 'Enter' && handleConfirm()}
-      />
+      <input style={{ ...S.inp, fontSize: '20px', fontFamily: 'monospace', letterSpacing: '4px', textTransform: 'uppercase', textAlign: 'center' }}
+        placeholder="XXXX" maxLength={8} value={codigo}
+        onChange={e => setCodigo(e.target.value.toUpperCase())}
+        onKeyDown={e => e.key === 'Enter' && handleConfirm()} />
       {error && <div style={{ color: '#EF4444', fontSize: '12px', marginTop: '6px' }}>{error}</div>}
-      <button onClick={handleConfirm} style={S.btn()} disabled={cargando}>
-        {cargando ? 'Verificando...' : 'Confirmar codigo →'}
-      </button>
+      <button onClick={handleConfirm} style={S.btn()} disabled={cargando}>{cargando ? 'Verificando...' : 'Confirmar codigo →'}</button>
     </div>
   )
 }
 
-// ─── PANEL SIN VIAJE ─────────────────────────────────────────────
 function SinViaje({ conductor, historial, onLogout }) {
   return (
     <div style={{ padding: '20px' }}>
@@ -381,34 +275,30 @@ function SinViaje({ conductor, historial, onLogout }) {
       <div style={{ fontSize: '13px', fontWeight: '700', color: '#7A8FAD', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Historial de viajes</div>
       {historial.length === 0 ? (
         <div style={{ ...S.card, textAlign: 'center', color: '#7A8FAD', fontSize: '14px', padding: '32px' }}>🚛 Aun no tienes viajes registrados</div>
-      ) : (
-        historial.map((v, i) => (
-          <div key={i} style={S.card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-              <div>
-                <div style={{ fontWeight: '700', fontSize: '14px' }}>{v.origen} → {v.destino}</div>
-                <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{v.fecha}</div>
-              </div>
-              <span style={S.tag('#10B981')}>✅ Completado</span>
+      ) : historial.map((v, i) => (
+        <div key={i} style={S.card}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div>
+              <div style={{ fontWeight: '700', fontSize: '14px' }}>{v.origen} → {v.destino}</div>
+              <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{v.fecha}</div>
             </div>
-            {v.horasExtraCargue > 0 && <div style={{ fontSize: '12px', color: '#F97316' }}>+{v.horasExtraCargue}h extra cargue · {formatCOP(v.costoExtraCargue)}</div>}
-            {v.horasExtraDescargue > 0 && <div style={{ fontSize: '12px', color: '#F97316' }}>+{v.horasExtraDescargue}h extra descargue · {formatCOP(v.costoExtraDescargue)}</div>}
+            <span style={S.tag('#10B981')}>✅ Completado</span>
           </div>
-        ))
-      )}
+          {v.horasExtraCargue > 0 && <div style={{ fontSize: '12px', color: '#F97316' }}>+{v.horasExtraCargue}h extra cargue · {formatCOP(v.costoExtraCargue)}</div>}
+          {v.horasExtraDescargue > 0 && <div style={{ fontSize: '12px', color: '#F97316' }}>+{v.horasExtraDescargue}h extra descargue · {formatCOP(v.costoExtraDescargue)}</div>}
+        </div>
+      ))}
       <button onClick={onLogout} style={{ ...S.btnOutline, marginTop: '24px' }}>Cerrar sesion</button>
     </div>
   )
 }
 
-// ─── PANEL CON VIAJE ─────────────────────────────────────────────
 function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
   const [fase, setFase] = useState('inicio')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [resultadoCargue, setResultadoCargue] = useState(null)
   const [resultadoDescargue, setResultadoDescargue] = useState(null)
-  // Datos del pago Wompi que devuelve el backend al finalizar
   const [resumenPago, setResumenPago] = useState(null)
   const [pagoUrl, setPagoUrl] = useState(null)
 
@@ -450,11 +340,7 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
         body: JSON.stringify({ viajeId: viaje._id, ...resultado })
       })
       const data = await res.json()
-      if (res.ok) {
-        // Guardar resumen de pago y link de Wompi
-        setResumenPago(data.resumen || null)
-        setPagoUrl(data.pagoUrl || null)
-      }
+      if (res.ok) { setResumenPago(data.resumen || null); setPagoUrl(data.pagoUrl || null) }
     } catch (e) { console.log(e) }
     setCargando(false)
     setFase('terminado')
@@ -465,8 +351,6 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
 
   return (
     <div style={{ padding: '20px' }}>
-
-      {/* INICIO */}
       {fase === 'inicio' && (
         <>
           <div style={{ ...S.card, background: 'linear-gradient(135deg, rgba(16,185,129,.15), rgba(6,14,28,.9))', border: '1px solid rgba(16,185,129,.3)', marginBottom: '16px' }}>
@@ -477,10 +361,7 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
           <div style={S.card}>
             <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '14px', color: '#F97316' }}>📋 Detalles del viaje</div>
             {[['Origen', viaje.origen], ['Destino', viaje.destino], ['Vehiculo', viaje.vehiculo], ['Tipo de carga', viaje.tipoCarga], ['Empresa remitente', viaje.empresaRemitente], ['Fecha', viaje.fecha]].map(([k, v]) => (
-              <div key={k} style={S.row}>
-                <span style={{ fontSize: '13px', color: '#7A8FAD' }}>{k}</span>
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>{v}</span>
-              </div>
+              <div key={k} style={S.row}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>{k}</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{v}</span></div>
             ))}
           </div>
           <div style={S.card}>
@@ -491,61 +372,42 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
               <button onClick={() => abrirWaze(viaje.direccionRecogida)} style={{ ...S.btn('#00CAFF', false), width: '100%', marginTop: 0, fontSize: '13px', color: '#060E1C' }}>🚗 Waze</button>
             </div>
           </div>
-          {viaje.cargas && viaje.cargas.length > 0 && (
-            <div style={S.card}>
-              <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '12px' }}>📦 Carga a recoger</div>
-              {viaje.cargas.map((c, i) => (
-                <div key={i} style={{ ...S.row, flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                  <div style={{ fontWeight: '600', fontSize: '13px' }}>{c.empresa}</div>
-                  <div style={{ fontSize: '12px', color: '#7A8FAD' }}>{c.descripcion} · {c.peso} kg</div>
-                </div>
-              ))}
-            </div>
-          )}
           <button onClick={() => setFase('cargue_codigo')} style={S.btn()}>Llegar al punto de recogida →</button>
         </>
       )}
-
-      {/* CODIGO RECOGIDA */}
       {fase === 'cargue_codigo' && (
         <>
           <div style={{ ...S.card, textAlign: 'center', padding: '24px', marginBottom: '16px', background: 'rgba(37,99,235,.1)', border: '1px solid rgba(96,165,250,.25)' }}>
             <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔑</div>
             <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '6px' }}>Codigo de recogida</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.5 }}>El remitente tiene un codigo generado por CargoShare. Pideselo e ingresalo aqui para iniciar el cargue.</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.5 }}>Pideselo al remitente e ingresalo aqui para iniciar el cargue.</div>
           </div>
           {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#EF4444' }}>❌ {error}</div>}
-          <InputCodigo titulo="Ingresa el codigo del remitente" descripcion="El remitente tiene este codigo en su panel de CargoShare. Al confirmarlo iniciara el cronometro de cargue." onConfirm={(c) => verificarCodigo(c, 'recogida')} cargando={cargando} />
+          <InputCodigo titulo="Ingresa el codigo del remitente" descripcion="El remitente tiene este codigo en su panel de CargoShare." onConfirm={(c) => verificarCodigo(c, 'recogida')} cargando={cargando} />
         </>
       )}
-
-      {/* CRONOMETRO CARGUE */}
       {fase === 'cargue_cronometro' && (
         <>
           <div style={{ ...S.card, background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', textAlign: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: '13px', color: '#10B981', fontWeight: '700', marginBottom: '4px' }}>✅ Codigo verificado</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Inicia el cronometro cuando comience el cargue. Pausa cuando termines.</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Inicia el cronometro cuando comience el cargue.</div>
           </div>
           <div style={S.card}>
             <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>Cronometro de cargue</div>
             <Cronometro fase="cargue" tipoVehiculo={viaje.tipoVehiculo || 'camion_rigido'} onStop={finalizarCargue} />
           </div>
           <div style={{ background: 'rgba(255,255,255,.04)', borderRadius: '12px', padding: '14px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.6 }}>
-            Los primeros 45 minutos son gratis. Despues se cobra por hora completa. El pago va 100% a la empresa transportista.
+            Los primeros 45 minutos son gratis. Despues se cobra por hora completa.
           </div>
         </>
       )}
-
-      {/* EN RUTA — GPS ACTIVO */}
       {fase === 'en_ruta' && (
         <>
           <GPSTracker viajeId={viaje._id} />
           {resultadoCargue && (
             <div style={{ ...S.card, background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', marginBottom: '16px' }}>
               <div style={{ fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>✅ Cargue completado</div>
-              {resultadoCargue.horasExtra.horas > 0
-                ? <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Horas extra: {resultadoCargue.horasExtra.horas}h · {formatCOP(resultadoCargue.horasExtra.costo)}</div>
-                : <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Sin horas extra — cargue en tiempo estandar</div>}
+              {resultadoCargue.horasExtra.horas > 0 ? <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Horas extra: {resultadoCargue.horasExtra.horas}h · {formatCOP(resultadoCargue.horasExtra.costo)}</div> : <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Sin horas extra</div>}
             </div>
           )}
           <div style={{ ...S.card, background: 'linear-gradient(135deg, rgba(37,99,235,.15), rgba(6,14,28,.9))', border: '1px solid rgba(96,165,250,.25)' }}>
@@ -564,45 +426,34 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
           <button onClick={() => setFase('entrega_codigo')} style={S.btn('#10B981')}>Llegue al destino →</button>
         </>
       )}
-
-      {/* CODIGO ENTREGA */}
       {fase === 'entrega_codigo' && (
         <>
           <div style={{ ...S.card, textAlign: 'center', padding: '24px', marginBottom: '16px', background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)' }}>
             <div style={{ fontSize: '36px', marginBottom: '8px' }}>📬</div>
             <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '6px' }}>Codigo de entrega</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.5 }}>El receptor tiene un codigo generado automaticamente. Pideselo e ingresalo para iniciar el descargue.</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD', lineHeight: 1.5 }}>Pideselo al receptor e ingresalo para iniciar el descargue.</div>
           </div>
           {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '10px', padding: '12px', marginBottom: '12px', fontSize: '13px', color: '#EF4444' }}>❌ {error}</div>}
-          <InputCodigo titulo="Ingresa el codigo del receptor" descripcion="El receptor tiene este codigo en su panel. Al confirmarlo iniciara el cronometro de descargue." onConfirm={(c) => verificarCodigo(c, 'entrega')} cargando={cargando} />
+          <InputCodigo titulo="Ingresa el codigo del receptor" descripcion="El receptor tiene este codigo en su panel." onConfirm={(c) => verificarCodigo(c, 'entrega')} cargando={cargando} />
         </>
       )}
-
-      {/* CRONOMETRO DESCARGUE */}
       {fase === 'descargue_cronometro' && (
         <>
           <div style={{ ...S.card, background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.25)', textAlign: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: '13px', color: '#10B981', fontWeight: '700', marginBottom: '4px' }}>✅ Codigo de entrega verificado</div>
-            <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Inicia el cronometro cuando comience el descargue. Presiona STOP cuando termines.</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD' }}>Inicia el cronometro cuando comience el descargue.</div>
           </div>
           <div style={S.card}>
             <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>Cronometro de descargue</div>
             <Cronometro fase="descargue" tipoVehiculo={viaje.tipoVehiculo || 'camion_rigido'} onStop={finalizarDescargue} />
           </div>
-          <div style={{ background: 'rgba(255,255,255,.04)', borderRadius: '12px', padding: '14px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.6 }}>
-            Al presionar STOP el viaje quedara marcado como completado y se generara el cobro.
-          </div>
         </>
       )}
-
-      {/* TERMINADO — con resumen de pago y link Wompi */}
       {fase === 'terminado' && (
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
           <div style={{ fontFamily: 'Syne, sans-serif', fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Viaje completado!</div>
           <div style={{ fontSize: '14px', color: '#7A8FAD', marginBottom: '28px', lineHeight: 1.6 }}>{viaje.origen} → {viaje.destino}</div>
-
-          {/* RESUMEN DE TIEMPOS */}
           <div style={{ ...S.card, textAlign: 'left', marginBottom: '16px' }}>
             <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '14px', color: '#10B981' }}>📊 Resumen del viaje</div>
             {resultadoCargue && <div style={S.row}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Tiempo de cargue</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{formatTime(resultadoCargue.segundos)}</span></div>}
@@ -614,39 +465,11 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
               <span style={{ fontWeight: '800', fontSize: '18px', color: '#F97316' }}>{formatCOP((resultadoCargue?.horasExtra?.costo || 0) + (resultadoDescargue?.horasExtra?.costo || 0))}</span>
             </div>
           </div>
-
-          {/* DESGLOSE TOTAL A COBRAR */}
-          {resumenPago && (
-            <div style={{ ...S.card, textAlign: 'left', marginBottom: '16px' }}>
-              <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '14px', color: '#60A5FA' }}>💰 Total a cobrar al remitente</div>
-              <div style={S.row}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Flete base + km extra</span><span style={{ fontSize: '13px', fontWeight: '600' }}>{formatCOP(resumenPago.precioBase)}</span></div>
-              {resumenPago.extraCargue > 0 && <div style={S.row}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Horas extra cargue</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F97316' }}>+{formatCOP(resumenPago.extraCargue)}</span></div>}
-              {resumenPago.extraDescargue > 0 && <div style={S.row}><span style={{ fontSize: '13px', color: '#7A8FAD' }}>Horas extra descargue</span><span style={{ fontSize: '13px', fontWeight: '600', color: '#F97316' }}>+{formatCOP(resumenPago.extraDescargue)}</span></div>}
-              <div style={{ height: '1px', background: 'rgba(255,255,255,.08)', margin: '10px 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: '700', fontSize: '15px' }}>TOTAL</span>
-                <span style={{ fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', color: '#10B981' }}>{formatCOP(resumenPago.total)}</span>
-              </div>
-            </div>
+          {pagoUrl && (
+            <a href={pagoUrl} target="_blank" rel="noreferrer" style={{ display: 'block', background: '#10B981', color: 'white', padding: '16px 20px', borderRadius: '12px', fontFamily: 'DM Sans,sans-serif', fontSize: '16px', fontWeight: '800', textDecoration: 'none', textAlign: 'center', marginBottom: '16px' }}>
+              💳 Pagar con Wompi →
+            </a>
           )}
-
-          {/* BOTON PAGO WOMPI */}
-          {pagoUrl ? (
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '12px', padding: '14px 16px', marginBottom: '12px', fontSize: '13px', color: '#7A8FAD', lineHeight: 1.6, textAlign: 'left' }}>
-                📲 <strong style={{ color: 'white' }}>Muestra este boton al remitente</strong> para que realice el pago. El link es de un solo uso y expira pronto.
-              </div>
-              <a href={pagoUrl} target="_blank" rel="noreferrer"
-                style={{ display: 'block', background: '#10B981', color: 'white', padding: '16px 20px', borderRadius: '12px', fontFamily: 'DM Sans,sans-serif', fontSize: '16px', fontWeight: '800', textDecoration: 'none', textAlign: 'center', marginBottom: '8px' }}>
-                💳 Pagar con Wompi →
-              </a>
-            </div>
-          ) : (
-            <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '12px', padding: '14px', fontSize: '13px', color: '#F59E0B', marginBottom: '20px', textAlign: 'left' }}>
-              ⚠️ No se pudo generar el link de pago automaticamente. Contacta al administrador de CargoShare con el ID del viaje.
-            </div>
-          )}
-
           <button onClick={onViajeTerminado} style={S.btn()}>Volver al inicio →</button>
         </div>
       )}
@@ -654,8 +477,7 @@ function ConViaje({ viaje, conductor, token, onViajeTerminado }) {
   )
 }
 
-// ─── COMPONENTE PRINCIPAL ────────────────────────────────────────
-function Conductor() {
+export default function Conductor() {
   const [estado, setEstado] = useState('loading')
   const [conductor, setConductor] = useState(null)
   const [viaje, setViaje] = useState(null)
@@ -666,20 +488,19 @@ function Conductor() {
   const [cedula, setCedula] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(location.search)
     if (params.get('registro') === 'true') { setEstado('registro'); return }
     const t = localStorage.getItem('conductor_token')
     if (t) { setToken(t); cargarPerfil(t) }
     else setEstado('login')
-  }, [])
+  }, [location.search])
 
   async function cargarPerfil(t) {
     try {
-      const res = await fetch(`${API}/conductor-afiliado/perfil`, {
-        headers: { 'Authorization': `Bearer ${t}` }
-      })
+      const res = await fetch(`${API}/conductor-afiliado/perfil`, { headers: { 'Authorization': `Bearer ${t}` } })
       if (!res.ok) { localStorage.removeItem('conductor_token'); setEstado('login'); return }
       const data = await res.json()
       setConductor(data.conductor)
@@ -717,52 +538,44 @@ function Conductor() {
     setEstado('login'); setConductor(null); setViaje(null); setToken(null)
   }
 
-  if (estado === 'registro') return <RegistroConductor onVolver={() => setEstado('login')} />
+  if (estado === 'registro') return <RegistroConductor onVolver={() => { setEstado('login'); navigate('/conductor') }} />
 
-  if (estado === 'login') {
-    return (
-      <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'DM Sans, sans-serif' }}>
-        <div style={{ width: '100%', maxWidth: '400px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontSize: '28px', fontWeight: '800', color: 'white' }}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
-            <div style={{ fontSize: '14px', color: '#7A8FAD', marginTop: '4px' }}>Panel del Conductor</div>
+  if (estado === 'loading') return (
+    <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A8FAD' }}>Cargando...</div>
+  )
+
+  if (estado === 'login') return (
+    <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'DM Sans, sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: '400px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontSize: '28px', fontWeight: '800', color: 'white' }}>Cargo<span style={{ color: '#F97316' }}>Share</span></div>
+          <div style={{ fontSize: '14px', color: '#7A8FAD', marginTop: '4px' }}>Panel del Conductor</div>
+        </div>
+        <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.1)', borderRadius: '22px', padding: '32px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>🚛</div>
+            <div style={{ fontSize: '18px', fontWeight: '700' }}>Acceso conductor</div>
+            <div style={{ fontSize: '13px', color: '#7A8FAD', marginTop: '4px' }}>Ingresa con tu cedula</div>
           </div>
-          <div style={{ background: '#0C1B35', border: '1px solid rgba(255,255,255,.1)', borderRadius: '22px', padding: '32px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{ fontSize: '40px', marginBottom: '10px' }}>🚛</div>
-              <div style={{ fontSize: '18px', fontWeight: '700' }}>Acceso conductor</div>
-              <div style={{ fontSize: '13px', color: '#7A8FAD', marginTop: '4px' }}>Ingresa con tu cedula</div>
-            </div>
-            <div style={{ marginBottom: '14px' }}>
-              <label style={S.label}>Numero de cedula</label>
-              <input style={S.inp} type="number" placeholder="1234567890" value={cedula} onChange={e => setCedula(e.target.value)} />
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={S.label}>Contrasena</label>
-              <input style={S.inp} type="password" placeholder="Tu contrasena" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-            </div>
-            {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '9px', padding: '11px', fontSize: '13px', color: '#EF4444', marginBottom: '14px' }}>{error}</div>}
-            <button onClick={handleLogin} disabled={cargando} style={S.btn()}>
-              {cargando ? 'Iniciando sesion...' : 'Entrar →'}
-            </button>
-            <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.6 }}>
-              Primera vez?{' '}
-              <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => setEstado('registro')}>
-                Solicitar acceso →
-              </span>
-            </div>
-            <button onClick={() => navigate('/login')} style={{ ...S.btnOutline, marginTop: '12px', fontSize: '13px' }}>
-              ← Volver al login empresarial
-            </button>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={S.label}>Numero de cedula</label>
+            <input style={S.inp} type="number" placeholder="1234567890" value={cedula} onChange={e => setCedula(e.target.value)} />
           </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={S.label}>Contrasena</label>
+            <input style={S.inp} type="password" placeholder="Tu contrasena" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+          </div>
+          {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '9px', padding: '11px', fontSize: '13px', color: '#EF4444', marginBottom: '14px' }}>{error}</div>}
+          <button onClick={handleLogin} disabled={cargando} style={S.btn()}>{cargando ? 'Iniciando sesion...' : 'Entrar →'}</button>
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.6 }}>
+            Primera vez?{' '}
+            <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/conductor?registro=true')}>Solicitar acceso →</span>
+          </div>
+          <button onClick={() => navigate('/login')} style={{ ...S.btnOutline, marginTop: '12px', fontSize: '13px' }}>← Volver al login empresarial</button>
         </div>
       </div>
-    )
-  }
-
-  if (estado === 'loading') {
-    return <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A8FAD' }}>Cargando...</div>
-  }
+    </div>
+  )
 
   return (
     <div style={S.page}>
@@ -794,5 +607,3 @@ function Conductor() {
     </div>
   )
 }
-
-export default Conductor
