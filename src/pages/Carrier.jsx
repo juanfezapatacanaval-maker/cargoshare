@@ -1,3 +1,4 @@
+import React from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -110,6 +111,102 @@ function MapaGPS({ solicitudId, origen, destino }) {
   )
 }
 
+
+function SoporteView({ nombre, correo, token }) {
+  const [form, setForm] = React.useState({ empresa: nombre || '', correoContacto: correo || '', telefono: '', asunto: '', mensaje: '' })
+  const [enviando, setEnviando] = React.useState(false)
+  const [enviado, setEnviado] = React.useState(false)
+  const [error, setError] = React.useState('')
+
+  async function enviarSoporte() {
+    if (!form.empresa || !form.correoContacto || !form.asunto || !form.mensaje) {
+      setError('Completa todos los campos obligatorios'); return
+    }
+    setEnviando(true); setError('')
+    try {
+      const res = await fetch('https://cargoshare-api-production.up.railway.app/api/soporte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form)
+      })
+      if (res.ok) { setEnviado(true); setForm(f => ({ ...f, asunto: '', mensaje: '' })) }
+      else setError('Error al enviar. Intenta de nuevo.')
+    } catch { setError('Error de conexion') }
+    setEnviando(false)
+  }
+
+  const inp = { width: '100%', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '9px', padding: '11px 14px', color: 'white', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }
+  const lbl = { fontSize: '11px', color: '#7A8FAD', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '.7px', display: 'block', marginBottom: '6px' }
+
+  return (
+    <div>
+      <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '26px', fontWeight: '800', letterSpacing: '-.8px', marginBottom: '4px' }}>Soporte 🎧</div>
+      <div style={{ fontSize: '14px', color: '#7A8FAD', marginBottom: '24px' }}>Estamos aqui para ayudarte. Respondemos en menos de 24 horas.</div>
+
+      {/* INFO DE CONTACTO */}
+      <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+        {[
+          { ic: '💬', label: 'WhatsApp', val: '+57 300 000 0000', link: 'https://wa.me/573000000000', color: '#10B981' },
+          { ic: '📧', label: 'Email soporte', val: 'soporte@cargoshare.co', link: 'mailto:soporte@cargoshare.co', color: '#60A5FA' },
+          { ic: '🔒', label: 'Privacidad', val: 'privacidad@cargoshare.co', link: 'mailto:privacidad@cargoshare.co', color: '#F97316' },
+        ].map(item => (
+          <a key={item.label} href={item.link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', background: '#0E1E38', border: '1px solid rgba(255,255,255,.07)', borderRadius: '14px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', transition: '.2s' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `rgba(${item.color === '#10B981' ? '16,185,129' : item.color === '#60A5FA' ? '96,165,250' : '249,115,22'},.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{item.ic}</div>
+            <div>
+              <div style={{ fontSize: '11px', color: '#7A8FAD', fontWeight: '600', marginBottom: '2px' }}>{item.label}</div>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: item.color }}>{item.val}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      {/* FORMULARIO */}
+      <div style={{ background: '#0E1E38', border: '1px solid rgba(255,255,255,.07)', borderRadius: '18px', padding: '22px' }}>
+        <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '18px' }}>📝 Envíanos un mensaje</div>
+
+        {enviado && (
+          <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>
+            ✅ Mensaje enviado. Te responderemos a <strong>{form.correoContacto}</strong> en menos de 24 horas.
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <div><label style={lbl}>Nombre de la empresa *</label><input style={inp} placeholder="Mi Empresa SAS" value={form.empresa} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} /></div>
+          <div><label style={lbl}>Correo de contacto *</label><input type="email" style={inp} placeholder="correo@empresa.com" value={form.correoContacto} onChange={e => setForm(f => ({ ...f, correoContacto: e.target.value }))} /></div>
+        </div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={lbl}>Telefono</label>
+          <input style={inp} placeholder="+57 300 123 4567" value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} />
+        </div>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={lbl}>Asunto *</label>
+          <select style={{ ...inp, cursor: 'pointer' }} value={form.asunto} onChange={e => setForm(f => ({ ...f, asunto: e.target.value }))}>
+            <option value="" style={{ background: '#0C1B35' }}>Selecciona un asunto</option>
+            <option value="problema_tecnico" style={{ background: '#0C1B35' }}>🔧 Problema técnico</option>
+            <option value="problema_pago" style={{ background: '#0C1B35' }}>💳 Problema con pago</option>
+            <option value="disputa_envio" style={{ background: '#0C1B35' }}>📦 Disputa con envío</option>
+            <option value="cuenta" style={{ background: '#0C1B35' }}>👤 Problema con mi cuenta</option>
+            <option value="verificacion" style={{ background: '#0C1B35' }}>✅ Verificación de documentos</option>
+            <option value="privacidad" style={{ background: '#0C1B35' }}>🔒 Solicitud privacidad / datos</option>
+            <option value="otro" style={{ background: '#0C1B35' }}>💬 Otro</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: '18px' }}>
+          <label style={lbl}>Descripcion del problema *</label>
+          <textarea style={{ ...inp, minHeight: '100px', resize: 'vertical' }} placeholder="Describe con detalle lo que esta pasando..." value={form.mensaje} onChange={e => setForm(f => ({ ...f, mensaje: e.target.value }))} />
+        </div>
+
+        {error && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '14px' }}>⚠️ {error}</div>}
+
+        <button onClick={enviarSoporte} disabled={enviando}
+          style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: enviando ? 0.7 : 1 }}>
+          {enviando ? 'Enviando...' : '📨 Enviar mensaje →'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function Carrier() {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
@@ -130,8 +227,12 @@ export default function Carrier() {
   const [conductores, setConductores] = useState([])
   const [conductoresAfiliados, setConductoresAfiliados] = useState([])
 
-  const [cForm, setCForm] = useState({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
-  const [archivosC, setArchivosC] = useState({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
+  const [cForm, setCForm] = useState({
+    nombre: '', cedula: '', correo: '', telefono: '',
+    fechaExpedicionLicencia: '', vencimientoLicencia: '',
+    categoriasLicencia: [], tipoVehiculo: 'camion_rigido',
+  })
+  const [archivosC, setArchivosC] = useState({ fotoConductor: null, fotoCedula: null, fotoLicencia: null, tarjetaPropiedad: null })
   const [guardandoC, setGuardandoC] = useState(false)
   const [guardadoC, setGuardadoC] = useState(false)
   const [errorC, setErrorC] = useState('')
@@ -252,6 +353,7 @@ export default function Carrier() {
   }
 
   async function registrarConductor() {
+    if (!cForm.nombre || !cForm.cedula || !cForm.correo) { setErrorC('Nombre, cédula y correo son obligatorios'); return }
     if (!cForm.nombre || !cForm.cedula || !cForm.categoriaLicencia || !cForm.vencimientoLicencia) { setErrorC('Nombre, cedula, categoria y vencimiento de licencia son obligatorios'); return }
     // Validar que la licencia no este vencida
     const vencLic = new Date(cForm.vencimientoLicencia)
@@ -415,10 +517,11 @@ export default function Carrier() {
     { id: 'viajes', ic: '📍', label: 'Viajes activos' },
     { id: 'historial', ic: '📋', label: 'Historial' },
     { id: 'pagos', ic: '💰', label: 'Pagos y retiros' },
+    { id: 'soporte', ic: '🎧', label: 'Soporte' },
     { id: 'config', ic: '⚙️', label: 'Configuracion' },
   ]
 
-  const titles = { dashboard: 'Dashboard', vehiculo: 'Mi flota', conductores: 'Mis conductores', 'publicar-ruta': 'Publicar ruta', 'mis-rutas': 'Mis rutas', solicitudes: 'Solicitudes', viajes: 'Viajes activos', historial: 'Historial', pagos: 'Pagos y retiros', config: 'Configuracion' }
+  const titles = { dashboard: 'Dashboard', vehiculo: 'Mi flota', conductores: 'Mis conductores', 'publicar-ruta': 'Publicar ruta', 'mis-rutas': 'Mis rutas', solicitudes: 'Solicitudes', viajes: 'Viajes activos', historial: 'Historial', pagos: 'Pagos y retiros', soporte: 'Soporte', config: 'Configuracion' }
   const estadoV = (e) => ({ aprobado: { color: '#10B981', bg: 'rgba(16,185,129,.12)', label: '✅ Aprobado' }, pendiente: { color: '#F59E0B', bg: 'rgba(245,158,11,.12)', label: '⏳ Pendiente de aprobacion' }, rechazado: { color: '#EF4444', bg: 'rgba(239,68,68,.12)', label: '❌ Rechazado' } }[e] || {})
 
   const s = {
@@ -674,19 +777,51 @@ export default function Carrier() {
               {guardadoC && <div style={{ background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.25)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#10B981', textAlign: 'center' }}>✅ Conductor registrado. El admin recibira los datos para revision.</div>}
               <div style={s.panel}>
                 <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>📋 Datos del conductor</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div style={s.fg}><label style={s.lbl}>Nombre completo *</label><input style={s.inp} placeholder="Carlos Garcia" value={cForm.nombre} onChange={e => setCForm({ ...cForm, nombre: e.target.value })} /></div>
-                  <div style={s.fg}><label style={s.lbl}>Cedula *</label><input style={s.inp} placeholder="1234567890" value={cForm.cedula} onChange={e => setCForm({ ...cForm, cedula: e.target.value })} /></div>
-                  <div style={s.fg}><label style={s.lbl}>Telefono</label><input style={s.inp} placeholder="+57 300 123 4567" value={cForm.telefono} onChange={e => setCForm({ ...cForm, telefono: e.target.value })} /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+                  <div style={s.fg}><label style={s.lbl}>Nombre completo *</label><input style={s.inp} placeholder="Carlos García Pérez" value={cForm.nombre} onChange={e => setCForm({ ...cForm, nombre: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Número de cédula *</label><input style={s.inp} placeholder="1234567890" value={cForm.cedula} onChange={e => setCForm({ ...cForm, cedula: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Correo electrónico *</label><input type="email" style={s.inp} placeholder="conductor@correo.com" value={cForm.correo} onChange={e => setCForm({ ...cForm, correo: e.target.value })} /></div>
+                  <div style={s.fg}><label style={s.lbl}>Teléfono</label><input style={s.inp} placeholder="+57 300 123 4567" value={cForm.telefono} onChange={e => setCForm({ ...cForm, telefono: e.target.value })} /></div>
                   <div style={s.fg}>
-                    <label style={s.lbl}>Categoria licencia *</label>
-                    <select style={{ ...s.inp, cursor: 'pointer' }} value={cForm.categoriaLicencia} onChange={e => setCForm({ ...cForm, categoriaLicencia: e.target.value })}>
-                      {['B1','B2','B3','C1','C2','C3','C4'].map(c => <option key={c} value={c} style={{ background: '#0C1B35' }}>{c}</option>)}
+                    <label style={s.lbl}>Tipo de vehículo que maneja *</label>
+                    <select style={{ ...s.inp, cursor: 'pointer' }} value={cForm.tipoVehiculo} onChange={e => setCForm({ ...cForm, tipoVehiculo: e.target.value })}>
+                      {[['camioneta','Camioneta'],['furgon','Furgón'],['camion_rigido','Camión rígido'],['tractomula','Tractomula']].map(([v,l]) => <option key={v} value={v} style={{ background: '#0C1B35' }}>{l}</option>)}
                     </select>
                   </div>
-                  <div style={{ ...s.fg, gridColumn: '1 / -1' }}>
-                    <label style={s.lbl}>Vencimiento de licencia *</label>
+                  <div style={s.fg}>
+                    <label style={s.lbl}>Categorías de licencia autorizadas *</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                      {['B1','B2','B3','C1','C2','C3','C4'].map(cat => (
+                        <div key={cat} onClick={() => {
+                          const cats = cForm.categoriasLicencia.includes(cat)
+                            ? cForm.categoriasLicencia.filter(c => c !== cat)
+                            : [...cForm.categoriasLicencia, cat]
+                          setCForm({ ...cForm, categoriasLicencia: cats })
+                        }} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+                          background: cForm.categoriasLicencia.includes(cat) ? 'rgba(249,115,22,.2)' : 'rgba(255,255,255,.05)',
+                          border: `1px solid ${cForm.categoriasLicencia.includes(cat) ? '#F97316' : 'rgba(255,255,255,.12)'}`,
+                          color: cForm.categoriasLicencia.includes(cat) ? '#F97316' : '#7A8FAD' }}>
+                          {cat}
+                        </div>
+                      ))}
+                    </div>
+                    {cForm.categoriasLicencia.length > 0 && <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px' }}>✅ Seleccionadas: {cForm.categoriasLicencia.join(', ')}</div>}
+                  </div>
+                  <div style={s.fg}>
+                    <label style={s.lbl}>Fecha expedición licencia *</label>
+                    <input type="date" style={s.inp} value={cForm.fechaExpedicionLicencia} onChange={e => setCForm({ ...cForm, fechaExpedicionLicencia: e.target.value })} />
+                  </div>
+                  <div style={s.fg}>
+                    <label style={s.lbl}>Vigencia de la licencia *</label>
                     <input type="date" style={s.inp} value={cForm.vencimientoLicencia} onChange={e => setCForm({ ...cForm, vencimientoLicencia: e.target.value })} />
+                    {cForm.vencimientoLicencia && (() => {
+                      const dias = Math.floor((new Date(cForm.vencimientoLicencia) - new Date()) / 86400000)
+                      return dias < 0
+                        ? <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px' }}>❌ Esta licencia ya venció — no puedes registrar este conductor</div>
+                        : dias <= 30
+                        ? <div style={{ fontSize: '11px', color: '#F59E0B', marginTop: '4px' }}>⚠️ Vence en {dias} días</div>
+                        : <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px' }}>✅ Vigente — vence en {dias} días</div>
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1073,6 +1208,11 @@ export default function Carrier() {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* SOPORTE */}
+          {vista === 'soporte' && (
+            <SoporteView nombre={nombre} correo={localStorage.getItem('correo') || ''} token={token} />
           )}
 
           {/* CONFIG */}
