@@ -47,10 +47,9 @@ function Login() {
     }
   }
 
-  // Conductor/independiente: si NO es PWA mostrar modal descarga
+  // Conductor/independiente: si NO es PWA mostrar aviso pero dejar pasar
   function handleRolApp(path) {
-    if (isPWA) { navigate(path); return }
-    setShowDescarga(true)
+    navigate(path)
   }
 
   const inp = {
@@ -129,14 +128,12 @@ function Login() {
             <div style={{ fontSize: '22px', marginBottom: '4px' }}>🚛</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Conductor</div>
             <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '2px' }}>Panel de viajes</div>
-            {!isPWA && <div style={{ fontSize: '9px', color: '#F97316', marginTop: '4px', fontWeight: '700' }}>📱 Requiere app</div>}
           </div>
           <div onClick={() => handleRolApp('/independiente')}
             style={{ border: '1px solid rgba(16,185,129,.25)', background: 'rgba(16,185,129,.04)', borderRadius: '14px', padding: '14px', textAlign: 'center', cursor: 'pointer', transition: '.2s', position: 'relative' }}>
             <div style={{ fontSize: '22px', marginBottom: '4px' }}>🚚</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: 'white' }}>Independiente</div>
             <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>Tengo mi camion</div>
-            {!isPWA && <div style={{ fontSize: '9px', color: '#F97316', marginTop: '4px', fontWeight: '700' }}>📱 Requiere app</div>}
           </div>
         </div>
 

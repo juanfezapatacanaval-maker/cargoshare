@@ -165,14 +165,7 @@ export default function Register() {
             Recibimos tu solicitud. Revisaremos tu informacion en <strong style={{ color: '#F97316' }}>24 a 48 horas habiles</strong>.
             Te notificaremos a <strong style={{ color: 'white' }}>{form.correo || form.correoEmpresa}</strong>.
           </div>
-          {esConductorOIndep && !isPWA && (
-            <div style={{ background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.2)', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '13px', color: '#F97316', lineHeight: 1.6 }}>
-              📱 <strong>Recuerda:</strong> Para iniciar sesion necesitas instalar la app CargoShare en tu celular.
-              <button onClick={() => setShowDescarga(true)} style={{ display: 'block', width: '100%', marginTop: '10px', background: '#F97316', border: 'none', color: 'white', padding: '10px', borderRadius: '8px', fontFamily: 'DM Sans,sans-serif', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>
-                Ver instrucciones de instalacion →
-              </button>
-            </div>
-          )}
+
           <button onClick={() => navigate('/')} style={s.btn}>Volver al inicio</button>
           <div style={{ marginTop: '12px', fontSize: '13px', color: '#7A8FAD' }}>
             Ya tienes cuenta? <span style={{ color: '#60A5FA', cursor: 'pointer' }} onClick={() => navigate('/login')}>Iniciar sesion</span>
@@ -247,9 +240,9 @@ export default function Register() {
             </div>
 
             {/* Aviso conductor/independiente sobre login */}
-            {esConductorOIndep && !isPWA && (
-              <div style={{ background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.2)', borderRadius: '12px', padding: '14px', marginBottom: '16px', fontSize: '13px', color: '#F97316', lineHeight: 1.6 }}>
-                📱 <strong>Importante:</strong> Puedes registrarte aquí desde el navegador. Pero para <strong>iniciar sesión</strong> necesitarás instalar la app CargoShare en tu celular.
+            {esConductorOIndep && (
+              <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)', borderRadius: '12px', padding: '14px', marginBottom: '16px', fontSize: '13px', color: '#10B981', lineHeight: 1.6 }}>
+                ✅ Puedes registrarte desde cualquier dispositivo. Una vez aprobado podrás iniciar sesión.
               </div>
             )}
 

@@ -54,10 +54,19 @@ function RegistroConductor({ onVolver }) {
   const [fotoCedula, setFotoCedula] = useState(null)
   const [fotoLicencia, setFotoLicencia] = useState(null)
   const [error, setError] = useState('')
+  const [empresasDisponibles, setEmpresasDisponibles] = useState([])
+  const [buscarEmpresa, setBuscarEmpresa] = useState('')
   const [exito, setExito] = useState(false)
   const [cargando, setCargando] = useState(false)
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
+
+  useEffect(() => {
+    fetch(`${API}/conductor-afiliado/empresas`)
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setEmpresasDisponibles(data) })
+      .catch(() => {})
+  }, [])
 
   async function handleRegistro() {
     if (!form.nombre || !form.cedula || !form.correo || !form.password || !form.nombreEmpresa) { setError('Completa todos los campos obligatorios'); return }
@@ -105,8 +114,42 @@ function RegistroConductor({ onVolver }) {
           ))}
           <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Empresa donde trabajas</div>
           <div style={{ marginBottom: '12px' }}>
-            <label style={S.label}>Nombre de la empresa</label>
-            <input style={S.inp} type="text" placeholder="Transportes Ejemplo SAS" value={form.nombreEmpresa} onChange={e => set('nombreEmpresa', e.target.value)} />
+            <label style={S.label}>Empresa donde trabajas *</label>
+            <input
+              style={S.inp}
+              type="text"
+              placeholder="Busca por nombre o NIT..."
+              value={buscarEmpresa}
+              onChange={e => {
+                setBuscarEmpresa(e.target.value)
+                set('nombreEmpresa', e.target.value)
+                set('empresaId', '')
+              }}
+            />
+            {buscarEmpresa.length >= 2 && (
+              <div style={{ background: '#0A172E', border: '1px solid rgba(255,255,255,.15)', borderRadius: '9px', marginTop: '4px', maxHeight: '180px', overflowY: 'auto' }}>
+                {empresasDisponibles
+                  .filter(e => e.nombre?.toLowerCase().includes(buscarEmpresa.toLowerCase()) || e.nit?.includes(buscarEmpresa))
+                  .slice(0, 8)
+                  .map(emp => (
+                    <div key={emp._id}
+                      onClick={() => { set('empresaId', emp._id); set('nombreEmpresa', emp.nombre); setBuscarEmpresa(emp.nombre) }}
+                      style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,.06)', fontSize: '13px' }}>
+                      <div style={{ color: 'white', fontWeight: '600' }}>{emp.nombre}</div>
+                      <div style={{ color: '#7A8FAD', fontSize: '11px' }}>NIT: {emp.nit} · {emp.ciudad}</div>
+                    </div>
+                  ))
+                }
+                {empresasDisponibles.filter(e => e.nombre?.toLowerCase().includes(buscarEmpresa.toLowerCase())).length === 0 && (
+                  <div style={{ padding: '12px 14px', fontSize: '12px', color: '#7A8FAD' }}>
+                    No encontrada. Verifica el nombre de tu empresa.
+                  </div>
+                )}
+              </div>
+            )}
+            {form.empresaId && (
+              <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px' }}>✅ Empresa vinculada correctamente</div>
+            )}
           </div>
           <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Licencia de conduccion</div>
           <div style={{ marginBottom: '12px' }}>
