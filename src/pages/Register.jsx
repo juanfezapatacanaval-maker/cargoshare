@@ -48,11 +48,10 @@ export default function Register() {
     { id: 'empresa_flota',     ic: '🚛', titulo: 'Empresa con flota', desc: 'Tengo camiones disponibles' },
     { id: 'ambas',             ic: '🔄', titulo: 'Ambas', desc: 'Envio carga y tengo flota' },
     { id: 'independiente',     ic: '🚚', titulo: 'Transportista independiente', desc: 'Tengo mi propio camion y quiero generar ingresos' },
-    { id: 'conductor',         ic: '🚗', titulo: 'Soy conductor', desc: 'Quiero afiliarme a una empresa en CargoShare' },
   ]
 
   const necesitaFlota = form.rol === 'empresa_flota' || form.rol === 'ambas'
-  const esConductorOIndep = form.rol === 'conductor' || form.rol === 'independiente'
+  const esConductorOIndep = form.rol === 'independiente'
 
   function validarPaso2() {
     const e = {}
@@ -97,8 +96,7 @@ export default function Register() {
     if (paso === 1) {
       if (!form.rol) { setErrores({ rol: 'Selecciona el tipo de cuenta' }); return }
       setErrores({})
-      // Conductor e independiente tienen su propio formulario completo
-      if (form.rol === 'conductor') { navigate('/conductor?registro=true'); return }
+      // Independiente tiene su propio formulario completo
       if (form.rol === 'independiente') { navigate('/independiente?registro=true'); return }
       setPaso(2)
     } else if (paso === 2) {

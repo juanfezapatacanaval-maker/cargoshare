@@ -232,7 +232,12 @@ export default function Carrier() {
     fechaExpedicionLicencia: '', vencimientoLicencia: '',
     categoriasLicencia: [], tipoVehiculo: 'camion_rigido',
   })
-  const [archivosC, setArchivosC] = useState({ fotoConductor: null, fotoCedula: null, fotoLicencia: null, tarjetaPropiedad: null })
+  const [credencialesConductor, setCredencialesConductor] = useState(null) // {loginId, passwordPlano, nombre}
+  const [archivosC, setArchivosC] = useState({
+    fotoRostro: null,
+    fotoCedulaFrente: null, fotoCedulaAtras: null,
+    fotoLicenciaFrente: null, fotoLicenciaAtras: null,
+  })
   const [guardandoC, setGuardandoC] = useState(false)
   const [guardadoC, setGuardadoC] = useState(false)
   const [errorC, setErrorC] = useState('')
@@ -353,7 +358,9 @@ export default function Carrier() {
   }
 
   async function registrarConductor() {
-    if (!cForm.nombre || !cForm.cedula || !cForm.correo) { setErrorC('Nombre, cédula y correo son obligatorios'); return }
+    if (!cForm.nombre || !cForm.cedula) { setErrorC('Nombre y cédula son obligatorios'); return }
+    if (!archivosC.fotoRostro) { setErrorC('La foto del rostro del conductor es obligatoria'); return }
+    if (!archivosC.fotoLicenciaFrente) { setErrorC('La foto de la licencia es obligatoria'); return }
     if (!cForm.nombre || !cForm.cedula || !cForm.categoriaLicencia || !cForm.vencimientoLicencia) { setErrorC('Nombre, cedula, categoria y vencimiento de licencia son obligatorios'); return }
     // Validar que la licencia no este vencida
     const vencLic = new Date(cForm.vencimientoLicencia)
@@ -367,15 +374,16 @@ export default function Carrier() {
     try {
       const formData = new FormData()
       Object.entries(cForm).forEach(([k, v]) => { if (v) formData.append(k, v) })
-      if (archivosC.fotoConductor) formData.append('fotoConductor', archivosC.fotoConductor)
+      Object.entries(archivosC).forEach(([k, v]) => { if (v) formData.append(k, v) })
       if (archivosC.fotoCedula) formData.append('fotoCedula', archivosC.fotoCedula)
       if (archivosC.fotoLicencia) formData.append('fotoLicencia', archivosC.fotoLicencia)
       const res = await fetch(CONDUCTOR_API, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
       const data = await res.json()
       if (res.ok) {
-        setGuardadoC(true); cargarConductores()
+        setCredencialesConductor(data.conductor); cargarConductores()
         setCForm({ nombre: '', cedula: '', telefono: '', categoriaLicencia: 'C2', vencimientoLicencia: '' })
-        setArchivosC({ fotoConductor: null, fotoCedula: null, fotoLicencia: null })
+        setArchivosC({ fotoRostro: null, fotoCedulaFrente: null, fotoCedulaAtras: null, fotoLicenciaFrente: null, fotoLicenciaAtras: null })
+        setCForm({ nombre: '', cedula: '', correo: '', telefono: '', fechaExpedicionLicencia: '', vencimientoLicencia: '', categoriasLicencia: [], tipoVehiculo: 'camion_rigido' })
         setTimeout(() => setGuardadoC(false), 3000)
       } else { setErrorC(data.error || 'Error al registrar') }
     } catch { setErrorC('Error de conexion') }
@@ -748,10 +756,13 @@ export default function Carrier() {
                       <div key={c._id} style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${licenciaVencida ? 'rgba(239,68,68,.3)' : proximoVencer ? 'rgba(245,158,11,.3)' : 'rgba(255,255,255,.07)'}`, borderRadius: '12px', padding: '16px', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            {c.fotoConductor ? <img src={c.fotoConductor} alt={c.nombre} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} /> : <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(37,99,235,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👤</div>}
+                            {c.fotoRostro
+                              ? <img src={c.fotoRostro} alt={c.nombre} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(249,115,22,.4)' }} />
+                              : <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(249,115,22,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', border: '2px solid rgba(249,115,22,.3)' }}>👤</div>}
                             <div>
                               <div style={{ fontSize: '15px', fontWeight: '700' }}>{c.nombre}</div>
-                              <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>CC {c.cedula} · {c.telefono || 'Sin telefono'} · Lic. {c.categoriaLicencia}</div>
+                              <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>CC {c.cedula} · {c.telefono || 'Sin telefono'}</div>
+                              <div style={{ fontSize: '11px', color: '#F97316', marginTop: '2px', fontWeight: '600' }}>🔑 ID Login: {c.loginId} · Lic. {c.categoriaLicencia}</div>
                               {vencimiento && (
                                 <div style={{ fontSize: '11px', marginTop: '2px', color: licenciaVencida ? '#EF4444' : proximoVencer ? '#F59E0B' : '#10B981' }}>
                                   {licenciaVencida
@@ -842,8 +853,42 @@ export default function Carrier() {
               </div>
               {errorC && <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '9px', padding: '11px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '16px' }}>⚠️ {errorC}</div>}
               <button onClick={registrarConductor} disabled={guardandoC} style={{ background: '#F97316', color: 'white', border: 'none', padding: '13px 28px', borderRadius: '10px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: guardandoC ? 0.7 : 1 }}>
-                {guardandoC ? 'Registrando...' : '👤 Registrar conductor →'}
+                {guardandoC ? 'Creando conductor...' : '👤 Crear conductor →'}
               </button>
+            </div>
+          )}
+
+          {/* MODAL CREDENCIALES CONDUCTOR */}
+          {credencialesConductor && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}>
+              <div style={{ background: '#0C1B35', border: '1px solid rgba(249,115,22,.3)', borderRadius: '22px', padding: '32px', width: '100%', maxWidth: '420px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                  {credencialesConductor.fotoRostro && (
+                    <img src={credencialesConductor.fotoRostro} alt={credencialesConductor.nombre}
+                      style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #F97316', marginBottom: '12px' }} />
+                  )}
+                  <div style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne,sans-serif', color: 'white', marginBottom: '4px' }}>✅ Conductor creado</div>
+                  <div style={{ fontSize: '14px', color: '#7A8FAD' }}>{credencialesConductor.nombre}</div>
+                </div>
+                <div style={{ background: 'rgba(249,115,22,.08)', border: '1px solid rgba(249,115,22,.25)', borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>🔑 Credenciales de acceso</div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '4px' }}>ID de Login</div>
+                    <div style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'monospace', color: 'white', letterSpacing: '2px', background: 'rgba(255,255,255,.06)', padding: '10px 16px', borderRadius: '8px' }}>{credencialesConductor.loginId}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#7A8FAD', marginBottom: '4px' }}>Contraseña inicial</div>
+                    <div style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'monospace', color: '#10B981', letterSpacing: '2px', background: 'rgba(16,185,129,.06)', padding: '10px 16px', borderRadius: '8px' }}>{credencialesConductor.passwordPlano}</div>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '14px', lineHeight: 1.6 }}>
+                    ⚠️ Guarda estas credenciales ahora. La contraseña no se volverá a mostrar. El conductor puede cambiarla desde su perfil.
+                  </div>
+                </div>
+                <button onClick={() => setCredencialesConductor(null)}
+                  style={{ width: '100%', background: '#F97316', border: 'none', color: 'white', padding: '13px', borderRadius: '11px', fontFamily: 'DM Sans,sans-serif', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+                  Entendido — ya guardé las credenciales ✓
+                </button>
+              </div>
             </div>
           )}
 

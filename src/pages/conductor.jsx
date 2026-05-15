@@ -75,7 +75,13 @@ function RegistroConductor({ onVolver }) {
     setCargando(true); setError('')
     try {
       const fd = new FormData()
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v))
+      Object.entries(form).forEach(([k, v]) => {
+        if (k === 'categoriasLicencia') {
+          fd.append(k, JSON.stringify(v))
+        } else if (v) {
+          fd.append(k, v)
+        }
+      })
       fd.append('fotoCedula', fotoCedula)
       fd.append('fotoLicencia', fotoLicencia)
       const res = await fetch(`${API}/conductor-afiliado/registro`, { method: 'POST', body: fd })
@@ -153,16 +159,43 @@ function RegistroConductor({ onVolver }) {
           </div>
           <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Licencia de conduccion</div>
           <div style={{ marginBottom: '12px' }}>
-            <label style={S.label}>Categoria de licencia *</label>
-            <select style={{ ...S.inp, cursor: 'pointer' }} value={form.categoriaLicencia} onChange={e => set('categoriaLicencia', e.target.value)}>
-              {['B1','B2','B3','C1','C2','C3','C4'].map(c => <option key={c} value={c} style={{ background: '#0C1B35' }}>{c}</option>)}
-            </select>
-          </div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={S.label}>Tipo de vehiculo que maneja</label>
+            <label style={S.label}>Tipo de vehiculo que maneja *</label>
             <select style={{ ...S.inp, cursor: 'pointer' }} value={form.tipoVehiculo} onChange={e => set('tipoVehiculo', e.target.value)}>
               {[['camioneta','Camioneta'],['furgon','Furgon'],['camion_rigido','Camion rigido'],['tractomula','Tractomula']].map(([v,l]) => <option key={v} value={v} style={{ background: '#0C1B35' }}>{l}</option>)}
             </select>
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={S.label}>Categorias autorizadas *</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+              {['B1','B2','B3','C1','C2','C3','C4'].map(cat => (
+                <div key={cat} onClick={() => {
+                  const cats = form.categoriasLicencia.includes(cat)
+                    ? form.categoriasLicencia.filter(c => c !== cat)
+                    : [...form.categoriasLicencia, cat]
+                  set('categoriasLicencia', cats)
+                }} style={{ padding: '7px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+                  background: form.categoriasLicencia.includes(cat) ? 'rgba(249,115,22,.2)' : 'rgba(255,255,255,.05)',
+                  border: `1px solid ${form.categoriasLicencia.includes(cat) ? '#F97316' : 'rgba(255,255,255,.12)'}`,
+                  color: form.categoriasLicencia.includes(cat) ? '#F97316' : '#7A8FAD' }}>
+                  {cat}
+                </div>
+              ))}
+            </div>
+            {form.categoriasLicencia.length > 0 && <div style={{ fontSize: '11px', color: '#10B981', marginTop: '6px' }}>✅ {form.categoriasLicencia.join(', ')}</div>}
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={S.label}>Fecha de expedicion de la licencia *</label>
+            <input type="date" style={S.inp} value={form.fechaExpedicionLicencia} onChange={e => set('fechaExpedicionLicencia', e.target.value)} />
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={S.label}>Vigencia (vencimiento) de la licencia *</label>
+            <input type="date" style={S.inp} value={form.vencimientoLicencia} onChange={e => set('vencimientoLicencia', e.target.value)} />
+            {form.vencimientoLicencia && (() => {
+              const dias = Math.floor((new Date(form.vencimientoLicencia) - new Date()) / 86400000)
+              return dias < 0
+                ? <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px' }}>❌ Esta licencia ya vencio — no podras ser aprobado</div>
+                : <div style={{ fontSize: '11px', color: '#10B981', marginTop: '4px' }}>✅ Vigente — vence en {dias} dias</div>
+            })()}
           </div>
           <div style={{ fontSize: '12px', color: '#F97316', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', margin: '20px 0 16px' }}>Documentos *</div>
           {[['fotoCedula','Foto de la cedula',setFotoCedula,fotoCedula],['fotoLicencia','Foto de la licencia de conduccion',setFotoLicencia,fotoLicencia]].map(([k,lbl,setter,val]) => (
@@ -302,8 +335,16 @@ function SinViaje({ conductor, historial, onLogout }) {
     <div style={{ padding: '20px' }}>
       <div style={{ ...S.card, background: 'linear-gradient(135deg, #0E2B70, #0C1830)', border: '1px solid rgba(96,165,250,.2)' }}>
         <div style={{ fontSize: '28px', marginBottom: '10px' }}>👋</div>
-        <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>Hola, {conductor.nombre}</div>
-        <div style={{ fontSize: '13px', color: '#7A8FAD', marginBottom: '14px' }}>{conductor.empresa} · {conductor.categoriaLicencia}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+          {conductor.fotoRostro
+            ? <img src={conductor.fotoRostro} alt={conductor.nombre} style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #F97316' }} />
+            : <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'rgba(249,115,22,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>👤</div>}
+          <div>
+            <div style={{ fontSize: '18px', fontWeight: '700' }}>Hola, {conductor.nombre}</div>
+            <div style={{ fontSize: '12px', color: '#7A8FAD', marginTop: '2px' }}>{conductor.empresa}</div>
+            <div style={{ fontSize: '11px', color: '#F97316', marginTop: '1px', fontFamily: 'monospace' }}>ID: {conductor.loginId}</div>
+          </div>
+        </div>
         <div style={{ ...S.tag('#7A8FAD'), fontSize: '12px' }}>📭 Sin viajes asignados por ahora</div>
       </div>
       {conductor.diasLicencia <= 60 && (
@@ -534,12 +575,10 @@ export default function Conductor() {
   const location = useLocation()
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    if (params.get('registro') === 'true') { setEstado('registro'); return }
     const t = localStorage.getItem('conductor_token')
     if (t) { setToken(t); cargarPerfil(t) }
     else setEstado('login')
-  }, [location.search])
+  }, [])
 
   async function cargarPerfil(t) {
     try {
@@ -560,7 +599,7 @@ export default function Conductor() {
       const res = await fetch(`${API}/conductor-afiliado/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cedula, password })
+        body: JSON.stringify({ loginId: cedula, password })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -581,7 +620,7 @@ export default function Conductor() {
     setEstado('login'); setConductor(null); setViaje(null); setToken(null)
   }
 
-  if (estado === 'registro') return <RegistroConductor onVolver={() => { setEstado('login'); navigate('/conductor') }} />
+  // registro propio eliminado — la empresa crea al conductor
 
   if (estado === 'loading') return (
     <div style={{ minHeight: '100vh', background: '#060E1C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A8FAD' }}>Cargando...</div>
@@ -601,8 +640,11 @@ export default function Conductor() {
             <div style={{ fontSize: '13px', color: '#7A8FAD', marginTop: '4px' }}>Ingresa con tu cedula</div>
           </div>
           <div style={{ marginBottom: '14px' }}>
-            <label style={S.label}>Numero de cedula</label>
-            <input style={S.inp} type="number" placeholder="1234567890" value={cedula} onChange={e => setCedula(e.target.value)} />
+            <label style={S.label}>ID de acceso</label>
+            <input style={{ ...S.inp, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
+              placeholder="CS-TR-4X7K" value={cedula}
+              onChange={e => setCedula(e.target.value.toUpperCase())} />
+            <div style={{ fontSize: '11px', color: '#7A8FAD', marginTop: '4px' }}>Tu empresa te dio este ID cuando te registraron</div>
           </div>
           <div style={{ marginBottom: '20px' }}>
             <label style={S.label}>Contrasena</label>
@@ -612,7 +654,7 @@ export default function Conductor() {
           <button onClick={handleLogin} disabled={cargando} style={S.btn()}>{cargando ? 'Iniciando sesion...' : 'Entrar →'}</button>
           <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#7A8FAD', lineHeight: 1.6 }}>
             Primera vez?{' '}
-            <span style={{ color: '#F97316', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/conductor?registro=true')}>Solicitar acceso →</span>
+            <span style={{ color: '#7A8FAD' }}>Contacta a tu empresa para que te registren.</span>
           </div>
           <button onClick={() => navigate('/login')} style={{ ...S.btnOutline, marginTop: '12px', fontSize: '13px' }}>← Volver al login empresarial</button>
         </div>
